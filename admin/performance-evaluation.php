@@ -7,7 +7,7 @@
     <section id="dashboard">
         <div class="performance-and-button">
             <h2>PERFORMANCE EVALUATION</h2>
-            <a href="edit_performance_criteria.php" class="btn btn-danger">Edit Performance Criteria</a>
+            <a href="edit_performance_criteria" class="btn btn-danger">Edit Performance Criteria</a>
         </div>      
         
         <?php
@@ -114,7 +114,7 @@
             <div class="form-group">
             <?php
     // Query to get performance criteria
-    $performance_sql = "SELECT * FROM performance_criteria";
+    $performance_sql = "SELECT * FROM performance_criteria WHERE is_archived = 0";
     $performance_result = mysqli_query($conn, $performance_sql);
 
     if ($performance_result) {

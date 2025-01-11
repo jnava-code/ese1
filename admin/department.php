@@ -192,7 +192,7 @@ if (isset($_POST['restore_name'])) {
         </table>
     </div>
     
-        <h2 class="text-2xl font-bold mb-6">EMPLOYEES BY DEPARTMENT</h2> 
+        <h2 class="text-2xl font-bold mb-6">EMPLOYEES PER DEPARTMENT</h2> 
         <!-- Employee List -->
         <div class="card">
             <div class="card-header">
@@ -269,7 +269,7 @@ if (isset($_POST['restore_name'])) {
     const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
     const addDeptBtn = document.getElementById("add-dept-btn");
     const addDeptCont = document.querySelector(".add-dept-content");
-    const deptBack =document.querySelector(".dept-background");
+    const deptBack = document.querySelector(".dept-background");
 
     if(employeeIdDisplay) {
         employeeIdDisplay.forEach(display => {
@@ -281,14 +281,14 @@ if (isset($_POST['restore_name'])) {
         })
     }
     function addOrRemove(decision) {
-    if (decision === "add") {
-        addDeptCont.classList.add("show");
-        deptBack.classList.add("show");
-    } else {
-        addDeptCont.classList.remove("show");
-        deptBack.classList.remove("show");
+        if (decision === "add") {
+            addDeptCont.classList.add("show");
+            deptBack.classList.add("show");
+        } else {
+            addDeptCont.classList.remove("show");
+            deptBack.classList.remove("show");
+        }
     }
-}
 
     addDeptBtn.addEventListener("click", e => {
         e.preventDefault();

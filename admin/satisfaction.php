@@ -67,6 +67,7 @@
             SELECT 
                 e.employee_id, 
                 CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS full_name, 
+                ss.survey_id,
                 ss.survey_date, 
                 ss.overall_rating, 
                 ss.rating_description
@@ -78,7 +79,7 @@
         $result = mysqli_query($conn, $query);
         if ($result) {
             echo '<table id="myTable">';
-            echo '<thead><tr><th>Employee Name</th><th>Survey Date</th><th>Rating</th><th>Feedback</th></tr></thead>';
+            echo '<thead><tr><th>Employee Name</th><th>Survey Date</th><th>Rating</th><th>Feedback</th><th>Action</th></tr></thead>';
             echo '<tbody>';
             while ($row = mysqli_fetch_assoc($result)) {
                 echo '<tr>';
@@ -86,11 +87,23 @@
                 echo '<td>' . ($row['survey_date'] ? $row['survey_date'] : 'Not Answered') . '</td>';
                 echo '<td>' . ($row['overall_rating'] ? $row['overall_rating'] : 'No Rating') . '</td>';
                 echo '<td>' . ($row['rating_description'] ? $row['rating_description'] : 'No Feedback') . '</td>';
+                // Fixing the if condition by adding the missing closing parenthesis and ensuring proper logic
+                if ($row['survey_date'] != null || $row['overall_rating'] != null || $row['rating_description'] != null) {
+                    echo '<td>' 
+                        . '<div class="action-buttons">'
+                            . '<a href="view_satisfaction?id=' . $row['survey_id'] . '" class="btn">View</a>'
+                        . '</div>'
+                    . '</td>';
+                } else {
+                    echo '<td>-----</td>';
+                }
+        
                 echo '</tr>';
             }
             echo '</tbody>';
             echo '</table>';
         }
+        
 
         mysqli_close($conn); // Close connection after all queries
         ?>

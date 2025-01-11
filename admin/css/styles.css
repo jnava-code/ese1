@@ -121,6 +121,16 @@ table th {
   margin-right: 5px;
 }
 
+.btn-view {
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
 .btn-restore {
   background-color: green !important;
 }
@@ -554,11 +564,14 @@ textarea.form-control {
   justify-content: space-between;
 }
 
+.add-criteria-content,
+.criteria-background,
 .add-dept-content,
 .dept-background{
   display: none;
 }
 
+.add-criteria-content.show,
 .add-dept-content.show {
   display: block;
 
@@ -574,31 +587,37 @@ textarea.form-control {
   z-index: 50;
 }
 
+.criteria-background.show,
 .dept-background.show {
   display: block;
 }
 
+.add-criteria-content .label-and-input,
 .add-dept-content .label-and-input {
   display: flex;
   gap: 10px;
   flex-direction: column;
 }
 
+.add-criteria-content .label-and-input label,
 .add-dept-content .label-and-input label {
   font-weight: 600;
 }
 
+.add-criteria-content .label-and-input #criteria_name,
 .add-dept-content .label-and-input #dept_name {
   padding: 5px;
   border-radius: 5px;
   border: 1px solid #ddd;
 }
 
+.add-criteria-content .action-buttons,
 .add-dept-content .action-buttons {
   display: flex;
   justify-content: end;
 }
 
+.criteria-background,
 .dept-background {
   position: fixed;
   top: 0;
