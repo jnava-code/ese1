@@ -18,42 +18,42 @@
 
     // Add Employee
     if (isset($_POST['add_employee'])) {
-        $last_name = $_POST['last_name'];
-        $first_name = $_POST['first_name'];
-        $middle_name = $_POST['middle_name'];
-        $suffix = $_POST['suffix'];
-        $email = $_POST['email'];
-        $position = $_POST['position'];
-        $hire_date = $_POST['hire_date'];
-        $department = $_POST['department'];
-        $employment_status = $_POST['employment_status'];
-        $employee_id = $_POST['employee_id'];
-        $employee_id = preg_replace('/[^0-9-]/', '', $employee_id); // Remove any non-numeric characters except hyphens
-        $date_of_birth = $_POST['date_of_birth'];
+        // Retrieve POST values
+        $last_name = $_POST['last_name'] ?? '';
+        $first_name = $_POST['first_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $suffix = $_POST['suffix'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $position = $_POST['position'] ?? '';
+        $hire_date = $_POST['hire_date'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $employment_status = $_POST['employment_status'] ?? '';
+        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
+        $date_of_birth = $_POST['date_of_birth'] ?? '';
         $password = generatePasswordFromBday($date_of_birth);
-        $contact_number = $_POST['contact_number'];
-        $perma_address = $_POST['perma_address'];
-        $civil_status = $_POST['civil_status'];
-        $sss_number = $_POST['sss_number'];
-        $philhealth_number = $_POST['philhealth_number'];
-        $pagibig_number = $_POST['pagibig_number'];
-        $tin_number = $_POST['tin_number'];
-        $emergency_contact_name = $_POST['emergency_contact_name'];
-        $emergency_contact_number = $_POST['emergency_contact_number'];
-        $educational_background = $_POST['educational_background'];
-        $skills = $_POST['skills'];
-        $username = $_POST['username'];
-        $sick_leave = $_POST['sick_leave'];
-        $vacation_leave = $_POST['vacation_leave'];
-        $maternity_leave = $_POST['maternity_leave'];
-        $paternity_leave = $_POST['paternity_leave'];
-           
-        // File uploads with fallback
+        $contact_number = $_POST['contact_number'] ?? '';
+        $perma_address = $_POST['perma_address'] ?? '';
+        $civil_status = $_POST['civil_status'] ?? '';
+        $sss_number = $_POST['sss_number'] ?? '';
+        $philhealth_number = $_POST['philhealth_number'] ?? '';
+        $pagibig_number = $_POST['pagibig_number'] ?? '';
+        $tin_number = $_POST['tin_number'] ?? '';
+        $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
+        $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
+        $educational_background = $_POST['educational_background'] ?? '';
+        $skills = $_POST['skills'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $sick_leave = $_POST['sick_leave'] ?? 0;
+        $vacation_leave = $_POST['vacation_leave'] ?? 0;
+        $maternity_leave = $_POST['maternity_leave'] ?? 0;
+        $paternity_leave = $_POST['paternity_leave'] ?? 0;
+    
+        // File uploads
         function getFileContent($fieldName) {
-            if (isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK) {
-                return file_get_contents($_FILES[$fieldName]['tmp_name']);
-            }
-            return null; // Handle missing file gracefully
+            return isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK
+                ? file_get_contents($_FILES[$fieldName]['tmp_name'])
+                : null;
         }
     
         $file_medical = getFileContent('file_medical');
@@ -63,79 +63,65 @@
         $file_prc = getFileContent('file_prc');
         $file_201 = getFileContent('file_201');
     
-        $sql = "SELECT * FROM employees WHERE employee_id=?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('s', $employee_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Initialize error message
+        $errmsg = '';
     
-        if ($result && $result->num_rows > 0) {
-            $errmsg = "Employee ID $employee_id is already used.";
-        } else {
+        // Check for uniqueness
+        function isFieldUnique($conn, $field, $value, $fieldName) {
+            $sql = "SELECT $field FROM employees WHERE $field = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $value);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                return "$fieldName - '$value' is already in use.<br>";
+            }
+            return '';
+        }
+    
+        $errmsg .= isFieldUnique($conn, 'employee_id', $employee_id, 'Employee ID');
+        $errmsg .= isFieldUnique($conn, 'sss_number', $sss_number, 'SSS Number');
+        $errmsg .= isFieldUnique($conn, 'philhealth_number', $philhealth_number, 'PhilHealth Number');
+        $errmsg .= isFieldUnique($conn, 'pagibig_number', $pagibig_number, 'Pag-IBIG Number');
+        $errmsg .= isFieldUnique($conn, 'tin_number', $tin_number, 'TIN Number');
+    
+        // Proceed if no errors
+        if (empty($errmsg)) {
             $sql = "INSERT INTO employees (
-                last_name, first_name, middle_name, suffix, email, position, hire_date, department, 
-                employment_status, employee_id, password, date_of_birth, contact_number, perma_address, 
-                civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name, 
-                emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave, maternity_leave, paternity_leave, 
-                medical, tor, nbi_clearance, resume, prc, others
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
+                employment_status, employee_id, password, date_of_birth, contact_number, perma_address,
+                civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
+                emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
+                maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
             $stmt = $conn->prepare($sql);
-    
-            // Bind parameters
             $stmt->bind_param(
-                "ssssssssssssssssssssssssssssbbbbbb",
-                $last_name,
-                $first_name,
-                $middle_name,
-                $suffix,
-                $email,
-                $position,
-                $hire_date,
-                $department,
-                $employment_status,
-                $employee_id,
-                $password,
-                $date_of_birth,
-                $contact_number,
-                $perma_address,
-                $civil_status,
-                $sss_number,
-                $philhealth_number,
-                $pagibig_number,
-                $tin_number,
-                $emergency_contact_name,
-                $emergency_contact_number,
-                $educational_background,
-                $skills,
-                $username,
-                $sick_leave,
-                $vacation_leave,
-                $maternity_leave,
-                $paternity_leave,
-                $file_medical,
-                $file_tor,
-                $file_police,
-                $file_resume,
-                $file_prc,
-                $file_201
+                "sssssssssssssssssssssssssssssbbbbbb",
+                $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
+                $department, $employment_status, $employee_id, $password, $date_of_birth, $contact_number,
+                $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
+                $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
+                $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
+                $file_police, $file_resume, $file_prc, $file_201
             );
     
-            // Use send_long_data for binary files if needed
-            $stmt->send_long_data(26, $file_medical);
-            $stmt->send_long_data(27, $file_tor);
-            $stmt->send_long_data(28, $file_police);
-            $stmt->send_long_data(29, $file_resume);
-            $stmt->send_long_data(30, $file_prc);
-            $stmt->send_long_data(31, $file_201);
-
+            // Handle binary files
+            if ($file_medical !== null) $stmt->send_long_data(26, $file_medical);
+            if ($file_tor !== null) $stmt->send_long_data(27, $file_tor);
+            if ($file_police !== null) $stmt->send_long_data(28, $file_police);
+            if ($file_resume !== null) $stmt->send_long_data(29, $file_resume);
+            if ($file_prc !== null) $stmt->send_long_data(30, $file_prc);
+            if ($file_201 !== null) $stmt->send_long_data(31, $file_201);
+    
             if ($stmt->execute()) {
-                $successmsg = "The employee, " . $first_name . " " . $last_name . ", has been successfully added.";
+                $successmsg = "The employee, $first_name $last_name, has been successfully added.";
             } else {
                 $errmsg = "An error occurred: " . $stmt->error;
-            }       
+            }
         }
     }
+    
 
     // Archive Employee (instead of delete)
     if (isset($_GET['delete_id'])) {
@@ -155,7 +141,9 @@ if (isset($_GET['search'])) {
 
 // Modify the SQL query to exclude archived employees
 $sql = "SELECT * FROM employees WHERE is_archived = 0";
+
 if (!empty($searchQuery)) {
+    // Modify the query to include sorting by `id` in descending order
     $sql .= " AND (LOWER(last_name) LIKE LOWER(?) 
               OR LOWER(first_name) LIKE LOWER(?) 
               OR LOWER(middle_name) LIKE LOWER(?) 
@@ -176,23 +164,33 @@ if (!empty($searchQuery)) {
               OR LOWER(emergency_contact_number) LIKE LOWER(?) 
               OR LOWER(educational_background) LIKE LOWER(?) 
               OR LOWER(skills) LIKE LOWER(?)
-              OR LOWER(username) LIKE LOWER(?)";
+              OR LOWER(username) LIKE LOWER(?))";
+    
+    // Add the ORDER BY clause to sort by 'id' in descending order
+    $sql .= " ORDER BY id DESC";
+
     $stmt = mysqli_prepare($conn, $sql);
     $searchParam = '%' . $searchQuery . '%';
-    // Now we bind the parameters for all the fields
+    
+    // Bind the parameters for all the fields
     mysqli_stmt_bind_param($stmt, 'ssssssssssssssssssss', 
-    $searchParam, $searchParam, $searchParam, $searchParam, 
-    $searchParam, $searchParam, $searchParam, $searchParam, 
-    $searchParam, $searchParam, $searchParam, $searchParam, 
-    $searchParam, $searchParam, $searchParam, $searchParam, 
-    $searchParam, $searchParam, $searchParam, $searchParam,
-    $searchParam
-);
+        $searchParam, $searchParam, $searchParam, $searchParam, 
+        $searchParam, $searchParam, $searchParam, $searchParam, 
+        $searchParam, $searchParam, $searchParam, $searchParam, 
+        $searchParam, $searchParam, $searchParam, $searchParam, 
+        $searchParam, $searchParam, $searchParam, $searchParam,
+        $searchParam
+    );
+
+    // Execute the query
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 } else {
+    // If no search query, just retrieve all employees and order by 'id' descending
+    $sql .= " ORDER BY id DESC";
     $result = mysqli_query($conn, $sql);
 }
+
 // Function to validate employee data
 function validateEmployeeData($data) {
     $errors = [];
@@ -255,18 +253,10 @@ function generatePasswordFromBday($date_of_birth) {
     </div>
     <div class="card-body">
         <form method="POST" enctype="multipart/form-data">
-            <?php
-            if($errmsg)
-                echo '<p style="color: #FF0000; font-weight: bold;">' . $errmsg . '</p>';
-            ?>
+        <?php if (!empty($errmsg)) echo "<p style='color: red;'>$errmsg</p>"; ?>
+        <?php if (!empty($successmsg)) echo "<p style='color: green;'>$successmsg</p>"; ?>
 
-            <?php
-            if($successmsg) {
-                echo '<p style="color: #008000; font-weight: bold;">' . $successmsg . '</p>';
-            }
-            ?>
-
-            
+      
             <div class="form-row">
             <div class="col-md-4">
                     <label for="first_name">First Name</label>
@@ -301,6 +291,14 @@ function generatePasswordFromBday($date_of_birth) {
             </div>
 
             <div class="form-row">
+                <div class="col-md-6">
+                    <label for="gender">Sex</label>
+                    <select id="gender" name="gender" class="form-control" required>
+                        <option value="">Select Sex</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
                 <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
                     <input type="text" class="form-control" name="contact_number" placeholder="e.g., 09123456789" required>
@@ -367,14 +365,17 @@ function generatePasswordFromBday($date_of_birth) {
                     <label for="department">Department</label>
                     <select name="department" class="form-control" required>
                         <option value="">Select Department</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Chemical">Chemical</option>
-                        <option value="Procurement">Procurement</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Sales & Marketing">Sales & Marketing</option>
-                        <option value="Technical">Technical</option>
-                        <option value="Technical Sales">Technical Sales</option>
-                        <option value="Work Order">Work Order</option>
+                        <?php 
+                            $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+                            $deptResult = mysqli_query($conn, $deptSelect);
+
+                            if($deptResult) {
+                                while($row = mysqli_fetch_assoc($deptResult)) {         
+                        ?>
+                            <option value="<?php echo $row['dept_name']?>"><?php echo $row['dept_name']?></option>
+                        <?php }
+                            }
+                        ?>
                     </select>
                 </div>
             </div>
@@ -452,22 +453,22 @@ function generatePasswordFromBday($date_of_birth) {
                 </div>
 
                 <div class="form-row">
-                    <div class="col-md-6">
+                    <div id="sick_leave_container" class="col-md-6">
                         <label for="sick_leave">Sick Leave</label>
                         <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="vacation_leave_container" class="col-md-6">
                         <label for="vacation_leave">Vacation Credit</label>
                         <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="maternity_leave_container" class="col-md-6">
                         <label for="maternity_leave">Maternity Credit</label>
                         <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="paternity_leave_container" class="col-md-6">
                         <label for="paternity_leave">Paternity Credit</label>
                         <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" readonly>
                     </div>
@@ -546,7 +547,7 @@ function generatePasswordFromBday($date_of_birth) {
                 ?>
                     <tr>
                         <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
-                        <td id="employee_id"><?php echo $employee['employee_id']; ?></td>
+                        <td class="employee_id_display"><?php echo $employee['employee_id']; ?></td>
                         <td>
                             <?php
                                 // Combine first name, middle name, and last name with proper formatting
@@ -561,7 +562,8 @@ function generatePasswordFromBday($date_of_birth) {
                             ?>
                         </td>
 
-                        <td><?php echo $employee['position']; ?></td>                     <td><?php echo $employee['department']; ?></td>
+                        <td><?php echo $employee['position']; ?></td>                     
+                        <td><?php echo $employee['department']; ?></td>
                         <td><?php echo $employee['email']; ?></td>
                         <td>
                             <span class="<?php echo $employee['employment_status'] === 'Active' ? 'status-active' : 'status-inactive'; ?>">
@@ -585,43 +587,107 @@ function generatePasswordFromBday($date_of_birth) {
 </style>
 <script>
     const employeeId = document.getElementById("employee_id");
-    let value = employeeId.value;
-            
-    if (value && value.length > 2) {
-        value = value.slice(0, 2) + '-' + value.slice(2, 5);
+    const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
+    // const employeeIdDataset = document.getElementById("employee_id_display");
+    const sickContainer = document.getElementById("sick_leave_container");
+    const vacationContainer = document.getElementById("vacation_leave_container");
+    const maternityContainer = document.getElementById("maternity_leave_container");
+    const paternityContainer = document.getElementById("paternity_leave_container");
+    const employmentStatus = document.getElementById("employment_status");
+    const genderInput = document.getElementById("gender");
+    
+    if(employeeIdDisplay) {
+        employeeIdDisplay.forEach(display => {
+            let validDisplayValue = display.textContent.replace(/[^0-9]/g, '');
+            // Apply format: 00-000
+            if (display.textContent.length > 2) {
+                display.textContent = validDisplayValue.slice(0, 2) + '-' + validDisplayValue.slice(2, 5);
+            }
+        })
     }
     
-    employeeId.value = value;
-    
-    document.getElementById("employment_status").addEventListener("change", e => {
-        const value = e.target.value;
+    // Initially hide all leave containers
+    leaveContainers("none", "none", "none", "none");
+
+    // Function to set leave credits based on the values
+    function leaveCredits(sickValue, vacationValue, maternityValue, paternityValue) {
+        document.getElementById("sick_leave").value = sickValue;
+        document.getElementById("vacation_leave").value = vacationValue;
+        document.getElementById("maternity_leave").value = maternityValue;
+        document.getElementById("paternity_leave").value = paternityValue;
+    }
+
+    // Function to show/hide leave containers
+    function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
+        sickContainer.style.display = sickDisplay;
+        vacationContainer.style.display = vacationDisplay;
+        maternityContainer.style.display = maternityDisplay;
+        paternityContainer.style.display = paternityDisplay;
+    }
+
+    // Event listener for gender change
+    genderInput.addEventListener("change", e => {
+        const genderValue = e.target.value;
         
-        if(value == "Regular") {
-            document.getElementById("sick_leave").value = 12;
-            document.getElementById("vacation_leave").value = 12;
-            document.getElementById("maternity_leave").value = 105;
-            document.getElementById("paternity_leave").value = 7;
+        // Update leave credits and containers based on gender
+        if (genderValue == "Male") {
+            leaveCredits(12, 12, 0, 7);
+            leaveContainers("block", "block", "none", "block");      
+        } else if (genderValue == "Female") {
+            leaveCredits(12, 12, 135, 0);
+            leaveContainers("block", "block", "block", "none");  
         } else {
-            document.getElementById("sick_leave").value = 0;
-            document.getElementById("vacation_leave").value = 0;
-            document.getElementById("maternity_leave").value = 0;
-            document.getElementById("paternity_leave").value = 0;
+            leaveCredits(0, 0, 0, 0);
+            leaveContainers("none", "none", "none", "none");  
         }
+
+        // Update leave credits when gender is changed
+        updateLeaveBasedOnEmploymentStatus();  
     });
-    
+
+    // Event listener for employment status change
+    employmentStatus.addEventListener("change", e => {
+        // Trigger leave credits update based on both employment status and gender
+        updateLeaveBasedOnEmploymentStatus();
+    });
+
+    // Function to update leave credits based on employment status and gender
+    function updateLeaveBasedOnEmploymentStatus() {
+        const genderValue = genderInput.value;
+        const employmentValue = employmentStatus.value;
+
+        // Determine leave credits based on employment status and gender
+        if (employmentValue == "Regular") {
+            if (genderValue == "Male") {
+                leaveCredits(12, 12, 0, 7);
+                leaveContainers("block", "block", "none", "block");      
+            } else if (genderValue == "Female") {
+                leaveCredits(12, 12, 135, 0);
+                leaveContainers("block", "block", "block", "none");  
+            }
+        } else {
+            // If employment is not regular, set all leave credits to 0
+            leaveCredits(0, 0, 0, 0);
+            leaveContainers("none", "none", "none", "none");
+        }
+    }
+
+    // Initial update based on the current values of gender and employment status
+    updateLeaveBasedOnEmploymentStatus();
+           
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function (event) {
-        const parent = this.parentElement;
+        toggle.addEventListener('click', function (event) {
+            const parent = this.parentElement;
 
-        // Prevent the link's default behavior
-        event.preventDefault();
+            // Prevent the link's default behavior
+            event.preventDefault();
 
-        // Toggle the active class
-        parent.classList.toggle('active');
+            // Toggle the active class
+            parent.classList.toggle('active');
 
-        
-    });
-}); 
+            
+        });
+    }); 
 
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', function (e) {
@@ -629,7 +695,7 @@ document.querySelectorAll('input').forEach(input => {
         // Remove any non-numeric characters
         let validValue = value.replace(/[^0-9]/g, '');
         // / Check if the input field is for first name (or other fields where numbers are not allowed)
-        if (input.name === "first_name" || input.name === "middle_name" || input.name === "last_name" || input.name === "emergency_contact_name") {
+        if (input.name === "first_name" || input.name === "middle_name" || input.name === "last_name" || input.name === "emergency_contact_name" || input.name === "skills") {
             const validValue = value.replace(/[^a-zA-Z\s]/g, '');
             // If the value changed (i.e., it had invalid characters), set it to the valid value
             if (value !== validValue) {
@@ -638,9 +704,8 @@ document.querySelectorAll('input').forEach(input => {
 
             return;
         } 
-
         // Handle contact number fields (allow only numbers and exactly 11 digits)
-        else if(input.name === "contact_number" || input.name === "emergency_contact_number") {
+        if(input.name === "contact_number" || input.name === "emergency_contact_number") {
             // If the value changed (i.e., it had invalid characters), set it to the valid value
             if (value !== validValue) {
                 e.target.value = validValue;
@@ -658,12 +723,22 @@ document.querySelectorAll('input').forEach(input => {
 
             return;
         } 
-
+        
         // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)
         if(input.name === "employee_id") {
             // Apply format: 00-000
             if (value.length > 2) {
                 value = validValue.slice(0, 2) + '-' + validValue.slice(2, 5);
+            }
+
+            // Limit the value to 5 characters (including the hyphen)
+            if (value.length >= 5) {
+                this.style.borderColor = ''; // Reset the border color if valid
+                e.target.value = value.slice(0, 6);  // Ensure it is capped at 5 characters
+                return; // Stop further typing if it's already 5 characters
+            } else {
+                // If the value is not 5 characters, apply red border
+                this.style.borderColor = 'red';
             }
 
             // Prevent input if the value already has 5 digits (with the hyphen)

@@ -83,6 +83,10 @@
 
             <div class="form-row">
                 <div class="col-md-6">
+                    <label for="gender">Sex</label>
+                    <input type="text" class="form-control" name="gender" value="<?php  echo $employee['gender'] ?>" readonly>
+                </div>
+                <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
                     <input type="text" class="form-control" name="contact_number" placeholder="e.g., +63 912-345-6789" value="<?php  echo $employee['contact_number'] ?>" readonly>
                 </div>

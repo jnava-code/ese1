@@ -176,15 +176,20 @@ if (isset($_POST['submit'])) {
                 <label for="vacation_leave">Vacation Leave Credits:</label>
                 <input type="text" id="vacation_leave" name="vacation_leave" value="<?php echo $vacation_leave . ' ' . 'days'; ?>" readonly>
             </div>
-            <div>
-                <label for="maternity_leave">Maternity Leave Credits:</label>
-                <input type="text" id="maternity_leave" name="maternity_leave" value="<?php echo $maternity_leave . ' ' . 'days'; ?>" readonly>
-            </div>
-            <div>
-                <label for="paternity_leave">Paternity Leave Credits:</label>
-                <input type="text" id="paternity_leave" name="paternity_leave" value="<?php echo $paternity_leave . ' ' . 'days'; ?>" readonly>
-            </div>
-
+            <?php 
+                if($_SESSION['gender'] == "Male") {
+                    echo '<div>
+                            <label for="paternity_leave">Paternity Leave Credits:</label>
+                            <input type="text" id="paternity_leave" name="paternity_leave" value="' . $paternity_leave . ' days" readonly>
+                        </div>';
+                } else {
+                    echo '<div>
+                            <label for="maternity_leave">Maternity Leave Credits:</label>
+                            <input type="text" id="maternity_leave" name="maternity_leave" value="' . $maternity_leave . ' days" readonly>
+                        </div>';
+                }
+            ?>
+       
             <div>
                 <label for="start_date">Start Date:</label>
                 <input type="date" id="start_date" name="start_date" required min="<?= date('Y-m-d'); ?>">
@@ -203,10 +208,15 @@ if (isset($_POST['submit'])) {
             <div>
                 <label for="leave_type">Leave Type:</label>
                 <select id="leave_type" name="leave_type" required>
-                    <option value="Sick">Sick</option>
+                    <option value="Sick">Sick</option>                 
                     <option value="Vacation">Vacation</option>
-                    <option value="Maternity">Maternity</option>
-                    <option value="Paternity">Paternity</option>
+                    <?php 
+                        if($_SESSION['gender'] == "Male") {
+                            echo '<option value="Paternity">Paternity</option>';                     
+                        } else {
+                            echo '<option value="Maternity">Maternity</option>';
+                        }     
+                    ?>              
                 </select>
             </div>
 

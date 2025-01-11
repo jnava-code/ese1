@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $current_time_unix = strtotime($current_time); // Convert to UNIX timestamp
 
     // Check if employee exists
-    $sql = "SELECT * FROM employees WHERE employee_id = '$employee_id'";
+    $sql = "SELECT * FROM employees WHERE employee_id = '$employee_id' AND is_archived = 0";
     $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) == 1) {

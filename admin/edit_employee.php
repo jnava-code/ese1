@@ -38,12 +38,14 @@
         $first_name = $_POST['first_name'];
         $middle_name = $_POST['middle_name'];
         $suffix = $_POST['suffix'];
+        $gender = $_POST['gender'];
         $email = $_POST['email'];
         $position = $_POST['position'];
         $hire_date = $_POST['hire_date'];
         $department = $_POST['department'];
         $employment_status = $_POST['employment_status'];
         $employee_id = $_POST['employee_id'];
+        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
         // $password = $_POST['password'];  // Ensure password is retrieved
         $date_of_birth = $_POST['date_of_birth'];
         $contact_number = $_POST['contact_number'];
@@ -65,7 +67,7 @@
 
         // Ensure that the SQL query is correct
         $sql = "UPDATE employees 
-                SET last_name=?, first_name=?, middle_name=?, suffix=?, email=?, 
+                SET last_name=?, first_name=?, middle_name=?, suffix=?, gender=?, email=?, 
                     position=?, hire_date=?, department=?, employment_status=?,
                     employee_id=?, date_of_birth=?, contact_number=?, perma_address=?,
                     civil_status=?, sss_number=?, philhealth_number=?, pagibig_number=?,
@@ -77,8 +79,8 @@
         $stmt = $conn->prepare($sql);
     
         // Correct the bind_param call: Match the correct number of placeholders with type definitions
-        $stmt->bind_param("sssssssssssssssssssssssssssi", 
-                          $last_name, $first_name, $middle_name, $suffix, $email, 
+        $stmt->bind_param("ssssssssssssssssssssssssssssi", 
+                          $last_name, $first_name, $middle_name, $suffix, $gender, $email, 
                           $position, $hire_date, $department, $employment_status, 
                           $employee_id, $date_of_birth, $contact_number, 
                           $perma_address, $civil_status, $sss_number, $philhealth_number, 
@@ -177,7 +179,15 @@
 
             <div class="form-row">
                 <div class="col-md-6">
-                    <label for="contact_number">Contact Number</label>
+                    <label for="gender">Sex</label>
+                    <select id="gender" name="gender" class="form-control" required>
+                        <option value="" <?php echo ($employee['gender'] == '') ? 'selected' : ''; ?>>Select Sex</option>
+                        <option value="Male" <?php echo ($employee['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
+                        <option value="Female" <?php echo ($employee['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="contact_number" >Contact Number</label>
                     <input type="text" class="form-control" name="contact_number" placeholder="e.g., +63 912-345-6789" value="<?php  echo $employee['contact_number'] ?>" required>
                 </div>
                 <div class="col-md-6">
@@ -234,15 +244,21 @@
                 <div class="col-md-6">
                     <label for="department">Department</label>
                     <select name="department" class="form-control" required>
-                        <option value="" <?php echo ($employee['department'] == '') ? 'selected' : ''; ?>>Select Department</option>
-                        <option value="Admin" <?php echo ($employee['department'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
-                        <option value="Chemical" <?php echo ($employee['department'] == 'Chemical') ? 'selected' : ''; ?>>Chemical</option>
-                        <option value="Procurement" <?php echo ($employee['department'] == 'Procurement') ? 'selected' : ''; ?>>Procurement</option>
-                        <option value="Sales" <?php echo ($employee['department'] == 'Sales') ? 'selected' : ''; ?>>Sales</option>
-                        <option value="Sales & Marketing" <?php echo ($employee['department'] == 'Sales & Marketing') ? 'selected' : ''; ?>>Sales & Marketing</option>
-                        <option value="Technical" <?php echo ($employee['department'] == 'Technical') ? 'selected' : ''; ?>>Technical</option>
-                        <option value="Technical Sales" <?php echo ($employee['department'] == 'Technical') ? 'selected' : ''; ?>>Technical Sales</option>
-                        <option value="Work Order" <?php echo ($employee['department'] == 'Work Order') ? 'selected' : ''; ?>>Work Order</option>
+                        <option value="">Select Department</option>
+                        <?php 
+                            $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+                            $deptResult = mysqli_query($conn, $deptSelect);
+
+                            if($deptResult) {
+                                while($row = mysqli_fetch_assoc($deptResult)) {         
+                        ?>
+                            <option value="<?php echo $row['dept_name']; ?>" 
+                                <?php echo ($employee['department'] == $row['dept_name']) ? 'selected' : ''; ?>>
+                                <?php echo $row['dept_name']; ?>
+                            </option>
+                        <?php }
+                            }
+                        ?>
                     </select>
                 </div>
             </div>
@@ -268,7 +284,7 @@
              <div class="form-row">
                 <div class="form-group col-md-6">
                 <label>Employment Status</label>
-                <select name="employment_status" class="form-control" required>
+                <select id="employment_status" name="employment_status" class="form-control" required>
                         <option value="" <?php echo ($employee['employment_status'] == '') ? 'selected' : ''; ?>>Employment Status</option>
                         <option value="Regular" <?php echo ($employee['employment_status'] == 'Regular') ? 'selected' : ''; ?>>Regular</option>
                         <option value="Probationary" <?php echo ($employee['employment_status'] == 'Probationary') ? 'selected' : ''; ?>>Probationary</option>
@@ -283,13 +299,13 @@
             <div class="form-row">
 
                 <div class="col-md-4">
-                <label for="date_of_birth">Username</label>
+                <label for="username">Username</label>
                     <input type="text" class="form-control" name="username" placeholder="Username" value="<?php  echo $employee['username'] ?>" required>
                 </div>
 
                 <div class="col-md-4">
-                <label for="date_of_birth">Employee ID</label>
-                    <input type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php  echo $employee['employee_id'] ?>" readonly>
+                <label for="employee_id">Employee ID</label>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php  echo $employee['employee_id'] ?>" readonly>
                 </div>
             </div>
 
@@ -316,24 +332,24 @@
             </div>
                         
             <div class="form-row">
-                    <div class="col-md-6">
-                        <label for="sick_leave">Sick Leave</label>
-                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] ?>"readonly>
+                    <div id="sick_leave_container" class="col-md-6">
+                        <label for="sick_leave"></label>
+                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] ?>">
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="vacation_leave_container" class="col-md-6">
                         <label for="vacation_leave">Vacation Credit</label>
-                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="<?php  echo $employee['vacation_leave'] ?>"readonly>
+                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="<?php  echo $employee['vacation_leave'] ?>">
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="maternity_leave_container" class="col-md-6">
                         <label for="maternity_leave">Maternity Credit</label>
-                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="<?php  echo $employee['maternity_leave'] ?>"readonly>
+                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="<?php  echo $employee['maternity_leave'] ?>">
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="paternity_leave_container" class="col-md-6">
                         <label for="paternity_leave">Paternity Credit</label>
-                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="<?php  echo $employee['paternity_leave'] ?>"readonly>
+                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="<?php  echo $employee['paternity_leave'] ?>">
                     </div>
                 </div>
 
@@ -393,7 +409,15 @@
 }
 </style>
 
-<script>
+<!-- <script>
+    const employeeId = document.getElementById("employee_id");
+
+    let validDisplayValue = employeeId.value.replace(/[^0-9]/g, '');
+    // Apply format: 00-000
+    if (employeeId.value.length > 2) {
+        employeeId.value = validDisplayValue.slice(0, 2) + '-' + validDisplayValue.slice(2, 5);
+    }
+
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
     toggle.addEventListener('click', function (event) {
         const parent = this.parentElement;
@@ -405,6 +429,192 @@
         parent.classList.toggle('active');
     });
 });
+
+</script> -->
+
+<script>
+    const employeeId = document.getElementById("employee_id");
+    const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
+    // const employeeIdDataset = document.getElementById("employee_id_display");
+    const sickContainer = document.getElementById("sick_leave_container");
+    const vacationContainer = document.getElementById("vacation_leave_container");
+    const maternityContainer = document.getElementById("maternity_leave_container");
+    const paternityContainer = document.getElementById("paternity_leave_container");
+    const employmentStatus = document.getElementById("employment_status");
+    const genderInput = document.getElementById("gender");
+    
+    let validDisplayValue = employeeId.value.replace(/[^0-9]/g, '');
+    // Apply format: 00-000
+    if (employeeId.value.length > 2) {
+        employeeId.value = validDisplayValue.slice(0, 2) + '-' + validDisplayValue.slice(2, 5);
+    }
+    
+    // Update leave credits and containers based on gender
+    if (genderInput.value == "Male") {
+        leaveContainers("block", "block", "none", "block");      
+    } else if (genderInput.value == "Female") {
+        leaveContainers("block", "block", "block", "none");  
+    } else {
+        leaveContainers("none", "none", "none", "none");  
+    }
+
+
+    // Function to set leave credits based on the values
+    function leaveCredits(sickValue, vacationValue, maternityValue, paternityValue) {
+        document.getElementById("sick_leave").value = sickValue;
+        document.getElementById("vacation_leave").value = vacationValue;
+        document.getElementById("maternity_leave").value = maternityValue;
+        document.getElementById("paternity_leave").value = paternityValue;
+    }
+
+    // Function to show/hide leave containers
+    function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
+        sickContainer.style.display = sickDisplay;
+        vacationContainer.style.display = vacationDisplay;
+        maternityContainer.style.display = maternityDisplay;
+        paternityContainer.style.display = paternityDisplay;
+    }
+
+    // Event listener for gender change
+    genderInput.addEventListener("change", e => {
+        const genderValue = e.target.value;
+        
+        // Update leave credits and containers based on gender
+        if (genderValue == "Male") {
+            leaveCredits(12, 12, 0, 7);
+            leaveContainers("block", "block", "none", "block");      
+        } else if (genderValue == "Female") {
+            leaveCredits(12, 12, 135, 0);
+            leaveContainers("block", "block", "block", "none");  
+        } else {
+            leaveCredits(0, 0, 0, 0);
+            leaveContainers("none", "none", "none", "none");  
+        }
+
+        // Update leave credits when gender is changed
+        updateLeaveBasedOnEmploymentStatus();  
+    });
+
+    // Event listener for employment status change
+    employmentStatus.addEventListener("change", e => {
+        // Trigger leave credits update based on both employment status and gender
+        updateLeaveBasedOnEmploymentStatus();
+    });
+
+    // Function to update leave credits based on employment status and gender
+    function updateLeaveBasedOnEmploymentStatus() {
+        const genderValue = genderInput.value;
+        const employmentValue = employmentStatus.value;
+
+        // Determine leave credits based on employment status and gender
+        if (employmentValue == "Regular") {
+            if (genderValue == "Male") {
+                leaveCredits(12, 12, 0, 7);
+                leaveContainers("block", "block", "none", "block");      
+            } else if (genderValue == "Female") {
+                leaveCredits(12, 12, 135, 0);
+                leaveContainers("block", "block", "block", "none");  
+            }
+        } else {
+            // If employment is not regular, set all leave credits to 0
+            leaveCredits(0, 0, 0, 0);
+            leaveContainers("none", "none", "none", "none");
+        }
+    }
+
+    // Initial update based on the current values of gender and employment status
+    updateLeaveBasedOnEmploymentStatus();
+           
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function (event) {
+            const parent = this.parentElement;
+
+            // Prevent the link's default behavior
+            event.preventDefault();
+
+            // Toggle the active class
+            parent.classList.toggle('active');
+
+            
+        });
+    }); 
+
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', function (e) {
+        let value = e.target.value;
+        // Remove any non-numeric characters
+        let validValue = value.replace(/[^0-9]/g, '');
+        // / Check if the input field is for first name (or other fields where numbers are not allowed)
+        if (input.name === "first_name" || input.name === "middle_name" || input.name === "last_name" || input.name === "emergency_contact_name" || input.name === "skills") {
+            const validValue = value.replace(/[^a-zA-Z\s]/g, '');
+            // If the value changed (i.e., it had invalid characters), set it to the valid value
+            if (value !== validValue) {
+                e.target.value = validValue;
+            }
+
+            return;
+        } 
+        // Handle contact number fields (allow only numbers and exactly 11 digits)
+        if(input.name === "contact_number" || input.name === "emergency_contact_number") {
+            // If the value changed (i.e., it had invalid characters), set it to the valid value
+            if (value !== validValue) {
+                e.target.value = validValue;
+            }
+
+            // Prevent input if the value already has 11 digits
+            if (validValue.length >= 11) {
+                e.target.value = validValue.slice(0, 11); // Ensure the value is exactly 11 digits
+                this.style.borderColor = ''; // Reset the border color
+                return; // Stop further typing
+            } else {
+                // If the value is not exactly 11 digits, apply red border
+                this.style.borderColor = 'red';
+            }
+
+            return;
+        } 
+        
+        // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)
+        if(input.name === "employee_id") {
+            // Apply format: 00-000
+            if (value.length > 2) {
+                value = validValue.slice(0, 2) + '-' + validValue.slice(2, 5);
+            }
+
+            // Limit the value to 5 characters (including the hyphen)
+            if (value.length >= 5) {
+                this.style.borderColor = ''; // Reset the border color if valid
+                e.target.value = value.slice(0, 6);  // Ensure it is capped at 5 characters
+                return; // Stop further typing if it's already 5 characters
+            } else {
+                // If the value is not 5 characters, apply red border
+                this.style.borderColor = 'red';
+            }
+
+            // Prevent input if the value already has 5 digits (with the hyphen)
+            if (validValue.length >= 5) {
+                this.style.borderColor = ''; // Reset the border color
+                return; // Stop further typing
+            } else {
+                // If the value is not exactly 5 digits, apply red border
+                this.style.borderColor = 'red';
+            }
+
+            e.target.value = value
+            return;
+        }
+
+        if (!this.checkValidity()) {
+            this.style.borderColor = 'red';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+});
+
+// $(document).ready( function () {
+//     $('#myTable').DataTable();
+//   });
 
 </script>
         <?php include('footer.php'); ?>

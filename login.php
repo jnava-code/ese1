@@ -23,13 +23,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "hashed" => true // Indicates password is hashed
         ],
         [
-            "query" => "SELECT id, employee_id, username, password, first_name, last_name, user_type FROM employees WHERE username = ? AND e_status = 1",
+            "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type FROM employees WHERE username = ? AND e_status = 1",
             "hashed" => false // Plain-text password
         ],
-        [
-            "query" => "SELECT id, username, password, a_name as first_name, '' as last_name, user_type FROM user WHERE username = ? AND status = 1",
-            "hashed" => false // Plain-text password
-        ]
     ];
 
     // Loop through queries to find the user
@@ -62,6 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['user_type'] = $row['user_type'];
                 $_SESSION['fullname'] = $row['first_name'] . ' ' . $row['last_name'];
+                $_SESSION['gender'] = $row['gender'];
                 $_SESSION['employee_id'] = $row['employee_id'];
 
                 // Redirect based on user type

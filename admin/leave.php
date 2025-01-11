@@ -83,17 +83,21 @@ $result = mysqli_query($conn, $sql);
                 <td><?php echo htmlspecialchars($row['reason']); ?></td>
                 <td><?php echo htmlspecialchars($row['status']); ?></td>
                 <td>
-                    <form action="./process_leave" method="POST">
-                        <input type="hidden" name="leave_id" value="<?php echo $row['leave_id']; ?>">
-                        <button type="submit" name="action" value="approve" 
-                            <?php echo ($row['status'] != 'Pending') ? 'disabled' : ''; ?>>
-                            Approve
-                        </button>
-                        <button type="submit" name="action" value="reject" 
-                            <?php echo ($row['status'] != 'Pending') ? 'disabled' : ''; ?>>
-                            Reject
-                        </button>
-                    </form>
+                    <?php
+                        if ($row['status'] == 'Pending') {
+                            echo '<form action="./process_leave" method="POST">
+                                    <input type="hidden" name="leave_id" value="' . $row['leave_id'] . '">
+                                    <button type="submit" name="action" value="approve">
+                                        Approve
+                                    </button>
+                                    <button type="submit" name="action" value="reject">
+                                        Reject
+                                    </button>
+                                </form>';
+                        } else {
+                            echo '-----';
+                        }
+                    ?>                 
                 </td>
             </tr>
         <?php } ?>
