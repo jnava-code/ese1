@@ -1,0 +1,526 @@
+* {
+  text-decoration: none;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+header {
+  background-color: #fff;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  background-color: #f9fafb;
+}
+
+/* General styles for cards */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.card-header h3 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* Form Row Layout */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Adds space between form fields */
+  margin-bottom: 20px; /* Adds spacing between rows */
+}
+
+.form-row .col-md-4,
+.form-row .col-md-6,
+.form-row .col-md-12 {
+  flex: 1;
+  min-width: 200px; /* Ensures a minimum width for form fields */
+}
+
+.form-control,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Add Employee Button */
+button[type="submit"] {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Employee List Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th,
+table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.status-inactive {
+  color: red;
+  font-weight: bold;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+.btn-warning:hover,
+.btn-danger:hover {
+  opacity: 0.8;
+}
+.btn-cancel {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #da3141;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+/* Search Bar Styling */
+form[method="GET"] {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+form[method="GET"] input[type="text"] {
+  padding: 8px 12px;
+  width: 250px;
+  border-radius: 4px;
+  border: 1px solid #a03939;
+  font-size: 14px;
+}
+
+/* Form Styles */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-control,
+.form-control:focus,
+select.form-control,
+textarea.form-control {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+select.form-control,
+textarea.form-control {
+  resize: vertical;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group .radio-choices {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 10px;
+  margin-left: 25px;
+}
+
+.radio-choice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.radio-choice input,
+.radio-choice .radio-label {
+  width: fit-content !important;
+}
+
+.col-md-4 {
+  grid-column: span 4;
+}
+
+.col-md-6 {
+  grid-column: span 6;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* Apply similar styling for both buttons */
+.btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.action-buttons {
+  display: flex;
+  gap: 0.5rem; /* Adjust the spacing between buttons */
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-right i {
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.header-right .profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.header-right .profile img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  width: 80px;
+  margin-right: 1rem;
+}
+
+.container {
+  display: flex;
+}
+
+/* .sidebar {
+  width: 200px;
+  background-color: #812828;
+  color: #fff;
+  padding-top: 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar ul li {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar ul li a i {
+  margin-right: 10px;
+}
+
+.sidebar ul li a:hover {
+  background-color: #ddd;
+  color: #c03142;
+}
+
+.dropdown ul.dropdown-menu {
+  display: none;
+  list-style: none;
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.dropdown ul.dropdown-menu li a {
+  font-size: 15px;
+  color: #f5f5f5;
+  padding: 5px 10px;
+}
+
+.dropdown:hover > .dropdown-menu {
+  display: block;
+}
+
+.toggle-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.dropdown:hover .toggle-icon {
+  transform: rotate(180deg);
+} */
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+
+  .sidebar ul li {
+    margin-bottom: 5px;
+  }
+}
+
+/* start of sidebar updated code //////////////////////////////////// */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px;
+  background-color: #812828;
+  color: #fff;
+  overflow-x: hidden;
+  transform: translateX(-250px);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+/* Sidebar content */
+.sidebar-content {
+  padding: 12px;
+}
+
+/* Hover area to trigger the sidebar */
+.hover-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 10px;
+  background-color: #333;
+  z-index: 1000;
+}
+
+/* Show sidebar on hover */
+.hover-area:hover ~ .sidebar,
+.sidebar:hover {
+  transform: translateX(0);
+}
+
+.sidebar ul {
+  list-style: none;
+  color: #fff;
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar ul li a:hover {
+  background-color: #ddd;
+  color: #c03142;
+  border-radius: 4px;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: white;
+  padding: 14px 0;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar ul li i {
+  margin-right: 5px;
+}
+
+.sidebar ul li .fa-chevron-down {
+  margin-right: 0;
+  margin-left: 5px;
+}
+
+.dropdown ul.dropdown-menu {
+  display: none;
+  list-style: none;
+  padding-left: 20px;
+  /* margin-top: 5px; */
+}
+
+.dropdown ul.dropdown-menu li a {
+  /* font-size: 15px; */
+  color: #f5f5f5;
+  padding: 12px 0;
+}
+
+.dropdown:hover > .dropdown-menu {
+  display: block;
+} /* end of sidebar updated code //////////////////////////////////// */
+
+/* ito yung css galing sa dashboard.php */
+/* Dashboard cards */
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  flex: 1;
+  text-align: center;
+  min-width: 200px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.dashboard-card p {
+  font-size: 18px;
+  color: #666;
+}
+
+.dashboard-card .icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+  color: #9c1111;
+} /* ito yung dulo ng css na galing sa dashboard.php */
