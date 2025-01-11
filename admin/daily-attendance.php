@@ -45,6 +45,7 @@ $sql = "
         a.date, 
         a.clock_in_time, 
         a.clock_out_time,
+        a.status,
         IFNULL(la.status, 'Absent') AS leave_status
     FROM attendance a
     LEFT JOIN employees e ON a.employee_id = e.employee_id
@@ -108,7 +109,7 @@ $totalPages = ceil($totalRows / $limit);
             <td><?php echo $row['date']; ?></td>
             <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
             <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
-            <td><?php echo $row['leave_status']; ?></td> <!-- Use leave_status directly here -->
+            <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
         </tr>
     <?php endwhile; ?>
 </tbody>

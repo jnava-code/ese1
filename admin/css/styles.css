@@ -543,10 +543,16 @@ textarea.form-control {
 /* dept-filter */
 .card-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: start;
+
 }
 
+.card-header .card-body {
+  width: 100%;
+  
+}
 #myTable_length {
   display: flex;
 }
