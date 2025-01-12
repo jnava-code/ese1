@@ -3,6 +3,21 @@
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
 
+<?php 
+    $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+    $deptResult = mysqli_query($conn, $deptSelect);
+
+    if ($deptResult) {
+        // Create an empty string to hold the options
+        $deptOptions = '';
+
+        while ($row = mysqli_fetch_assoc($deptResult)) {
+            // Generate the option and append it to the $options string
+            $deptOptions .= '<option value="' . htmlspecialchars($row['dept_name'], ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($row['dept_name'], ENT_QUOTES, 'UTF-8') . '</option>';
+        }
+    }
+?>
+
 <?php
 // Get current month and year
 $currentMonth = date('m');
@@ -21,82 +36,230 @@ for ($day = 1; $day <= date('t', $firstDayOfMonth); $day++) {
 // Fetch attendance data for each employee
 $month = date('Y-m'); // Get the current month in 'YYYY-MM' format
 
-$sql = "
-    SELECT 
-        CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
-        e.employee_id,
-        a.date,
-        IFNULL(la.status, 'Present') AS attendance_status
-    FROM employees e
-    LEFT JOIN attendance a ON e.employee_id = a.employee_id
-    LEFT JOIN leave_applications la ON e.employee_id = la.employee_id AND a.date BETWEEN la.start_date AND la.end_date
-    WHERE a.date LIKE '$month%'
-    ORDER BY e.employee_id, a.date";
-$attendanceResult = mysqli_query($conn, $sql);  // Use $sql here, not $attendanceQuery
-$attendanceData = [];
-while ($row = mysqli_fetch_assoc($attendanceResult)) {
-    $attendanceData[$row['employee_id']][] = $row;
-}
-?>
+if(isset($_POST['search'])) {
+    $whereClauses = [];
 
+    // Check if employee name is provided
+    if(!empty($_POST['employee_name'])) {
+        $employee_name = mysqli_real_escape_string($conn, $_POST['employee_name']);
+        $whereClauses[] = "(CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE '%$employee_name%' OR CONCAT(first_name, ' ', last_name) LIKE '%$employee_name%')";
+    }    
+
+    // Check if department is selected
+    if(!empty($_POST['department'])) {
+        $department = mysqli_real_escape_string($conn, $_POST['department']);
+        $whereClauses[] = "e.department = '$department'";
+    }
+
+    // Check if month is selected
+    if(!empty($_POST['month']) && isset($_POST['month'])) {
+        $month = (int)$_POST['month'] + 1; // Months in PHP are 0-based, so adding 1
+        $whereClauses[] = "MONTH(a.date) = $month";
+    }
+
+    // Check if year is selected
+    if(!empty($_POST['year'])) {
+        $year = mysqli_real_escape_string($conn, $_POST['year']);
+        $whereClauses[] = "YEAR(a.date) = $year";
+    }
+
+    // Construct the query
+    $sql = "
+        SELECT 
+            CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
+            e.employee_id,
+            a.date,
+            IFNULL(la.status, 'Present') AS attendance_status
+        FROM employees e
+        LEFT JOIN attendance a ON e.employee_id = a.employee_id
+        LEFT JOIN leave_applications la ON e.employee_id = la.employee_id AND a.date BETWEEN la.start_date AND la.end_date
+        WHERE " . implode(' AND ', $whereClauses) . "
+        ORDER BY e.employee_id, a.date";
+
+        $attendanceResult = mysqli_query($conn, $sql);
+        $attendanceData = [];
+        while ($row = mysqli_fetch_assoc($attendanceResult)) {
+            $attendanceData[$row['employee_id']][] = $row;
+        }
+}
+// else {
+//     // Default query for displaying attendance of the current month and year
+//     $month = date('Y-m'); // Get the current month in 'YYYY-MM' format
+//     $sql = "
+//         SELECT 
+//             CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
+//             e.employee_id,
+//             a.date,
+//             IFNULL(la.status, 'Present') AS attendance_status
+//         FROM employees e
+//         LEFT JOIN attendance a ON e.employee_id = a.employee_id
+//         LEFT JOIN leave_applications la ON e.employee_id = la.employee_id AND a.date BETWEEN la.start_date AND la.end_date
+//         WHERE a.date LIKE '$month%'
+//         ORDER BY e.employee_id, a.date";
+// }
+
+// $attendanceResult = mysqli_query($conn, $sql);
+// $attendanceData = [];
+// while ($row = mysqli_fetch_assoc($attendanceResult)) {
+//     $attendanceData[$row['employee_id']][] = $row;
+// }
+
+?>
 
 <!-- Main Content Area -->
 <main class="main-content">
     <section id="dashboard">
         <h2>ATTENDANCE MONITORING</h2>
+            <div class="action-buttons">
+                <button id="by_employee_btn" class="btn btn-danger by_employee_btn">By Employee</button>
+                <button id="by_department_btn" class="btn btn-danger by_department_btn">By Department</button>
+            </div>
+
+            <form method="POST" action="">
+                <div class="form-row">
+                    <div id="employee_container" class="col-md-6 employee_container">
+                        <label for="employee_name">Employee Name</label>
+                        <input id="employee_value" type="text" class="form-control" name="employee_name" placeholder="Employee Name">
+                    </div>
+                    <div id="department_container" class="col-md-6 department_container">
+                        <label for="department">Department</label>
+                        <select id="department_value" name="department">
+                            <option value="">Select Department</option>
+                            <?php echo $deptOptions?>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="month">Month</label>
+                        <select name="month" required>
+                            <option value="0">January</option>
+                            <option value="1">February</option>
+                            <option value="2">March</option>
+                            <option value="3">April</option>
+                            <option value="4">May</option>
+                            <option value="5">June</option>
+                            <option value="6">July</option>
+                            <option value="7">August</option>
+                            <option value="8">September</option>
+                            <option value="9">October</option>
+                            <option value="10">November</option>
+                            <option value="11">December</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="year">Year</label>
+                        <select name="year" required>
+                            <?php
+                                $currentYear = date('Y');
+                                for ($i = 2020; $i <= $currentYear + 10; $i++) {
+                                    echo "<option value='$i'>$i</option>";
+                                }
+                            ?>
+                        </select>
+                    </div>
+                    <input type="submit" name="search" class="btn" value="Search">
+                </form>
+            </div>
     <div style="overflow-x:auto;">
         <table id="attendance-table" class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Employee Name</th>
-                    <th>Employee ID</th>
-                    <?php
-                    $days_in_month = date('t'); // Get the number of days in the current month
-                    for ($day = 1; $day <= $days_in_month; $day++) {
-                        echo "<th>" . $day . "</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
+        <thead>
+    <tr>
+        <th>Employee Name</th>
+        <th>Employee ID</th>
+        <?php
+        // Determine the number of days in the selected month and year
+        $selectedYear = isset($_POST['year']) ? $_POST['year'] : date('Y');
+        $selectedMonth = isset($_POST['month']) ? $_POST['month'] + 1 : date('m'); // Adjust for PHP's 0-based months
+
+        // Get the number of days in the selected month and year
+        $days_in_month = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
+
+        // Generate table headers for the days
+        for ($day = 1; $day <= $days_in_month; $day++) {
+            echo "<th>" . $day . "</th>";
+        }
+        ?>
+    </tr>
+</thead>
+
             <tbody>
-                <?php
-                // Loop through the employee records and display attendance
-                $result = mysqli_query($conn, $sql);
-                $employees = [];
-                while ($row = mysqli_fetch_assoc($result)) {
-                    $employees[$row['employee_id']]['name'] = $row['full_name'];
-                    // Convert the attendance status to the first letter
-                    $attendanceStatus = $row['attendance_status'];
-                    if ($attendanceStatus == 'Present') {
-                        $employees[$row['employee_id']]['attendance'][$row['date']] = 'P'; // P for Present
-                    } elseif ($attendanceStatus == 'Absent') {
-                        $employees[$row['employee_id']]['attendance'][$row['date']] = 'A'; // A for Absent
-                    } elseif ($attendanceStatus == 'On Leave') {
-                        $employees[$row['employee_id']]['attendance'][$row['date']] = '0'; // L for On Leave
-                    } else {
-                        $employees[$row['employee_id']]['attendance'][$row['date']] = 'O'; // Default to Present
+    <?php if (empty($attendanceData)): ?>
+        <tr>
+            <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: center;">
+                No attendance records found for the selected criteria.
+            </td>
+        </tr>
+    <?php else: ?>
+        <?php
+        // Loop through the employee records and display attendance
+        foreach ($attendanceData as $employee_id => $attendance) {
+            echo "<tr>";
+            echo "<td>" . $attendance[0]['full_name'] . "</td>";
+            echo "<td>" . $employee_id . "</td>";
+
+            for ($day = 1; $day <= $days_in_month; $day++) {
+                $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
+                $status = 'A'; // Default to Absent
+
+                foreach ($attendance as $record) {
+                    if ($record['date'] == $date) {
+                        $status = substr($record['attendance_status'], 0, 1); // Use the first letter of status
+                        break;
                     }
                 }
 
-                // Output employee data
-                foreach ($employees as $employee_id => $employee) {
-                    echo "<tr>";
-                    echo "<td>" . $employee['name'] . "</td>";
-                    echo "<td>" . $employee_id . "</td>";
+                echo "<td>" . $status . "</td>";
+            }
 
-                    for ($day = 1; $day <= $days_in_month; $day++) {
-                        $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
-                        echo "<td>" . (isset($employee['attendance'][$date]) ? $employee['attendance'][$date] : 'A') . "</td>"; // Default to A if no status is found
-                    }
-                    echo "</tr>";
-                }
-                ?>
-            </tbody>
+            echo "</tr>";
+        }
+        ?>
+    <?php endif; ?>
+</tbody>
+
         </table>
     </div>
 </div>
             </div>
+
+            <script>
+                const employeeValue = document.getElementById("employee_value");
+                const departmentValue = document.getElementById("department_value");
+                const employeeBtn = document.getElementById("by_employee_btn");
+                const deptBtn = document.getElementById("by_department_btn");
+                const empContainer = document.getElementById("employee_container");
+                const deptContaienr = document.getElementById("department_container");
+
+                empContainer.classList.add("show");
+
+                employeeBtn.addEventListener("click", e => {
+                    e.preventDefault();
+                    empContainer.classList.add("show");
+                    deptContaienr.classList.remove("show");
+                    departmentValue.value = "";
+                });
+
+                deptBtn.addEventListener("click", e => {
+                    e.preventDefault();
+                    empContainer.classList.remove("show");
+                    deptContaienr.classList.add("show");
+                    employeeValue.value = "";
+                });
+            </script>
+            </main>
 <style>
+.employee_container,
+.department_container {
+    display: none;
+}
+
+.employee_container.show,
+.department_container.show {
+    display: flex;
+    flex-direction: column;
+}
+#dashboard .action-buttons {
+    margin-bottom: 15px;
+}
 /* Employee List Table */
 table {
     width: 100%;
