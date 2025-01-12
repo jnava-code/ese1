@@ -8,9 +8,11 @@
             <img src="images/logo1.png" alt="ESE-Tech Logo">
         </div>
         <ul>
-            <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
 
+            <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="./superadmin"><i class="fas fa-user-friends"></i> Manage Admins</a></li>
+            
+            <!-- <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li> -->
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
                     <i class="fas fa-user-friends"></i> Employees Profile<i class="fas fa-chevron-down toggle-icon"></i>

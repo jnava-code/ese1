@@ -107,12 +107,7 @@ if (!empty($searchQuery)) {
 }
 ?>
 
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./superadmin"><i class="fas fa-user-friends"></i> Manage Admins</a></li>
-    </ul>
-</nav>
+<?php include('includes/sideBar.php'); ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />

@@ -5,12 +5,8 @@ $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 ?>
 
 
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./superadmin"><i class="fas fa-user-friends"></i> Manage Admins</a></li>
-    </ul>
-</nav>
+<?php include('includes/sideBar.php'); ?>
+
 
     <style>
     /* Dashboard cards */

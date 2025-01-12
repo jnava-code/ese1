@@ -371,18 +371,13 @@ function generatePasswordFromBday($date_of_birth) {
 
                             if($deptResult) {
                                 while($row = mysqli_fetch_assoc($deptResult)) {         
-                                    // Exclude the department named "Admin"
-                                    if ($row['dept_name'] != "Admin") {
                         ?>
-                                        <option value="<?php echo $row['dept_name']?>"><?php echo $row['dept_name']?></option>
-                        <?php 
-                                    }
-                                }
+                            <option value="<?php echo $row['dept_name']?>"><?php echo $row['dept_name']?></option>
+                        <?php }
                             }
                         ?>
                     </select>
                 </div>
-
             </div>
 
             <div class="form-row">

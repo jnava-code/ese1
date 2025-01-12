@@ -1,5 +1,7 @@
 <?php
 include('header.php'); // Admin header file
+include('includes/sideBar.php');
+
 
 // Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');

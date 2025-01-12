@@ -118,6 +118,26 @@
 
 
 
+<nav class="sidebar">
+    <ul>
+        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="./employees"><i class="fas fa-user-friends"></i> Employees Profile</a></li>
+        <li class="dropdown">
+            <a href="#attendance-dropdown" class="dropdown-toggle"><i class="fas fa-calendar-check"></i> Attendance Management</a>
+            <ul class="dropdown-menu" id="attendance-dropdown">
+                <li><a href="./daily-attendance">Daily Attendance</a></li>
+                <li><a href="./monthly-attendance">Monthly Attendance</a></li>
+            </ul>
+        </li>
+        <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
+        <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
+        <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
+        <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
+        <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
+    </ul>
+</nav>
+
+
 
     <!DOCTYPE html>
     <html lang="en">
