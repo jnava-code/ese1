@@ -167,66 +167,69 @@ if (isset($_POST['submit'])) {
         <?php endif; ?>
 
         <!-- Leave Application Form -->
-        <form action="" method="POST">
-            <div>
-                <label for="sick_leave">Sick Leave Credits:</label>
-                <input type="text" id="sick_leave" name="sick_leave" value="<?php echo $sick_leave . ' ' . 'days'; ?>" readonly>
-            </div>
-            <div>
-                <label for="vacation_leave">Vacation Leave Credits:</label>
-                <input type="text" id="vacation_leave" name="vacation_leave" value="<?php echo $vacation_leave . ' ' . 'days'; ?>" readonly>
-            </div>
-            <?php 
-                if($_SESSION['gender'] == "Male") {
-                    echo '<div>
-                            <label for="paternity_leave">Paternity Leave Credits:</label>
-                            <input type="text" id="paternity_leave" name="paternity_leave" value="' . $paternity_leave . ' days" readonly>
-                        </div>';
-                } else {
-                    echo '<div>
-                            <label for="maternity_leave">Maternity Leave Credits:</label>
-                            <input type="text" id="maternity_leave" name="maternity_leave" value="' . $maternity_leave . ' days" readonly>
-                        </div>';
-                }
-            ?>
-       
-            <div>
-                <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" required min="<?= date('Y-m-d'); ?>">
-            </div>
+        <?php if ($_SESSION['employment_status'] === "Regular") { ?>
+            <form action="" method="POST">
+                <div>
+                    <label for="sick_leave">Sick Leave Credits:</label>
+                    <input type="text" id="sick_leave" name="sick_leave" value="<?php echo htmlspecialchars($sick_leave) . ' days'; ?>" readonly>
+                </div>
+                <div>
+                    <label for="vacation_leave">Vacation Leave Credits:</label>
+                    <input type="text" id="vacation_leave" name="vacation_leave" value="<?php echo htmlspecialchars($vacation_leave) . ' days'; ?>" readonly>
+                </div>
+                <?php 
+                    if ($_SESSION['gender'] == "Male") {
+                        echo '<div>
+                                <label for="paternity_leave">Paternity Leave Credits:</label>
+                                <input type="text" id="paternity_leave" name="paternity_leave" value="' . htmlspecialchars($paternity_leave) . ' days" readonly>
+                            </div>';
+                    } else {
+                        echo '<div>
+                                <label for="maternity_leave">Maternity Leave Credits:</label>
+                                <input type="text" id="maternity_leave" name="maternity_leave" value="' . htmlspecialchars($maternity_leave) . ' days" readonly>
+                            </div>';
+                    }
+                ?>
+                <div>
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" required min="<?= date('Y-m-d'); ?>">
+                </div>
 
-            <div>
-                <label for="end_date">End Date:</label>
-                <input type="date" id="end_date" name="end_date" required min="<?= date('Y-m-d'); ?>" onchange="validateEndDate()">
-            </div>
+                <div>
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" required min="<?= date('Y-m-d'); ?>" onchange="validateEndDate()">
+                </div>
 
-            <div>
-                <label for="no_of_days">No. of Days:</label>
-                <input type="text" id="no_of_days" name="no_of_days" placeholder="Number of Days" value="" readonly>
-            </div>
+                <div>
+                    <label for="no_of_days">No. of Days:</label>
+                    <input type="text" id="no_of_days" name="no_of_days" placeholder="Number of Days" value="" readonly>
+                </div>
 
-            <div>
-                <label for="leave_type">Leave Type:</label>
-                <select id="leave_type" name="leave_type" required>
-                    <option value="Sick">Sick</option>                 
-                    <option value="Vacation">Vacation</option>
-                    <?php 
-                        if($_SESSION['gender'] == "Male") {
-                            echo '<option value="Paternity">Paternity</option>';                     
-                        } else {
-                            echo '<option value="Maternity">Maternity</option>';
-                        }     
-                    ?>              
-                </select>
-            </div>
+                <div>
+                    <label for="leave_type">Leave Type:</label>
+                    <select id="leave_type" name="leave_type" required>
+                        <option value="Sick">Sick</option>                 
+                        <option value="Vacation">Vacation</option>
+                        <?php 
+                            if ($_SESSION['gender'] == "Male") {
+                                echo '<option value="Paternity">Paternity</option>';                     
+                            } else {
+                                echo '<option value="Maternity">Maternity</option>';
+                            }     
+                        ?>              
+                    </select>
+                </div>
 
-            <div>
-                <label for="reason">Reason for Leave:</label>
-                <textarea id="reason" name="reason" rows="4" required></textarea>
-            </div>
+                <div>
+                    <label for="reason">Reason for Leave:</label>
+                    <textarea id="reason" name="reason" rows="4" required></textarea>
+                </div>
 
-            <button type="submit" name="submit">Submit Leave Request</button>
-        </form>
+                <button type="submit" name="submit">Submit Leave Request</button>
+            </form>
+        <?php } else { ?>
+                <h2>Leave application is not available for not Regular Employee.</h2>
+        <?php } ?>
     </section>
 </main>
 
