@@ -84,7 +84,7 @@
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="gender">Sex</label>
-                    <input type="text" class="form-control" name="gender" value="<?php  echo $employee['gender'] ?>" readonly>
+                    <input id="gender" type="text" class="form-control" name="gender" value="<?php  echo $employee['gender'] ?>" readonly>
                 </div>
                 <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
@@ -157,7 +157,7 @@
              <div class="form-row">
                 <div class="form-group col-md-6">
                     <label>Employment Status</label>
-                    <input type="text" class="form-control" name="employment_status" value="<?php  echo $employee['employment_status'] ?>" readonly>
+                    <input id="employment_status" type="text" class="form-control" name="employment_status" value="<?php  echo $employee['employment_status'] ?>" readonly>
                 </div>
                 </div>
       
@@ -200,22 +200,22 @@
             </div>
 
             <div class="form-row">
-                    <div class="col-md-6">
+                    <div id="sick_leave_container" class="col-md-6">
                         <label for="sick_leave">Sick Leave</label>
                         <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] . ' ' . 'days' ?>" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="vacation_leave_container" class="col-md-6">
                         <label for="vacation_leave">Vacation Credit</label>
                         <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="<?php  echo $employee['vacation_leave'] . ' ' . 'days'?>" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="maternity_leave_container" class="col-md-6">
                         <label for="maternity_leave">Maternity Credit</label>
                         <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="<?php  echo $employee['maternity_leave'] . ' ' . 'days'?>" readonly>
                     </div>
 
-                    <div class="col-md-6">
+                    <div id="paternity_leave_container" class="col-md-6">
                         <label for="paternity_leave">Paternity Credit</label>
                         <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="<?php  echo $employee['paternity_leave'] . ' ' . 'days'?>" readonly>
                     </div>
@@ -240,8 +240,37 @@
             </section>
         </main>
 
-        
+        <script>
+            const sickContainer = document.getElementById("sick_leave_container");
+            const vacationContainer = document.getElementById("vacation_leave_container");
+            const maternityContainer = document.getElementById("maternity_leave_container");
+            const paternityContainer = document.getElementById("paternity_leave_container");
+            const employmentStatus = document.getElementById("employment_status");
+            const genderInput = document.getElementById("gender");
 
+            const genderValue = genderInput.value;
+            const employmentValue = employmentStatus.value;
+
+            // Determine leave credits based on employment status and gender
+            if (employmentValue == "Regular") {
+                if (genderValue == "Male") {
+                    leaveContainers("block", "block", "none", "block");      
+                } else if (genderValue == "Female") {
+                    leaveContainers("block", "block", "block", "none");  
+                }
+            } else {
+                // If employment is not regular, set all leave credits to 0
+                leaveContainers("none", "none", "none", "none");
+            }
+
+                // Function to show/hide leave containers
+                function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
+                    sickContainer.style.display = sickDisplay;
+                    vacationContainer.style.display = vacationDisplay;
+                    maternityContainer.style.display = maternityDisplay;
+                    paternityContainer.style.display = paternityDisplay;
+                }
+        </script>
 
 <style>
 .buttons {

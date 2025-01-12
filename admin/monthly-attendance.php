@@ -188,58 +188,92 @@ if(isset($_POST['search'])) {
         </tr>
     <?php else: ?>
         <?php foreach ($attendanceData as $employee_id => $attendance): ?>
-            <tr>
-                <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: left; font-weight: bold;">
-                <h2>
-                    <?php echo $attendance[0]['full_name'] ?>
-                    ( <span class="employee_id_display"><?php echo $employee_id?></span> )
-                </h2>
+    <?php
+    // Initialize counters for the statuses
+    $absent_count = 0;
+    $present_count = 0;
+    $late_count = 0;
 
+    // Get today's date
+    $today = date('Y-m-d');
+    ?>
 
-                </td>
-            </tr>
-            <?php
-                $columns_per_row = 10; // Number of columns to wrap
+    <tr>
+        <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: left; font-weight: bold;">
+            <h2>
+                <?php echo htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8'); ?>
+                ( <span class="employee_id_display"><?php echo htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8'); ?></span> )
+            </h2>
+        </td>
+    </tr>
 
-                // Generate the table
-                echo "<table>";
+    <?php
+    $columns_per_row = 10; // Number of columns to wrap
 
-                // Days Header Rows
-                for ($start_day = 1; $start_day <= $days_in_month; $start_day += $columns_per_row) {
-                    echo "<tr>";
-                    for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
-                        echo "<th>Day " . $day . "</th>";
+    // Generate the table
+    echo "<table>";
+
+    // Days Header Rows
+    for ($start_day = 1; $start_day <= $days_in_month; $start_day += $columns_per_row) {
+        echo "<tr>";
+
+        // Start day headers
+        for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
+            $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
+
+            if ($date <= $today) {
+                echo "<th>Day " . $day . "</th>";
+            }
+        }
+        echo "</tr>";
+
+        // Attendance Status Row
+        echo "<tr>";
+        for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
+            $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
+
+            if ($date <= $today) {
+                $status = 'A'; // Default to Absent
+                foreach ($attendance as $record) {
+                    if ($record['date'] == $date) {
+                        $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                        break;
                     }
-                    echo "</tr>";
-
-                    // Attendance Status Row
-                    echo "<tr>";
-                    for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
-                        $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
-                        $status = 'A'; // Default to Absent
-
-                        foreach ($attendance as $record) {
-                            if ($record['date'] == $date) {
-                                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                                break;
-                            }
-                        }
-                        if($status == "A") {
-                            $status = "Absent";
-                        } else if($status == "P") {
-                            $status = "Present";
-                        } else {
-                            $status = "Late";
-                        }
-                        echo "<td>" . $status . "</td>";
-                    }
-                    echo "</tr>";
                 }
 
-                echo "</table>";
-                ?>
+                // Map status and increment counters
+                if ($status == "A") {
+                    $status_display = "Absent";
+                    $absent_count++;
+                } elseif ($status == "P") {
+                    $status_display = "Present";
+                    $present_count++;
+                } elseif ($status == "L") {
+                    $status_display = Late;
+                    $late_count++;
+                } else {
+                    $status_display = Late;
+                }
 
-        <?php endforeach; ?>
+                echo "<td>" . $status_display . "</td>";
+            }
+        }
+        echo "</tr>";
+    }
+
+    echo "<div class='count-totals-container'>";
+    echo "<div class='count-totals'>";
+    echo "<p>Absent: " . $absent_count . "</p>";
+    echo "<p>Present: " . $present_count . "</p>";
+    echo "<p>Late: " . $late_count . "</p>";
+    echo "</div>";
+    echo "</div>";
+    echo "</table>";
+    ?>
+<?php endforeach; ?>
+
+
+
     <?php endif; ?>
 </tbody>
 
@@ -286,6 +320,15 @@ if(isset($_POST['search'])) {
             </script>
             </main>
 <style>
+.count-totals-container {
+    display: flex;
+    justify-content: end;
+}
+.count-totals {
+    display: flex;
+    gap: 25px;
+}
+
 .employee_container,
 .department_container {
     display: none;
