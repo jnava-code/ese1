@@ -333,7 +333,7 @@
                         
             <div class="form-row">
                     <div id="sick_leave_container" class="col-md-6">
-                        <label for="sick_leave"></label>
+                        <label for="sick_leave">Sick Leave</label>
                         <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] ?>">
                     </div>
 
