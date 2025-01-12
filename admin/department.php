@@ -61,12 +61,12 @@ if (isset($_POST['add_dept'])) {
         $message = '<p style="color: red;">The department already exists.</p>';
     } else {
         // Insert new department
-        $sql = "INSERT INTO departments (dept_name, is_archived) VALUES (?, ?)";
-        $stmt = $conn->prepare($sql);
+        $insertSql = "INSERT INTO departments (dept_name, is_archived) VALUES (?, ?)";
+        $stmt = $conn->prepare($insertSql);
         $stmt->bind_param('si', $dept_name, $is_archived);  // 's' for string, 'i' for integer
-        $deptSelectResult = $stmt->execute();
+        $insertResult = $stmt->execute();
 
-        if ($deptSelectResult) {
+        if ($insertResult) {
             // Department successfully added
             $message = '<p style="color: green;">The department has been successfully added.</p>';
         } else {
@@ -76,60 +76,59 @@ if (isset($_POST['add_dept'])) {
     }
 }
 
-
 if (isset($_POST['delete_dept'])) {
-    // Get the department ID from the hidden input field
     $dept_id = $_POST['dept_id'];
 
-    // Delete query
     $deleteSql = "DELETE FROM departments WHERE id = ?";
     $stmt = $conn->prepare($deleteSql);
     $stmt->bind_param('i', $dept_id);
 
     if ($stmt->execute()) {
-        // If deletion is successful, show a success message
         $message = '<p style="color: green;">Department successfully deleted.</p>';
     } else {
-        // If there's an error in deletion, show an error message
         $message = '<p style="color: red;">Error deleting department.</p>';
     }
 }
 
 if (isset($_POST['archive_name'])) {
-    // Get the department ID from the hidden input field
     $dept_id = $_POST['dept_id'];
 
-    // Update query to archive the department
     $archiveSql = "UPDATE departments SET is_archived = 1 WHERE id = ?";
     $stmt = $conn->prepare($archiveSql);
     $stmt->bind_param('i', $dept_id);
 
     if ($stmt->execute()) {
-        // If archiving is successful, show a success message
         $message = '<p style="color: green;">Department has been archived successfully.</p>';
     } else {
-        // If there's an error in archiving, show an error message
         $message = '<p style="color: red;">Error archiving department.</p>';
     }
 }
 
-// Check if the restore action is triggered
 if (isset($_POST['restore_name'])) {
-    // Get the department ID from the hidden input field
     $dept_id = $_POST['dept_id'];
 
-    // Update query to restore the department
     $restoreSql = "UPDATE departments SET is_archived = 0 WHERE id = ?";
     $stmt = $conn->prepare($restoreSql);
     $stmt->bind_param('i', $dept_id);
 
-    // Execute the query
     if ($stmt->execute()) {
-        // If restoring is successful, show a success message
         $message = '<p style="color: green;">Department has been restored successfully.</p>';
     } else {
-        // If there's an error in restoring, show an error message
         $message = '<p style="color: red;">Error restoring department.</p>';
+    }
+}
+
+if (isset($_POST['update_dept'])) {
+    $dept_id = $_POST['dept_id'];
+    $dept_name = $_POST['dept_name'];
+
+    $updateSql = "UPDATE departments SET dept_name = ? WHERE id = ?";
+    $stmt = $conn->prepare($updateSql);
+    $stmt->bind_param('si', $dept_name, $dept_id);
+    if ($stmt->execute()) {
+        $message = '<p style="color: green;">Department successfully updated.</p>';
+    } else {
+        $message = '<p style="color: red;">Error updating department.</p>';
     }
 }
 ?>
@@ -145,15 +144,32 @@ if (isset($_POST['restore_name'])) {
             <h3>ADD DEPARTMENT</h3>
             <form method="POST" class="label-and-input">
                 <label for="dept_name">Department Name: </label>
-                <input id="dept_name" type="text" value="" required>
+                <input id="dept_name" type="text" name="dept_name" value="" required>
 
                 <div class="action-buttons">
                     <input class="btn" type="submit" name="add_dept" value="Add">
                 </div>         
             </form>
         </div>
+
+        <div class="edit-dept-content">
+            <h3>EDIT DEPARTMENT</h3>
+            <form method="POST" class="label-and-input" id="edit-dept-form">
+                <label for="d_name">Department Name: </label>
+                <input type="text" id="d_name" name="dept_name" value="" required>
+
+                <div class="action-buttons">
+                    <input class="btn" type="submit" name="update_dept" value="Update">
+                </div>         
+            </form>
+        </div>
+
+
         <div class="dept-background"></div>
         <div class="card">
+
+        <?php if(!empty($message)) echo $message; ?>
+
         <table>
             <thead>
                 <tr>
@@ -169,18 +185,18 @@ if (isset($_POST['restore_name'])) {
                         while ($row = mysqli_fetch_assoc($deptResult)) {
                 ?>
                 <tr>
-                    <td><?php echo $row['dept_name']; ?></td>
+                    <td class="dept-name"><?php echo $row['dept_name']; ?></td>
                     <td class="action-buttons">
                         <form method="POST" style="display:inline;">
                             <input type="hidden" name="dept_id" value="<?php echo $row['id']; ?>" />
                             <?php echo $row['is_archived'] == 0 
-                            ? "<button name='edit_dept' class='btn btn-warning'>Edit</button>
+                            ? "<button class='btn btn-warning' onclick='editDepartment(" . $row['id'] . ", \"" . $row['dept_name'] . "\"); return false;'>Edit</button>
                                 <button name='delete_dept' class='btn btn-danger' onclick='return confirm(\"Are you sure you want to delete this department?\");'>Delete</button>
                                 <button name='archive_name' class='btn btn-warning'>Archive</button>"
-                            : "<button name='edit_dept' class='btn btn-warning'>Edit</button>
+                            : "<button class='btn btn-warning' onclick='editDepartment(" . $row['id'] . ", \"" . $row['dept_name'] . "\"); return false;'>Edit</button>
                                 <button name='delete_dept' class='btn btn-danger' onclick='return confirm(\"Are you sure you want to delete this department?\");'>Delete</button>
                                 <button name='restore_name' class='btn btn-restore'>Restore</button>";
-                        ?>
+                            ?>
                         </form>
                     </td>
                 </tr>
@@ -302,6 +318,69 @@ if (isset($_POST['restore_name'])) {
 $(document).ready(function() {
     $('#myTable').DataTable();
 });
+
+
+// Function to toggle the edit form and populate it with the current department data
+function editDepartment(deptId, deptName) {
+    const editForm = document.querySelector('.edit-dept-content');
+
+    // Check if the edit form is already visible
+    if (editForm.style.display === 'block') {
+        // If the form is visible, hide it
+        editForm.style.display = 'none';
+    } else {
+        // If the form is not visible, show it and populate the data
+        document.getElementById('d_name').value = deptName; // Corrected input field ID (d_name)
+
+        // Add the department ID as a hidden input for submission
+        const form = document.getElementById('edit-dept-form');
+        
+        // Remove any existing dept_id input before appending a new one (important for toggle behavior)
+        const existingDeptIdInput = form.querySelector('input[name="dept_id"]');
+        if (existingDeptIdInput) {
+            existingDeptIdInput.remove();
+        }
+
+        // Create a new hidden input for the department ID
+        let deptIdInput = document.createElement("input");
+        deptIdInput.type = "hidden";
+        deptIdInput.name = "dept_id";
+        deptIdInput.value = deptId;
+        form.appendChild(deptIdInput);
+
+        // Show the edit form
+        editForm.style.display = 'block';
+    }
+}
+
+// Handle the form submission (update logic)
+document.getElementById('edit-dept-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const deptName = document.getElementById('d_name').value; // Corrected to 'd_name'
+    const deptId = document.querySelector('input[name="dept_id"]').value;
+
+    // Send the updated data to the server (AJAX or form submission)
+    const formData = new FormData();
+    formData.append("dept_id", deptId);
+    formData.append("dept_name", deptName);
+    formData.append("update_dept", true);
+
+    fetch(window.location.href, {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+        // Optionally, close the form and update the table
+        document.querySelector('.edit-dept-content').style.display = 'none';
+        location.reload(); // Reload the page to show the updated department
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
 </script>
 
 <?php include('footer.php'); ?> 
