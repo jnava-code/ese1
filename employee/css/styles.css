@@ -288,66 +288,68 @@ background-color: #c82333;
     display: flex;
 }
 
-/* Sidebar base styling */
+/* start of sidebar updated code //////////////////////////////////// */
 .sidebar {
-    width: 200px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
     background-color: #812828;
     color: #fff;
-    padding-top: 1rem;
-    position: sticky;
+    overflow-x: hidden;
+    transform: translateX(-250px);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+  }
+  
+  /* Sidebar content */
+  .sidebar-content {
+    padding: 12px;
+  }
+  
+  /* Hover area to trigger the sidebar */
+  .hover-area {
+    position: fixed;
     top: 0;
-    height: 100vh;
-    overflow-y: auto;
-}
-
-.sidebar ul {
+    left: 0;
+    height: 100%;
+    width: 10px;
+    background-color: #333;
+    z-index: 1000;
+  }
+  
+  /* Show sidebar on hover */
+  .hover-area:hover ~ .sidebar,
+  .sidebar:hover {
+    transform: translateX(0);
+  }
+  
+  .sidebar ul {
     list-style: none;
+    color: #fff;
+    text-decoration: none;
     margin: 0;
     padding: 0;
-}
-
-.sidebar ul li {
-    position: relative;
-    margin-bottom: 10px;
-}
-
-.sidebar ul li a {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    color: #ffffff;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Add space between icon and text */
-.sidebar ul li a i {
-    margin-right: 10px; /* Space between icon and text */
-}
-
-.sidebar ul li a:hover {
+  }
+  
+  .sidebar ul li a:hover {
     background-color: #ddd;
-    color: #C03142;
-}
-
-/* Dropdown menu */
-.dropdown ul.dropdown-menu {
-    display: none;
-    list-style: none;
-    padding-left: 20px;
-    margin-top: 5px;
-}
-
-.dropdown ul.dropdown-menu li a {
-    font-size: 15px;
-    color: #f5f5f5;
-    padding: 5px 10px;
-}
-
-.dropdown:hover > .dropdown-menu {
+    color: #c03142;
+    border-radius: 4px;
+  }
+  
+  .sidebar ul li a {
+    text-decoration: none;
+    color: white;
+    padding: 14px 0;
     display: block;
-}
+    transition: background-color 0.3s ease;
+  }
+  
+  .sidebar ul li i {
+    margin-right: 5px;
+  }
 
 /* Chevron icon rotation for dropdown toggle */
 .toggle-icon {

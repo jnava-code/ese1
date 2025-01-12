@@ -15,6 +15,8 @@ $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $_SESSION['e_username'] = $e_username;  // Set session variable to indicate the user is logged in
+
 
     // Define query array for all tables
     $queries = [

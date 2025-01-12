@@ -5,16 +5,16 @@ include('user_header.php');
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
-if (!isset($_SESSION['e_username'])) {
+if (!isset($_SESSION['username'])) {
     header("Location: ./");
     exit();
 }
 
 // Get employee details
-$e_username = $_SESSION['e_username'];
-$query = "SELECT e_username, password FROM employees WHERE e_username = ?";
+$username = $_SESSION['username'];
+$query = "SELECT username, password FROM employees WHERE username = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param('s', $e_username); // 's' for string parameter
+$stmt->bind_param('s', $username); // 's' for string parameter
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -25,14 +25,16 @@ if ($result->num_rows > 0) {
     exit();
 }
 
+// Oragonini*09
+
 // Handle form submission for updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $new_e_username = $_POST['new_e_username'];
+    $new_username = $_POST['new_username'];
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
 
     // Validate username (8-9 characters)
-    if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_e_username)) {
+    if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
         // Validate password strength
         if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
             if ($new_password === $confirm_password) {
@@ -40,14 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $plain_password = $new_password;
 
                 // Update the username and password in the database
-                $update_query = "UPDATE employees SET e_username = ?, password = ? WHERE e_username = ?";
+                $update_query = "UPDATE employees SET username = ?, password = ? WHERE username = ?";
                 $update_stmt = $conn->prepare($update_query);
-                $update_stmt->bind_param('sss', $new_e_username, $plain_password, $e_username);
+                $update_stmt->bind_param('sss', $new_username, $plain_password, $username);
 
                 if ($update_stmt->execute()) {
                     $success_message = "Username and password updated successfully!";
                     // Update session variable
-                    $_SESSION['e_username'] = $new_e_username;
+                    $_SESSION['username'] = $new_username;
                 } else {
                     $error_message = "Error updating details. Please try again.";
                 }
@@ -60,17 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error_message = "Username must be 8-9 alphanumeric characters.";
     }
-}
+};
 ?>
 
 <body>
-<nav class="sidebar">
-    <ul>
-        <li><a href="./user_leave"><i class="fas fa-paper-plane"></i> Leave Application</a></li>
-        <li><a href="./user_satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-        <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
-    </ul>
-</nav>
+
+<?php include('includes/sideBar.php'); ?>
 
 <main class="main-content">
     <section id="dashboard">
@@ -80,11 +77,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="evaluation-form">
             <!-- Employee Username Section -->
             <div class="form-group">
-                <label for="new_e_username">New Username:</label>
+                <label for="new_username">New Username:</label>
                 <br>
                 <br>
-                <input type="text" id="new_e_username" name="new_e_username" 
-                       value="<?php echo htmlspecialchars($employee['e_username']); ?>" 
+                <input type="text" id="new_username" name="new_username" 
+                       value="<?php echo htmlspecialchars($employee['username']); ?>" 
                        required minlength="8" maxlength="9">
             </div>
 
@@ -257,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 <script>
 document.querySelector("form").addEventListener("submit", function(event) {
-    const username = document.getElementById("new_e_username").value;
+    const username = document.getElementById("new_username").value;
     const password = document.getElementById("new_password").value;
     const confirmPassword = document.getElementById("confirm_password").value;
 

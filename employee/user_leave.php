@@ -71,13 +71,15 @@ if (isset($_POST['submit'])) {
 
 ?>
 
-<nav class="sidebar">
+<!-- <nav class="sidebar">
     <ul>
         <li><a href="./user_leave"><i class="fas fa-paper-plane"></i> Leave Application</a></li>
         <li><a href="./user_satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
         <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
     </ul>
-</nav>
+</nav> -->
+
+<?php include('includes/sideBar.php'); ?>
     
 <!-- Main Content Area with Styling -->
 <style>
