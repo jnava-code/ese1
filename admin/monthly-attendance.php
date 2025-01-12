@@ -163,8 +163,6 @@ if(isset($_POST['search'])) {
         <table id="attendance-table" class="table table-striped">
         <thead>
     <tr>
-        <th>Employee Name</th>
-        <th>Employee ID</th>
         <?php
         // Determine the number of days in the selected month and year
         $selectedYear = isset($_POST['year']) ? $_POST['year'] : date('Y');
@@ -173,48 +171,78 @@ if(isset($_POST['search'])) {
         // Get the number of days in the selected month and year
         $days_in_month = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
 
-        // Generate table headers for the days
-        for ($day = 1; $day <= $days_in_month; $day++) {
-            echo "<th>" . $day . "</th>";
-        }
+        // // Generate table headers for the days
+        // for ($day = 1; $day <= $days_in_month; $day++) {
+        //     echo "<th>" . $day . "</th>";
+        // }
         ?>
     </tr>
 </thead>
 
-            <tbody>
+<tbody>
     <?php if (empty($attendanceData)): ?>
         <tr>
-            <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: center;">
+            <td style="text-align: center;">
                 No attendance records found for the selected criteria.
             </td>
         </tr>
     <?php else: ?>
-        <?php
-        // Loop through the employee records and display attendance
-        foreach ($attendanceData as $employee_id => $attendance) {
-            echo "<tr>";
-            echo "<td>" . $attendance[0]['full_name'] . "</td>";
-            echo "<td>" . $employee_id . "</td>";
+        <?php foreach ($attendanceData as $employee_id => $attendance): ?>
+            <tr>
+                <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: left; font-weight: bold;">
+                <h2>
+                    <?php echo $attendance[0]['full_name'] ?>
+                    ( <span class="employee_id_display"><?php echo $employee_id?></span> )
+                </h2>
 
-            for ($day = 1; $day <= $days_in_month; $day++) {
-                $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
-                $status = 'A'; // Default to Absent
 
-                foreach ($attendance as $record) {
-                    if ($record['date'] == $date) {
-                        $status = substr($record['attendance_status'], 0, 1); // Use the first letter of status
-                        break;
+                </td>
+            </tr>
+            <?php
+                $columns_per_row = 10; // Number of columns to wrap
+
+                // Generate the table
+                echo "<table>";
+
+                // Days Header Rows
+                for ($start_day = 1; $start_day <= $days_in_month; $start_day += $columns_per_row) {
+                    echo "<tr>";
+                    for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
+                        echo "<th>Day " . $day . "</th>";
                     }
+                    echo "</tr>";
+
+                    // Attendance Status Row
+                    echo "<tr>";
+                    for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
+                        $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
+                        $status = 'A'; // Default to Absent
+
+                        foreach ($attendance as $record) {
+                            if ($record['date'] == $date) {
+                                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                                break;
+                            }
+                        }
+                        if($status == "A") {
+                            $status = "Absent";
+                        } else if($status == "P") {
+                            $status = "Present";
+                        } else {
+                            $status = "Late";
+                        }
+                        echo "<td>" . $status . "</td>";
+                    }
+                    echo "</tr>";
                 }
 
-                echo "<td>" . $status . "</td>";
-            }
+                echo "</table>";
+                ?>
 
-            echo "</tr>";
-        }
-        ?>
+        <?php endforeach; ?>
     <?php endif; ?>
 </tbody>
+
 
         </table>
     </div>
@@ -222,12 +250,23 @@ if(isset($_POST['search'])) {
             </div>
 
             <script>
+                const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
                 const employeeValue = document.getElementById("employee_value");
                 const departmentValue = document.getElementById("department_value");
                 const employeeBtn = document.getElementById("by_employee_btn");
                 const deptBtn = document.getElementById("by_department_btn");
                 const empContainer = document.getElementById("employee_container");
                 const deptContaienr = document.getElementById("department_container");
+            
+                if(employeeIdDisplay) {
+                    employeeIdDisplay.forEach(display => {
+                        let validDisplayValue = display.textContent.replace(/[^0-9]/g, '');
+                        // Apply format: 00-000
+                        if (display.textContent.length > 2) {
+                            display.textContent = validDisplayValue.slice(0, 2) + '-' + validDisplayValue.slice(2, 5);
+                        }
+                    })
+                }
 
                 empContainer.classList.add("show");
 
