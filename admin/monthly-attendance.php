@@ -198,15 +198,16 @@ if(isset($_POST['search'])) {
     $today = date('Y-m-d');
     ?>
 
-    <tr>
-        <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: left; font-weight: bold;">
-            <h2>
-                <?php echo htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8'); ?>
-                ( <span class="employee_id_display"><?php echo htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8'); ?></span> )
-            </h2>
-        </td>
-    </tr>
-
+    <table>
+        <tr>
+            <td colspan="<?php echo 2 + $days_in_month; ?>" style="text-align: left; font-weight: bold;">
+                <h2>
+                    <?php echo htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8'); ?>
+                    ( <span class="employee_id_display"><?php echo htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8'); ?></span> )
+                </h2>
+            </td>
+        </tr>
+    </table>
     <?php
     $columns_per_row = 10; // Number of columns to wrap
 
