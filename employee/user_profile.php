@@ -6,7 +6,7 @@ $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
-    header("Location: ./");
+    header("Location: ./login");
     exit();
 }
 
@@ -33,36 +33,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Validate username (8-9 characters)
-    // if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
-        // Validate password strength
-        if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
-            if ($new_password === $confirm_password) {
-                // Directly use the password (no hashing)
-                $plain_password = $new_password;
+    // Flag for errors
+    $error_message = '';
 
-                // Update the username and password in the database
-                $update_query = "UPDATE employees SET username = ?, password = ? WHERE username = ?";
-                $update_stmt = $conn->prepare($update_query);
-                $update_stmt->bind_param('sss', $new_username, $plain_password, $username);
+    // // Update username validation
+    // if (!empty($new_username)) {
+    //     if (!preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
+    //         $error_message = "Username must be 8-9 alphanumeric characters.";
+    //     }
+    // }
 
-                if ($update_stmt->execute()) {
-                    $success_message = "Username and password updated successfully!";
-                    // Update session variable
-                    $_SESSION['username'] = $new_username;
-                } else {
-                    $error_message = "Error updating details. Please try again.";
-                }
-            } else {
-                $error_message = "Passwords do not match.";
+    // Update password validation
+    if (!empty($new_password)) {
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
+            $error_message = "Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.";
+        } elseif ($new_password !== $confirm_password) {
+            $error_message = "Passwords do not match.";
+        }
+    }
+
+    // If no errors, proceed with the update
+    if (empty($error_message)) {
+        // Prepare update query
+        $update_query = "UPDATE employees SET username = COALESCE(?, username), password = COALESCE(?, password) WHERE username = ?";
+        $update_stmt = $conn->prepare($update_query);
+
+        // Hash the password if provided
+        $hashed_password = !empty($new_password) ? password_hash($new_password, PASSWORD_DEFAULT) : null;
+
+        // Bind parameters
+        $update_stmt->bind_param('sss', $new_username, $hashed_password, $username);
+
+        // Execute and check the result
+        if ($update_stmt->execute()) {
+            $success_message = "Details updated successfully!";
+            if (!empty($new_username)) {
+                // Update session variable
+                $_SESSION['username'] = $new_username;
             }
         } else {
-            $error_message = "Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.";
+            $error_message = "Error updating details. Please try again.";
         }
-    // } else {
-    //     $error_message = "Username must be 8-9 alphanumeric characters.";
-    // }
-};
+    }
+}
+
 ?>
 
 <body>
@@ -86,17 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="new_username">New Username:</label>
                 <input type="text" id="new_username" name="new_username" 
                        value="<?php echo htmlspecialchars($employee['username']); ?>" 
-                       required minlength="8" maxlength="9">
+                       required minlength="5" maxlength="9">
             </div>
 
             <!-- Password Update Section -->
             <div class="form-group password-form">
                 <label for="new_password">New Password:</label>
-                <input type="password" id="new_password" name="new_password" required>             
+                <input type="password" id="new_password" name="new_password">             
             </div>
             <div class="form-group password-form">
                 <label for="confirm_password">Confirm Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>             
+                <input type="password" id="confirm_password" name="confirm_password">             
             </div>
             <button type="submit" class="btn">Update Username or Password</button>
         </form>
