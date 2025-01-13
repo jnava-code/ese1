@@ -1,5 +1,5 @@
 <?php
-include('header.php');
+include('user_header.php');
 
 // Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
@@ -12,7 +12,7 @@ if (!isset($_SESSION['username'])) {
 
 // Get employee details
 $username = $_SESSION['username'];
-$query = "SELECT username, password FROM admin WHERE username = ?";
+$query = "SELECT username, password FROM employees WHERE username = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('s', $username); // 's' for string parameter
 $stmt->execute();
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If no errors, proceed with the update
     if (empty($error_message)) {
         // Prepare update query
-        $update_query = "UPDATE admin SET username = COALESCE(?, username), password = COALESCE(?, password) WHERE username = ?";
+        $update_query = "UPDATE employees SET username = COALESCE(?, username), password = COALESCE(?, password) WHERE username = ?";
         $update_stmt = $conn->prepare($update_query);
 
         // Hash the password if provided
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <main class="main-content">
     <section id="dashboard">
-        <h2>EDIT ADMIN PROFILE</h2>
+        <h2>EDIT USER PROFILE</h2>
 
         <!-- Main Form -->
         <form method="POST" class="evaluation-form">
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="new_username">New Username:</label>
                 <input type="text" id="new_username" name="new_username" 
                        value="<?php echo htmlspecialchars($employee['username']); ?>" 
-                       required minlength="5" maxlength="9">
+                       required minlength="8" maxlength="9">
             </div>
 
             <!-- Password Update Section -->
