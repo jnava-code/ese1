@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'];
 
     // Validate username (8-9 characters)
-    if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
+    // if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
         // Validate password strength
         if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
             if ($new_password === $confirm_password) {
@@ -59,9 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error_message = "Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.";
         }
-    } else {
-        $error_message = "Username must be 8-9 alphanumeric characters.";
-    }
+    // } else {
+    //     $error_message = "Username must be 8-9 alphanumeric characters.";
+    // }
 };
 ?>
 
@@ -75,11 +75,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Main Form -->
         <form method="POST" class="evaluation-form">
+                <!-- Display success or error messages -->
+            <?php if (isset($success_message)): ?>
+                <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
+            <?php elseif (isset($error_message)): ?>
+                <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
+            <?php endif; ?>
             <!-- Employee Username Section -->
             <div class="form-group">
                 <label for="new_username">New Username:</label>
-                <br>
-                <br>
                 <input type="text" id="new_username" name="new_username" 
                        value="<?php echo htmlspecialchars($employee['username']); ?>" 
                        required minlength="8" maxlength="9">
@@ -88,24 +92,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Password Update Section -->
             <div class="form-group password-form">
                 <label for="new_password">New Password:</label>
-                <input type="password" id="new_password" name="new_password" required>
-                <label for="confirm_password">Confirm Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <input type="password" id="new_password" name="new_password" required>             
             </div>
-            <button type="submit" class="btn">Update to system</button>
+            <div class="form-group password-form">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>             
+            </div>
+            <button type="submit" class="btn">Update Username or Password</button>
         </form>
-
-        <!-- Display success or error messages -->
-        <?php if (isset($success_message)): ?>
-            <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
-        <?php elseif (isset($error_message)): ?>
-            <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
-        <?php endif; ?>
     </section>
 </main>
 
 
 <style>
+    #dashboard h2{
+        margin-left: 250px;
+    }
     .header-title {
         text-align: center;
         margin-bottom: 30px;
@@ -129,16 +131,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 20px;
     }
 
-    .password-form label {
+    .form-group label {
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 8px;
         display: block;
     }
 
-    .password-form input {
-        width: 100%;
-        max-width: 300px; /* Adjusted max-width for smaller input fields */
+    .form-group input {
+        width: 98.5%;
         padding: 10px;
         font-size: 14px;
         border: 1px solid #ccc;
@@ -148,12 +149,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         transition: all 0.3s ease;
     }
 
-    .password-form input:focus {
+    .form-group input:focus {
         border-color: #6E7DFF;
         box-shadow: 0 0 5px rgba(110, 125, 255, 0.5);
     }
 
-    .password-form button {
+    .form-group button {
         background-color: #6E7DFF;
         color: #fff;
         padding: 12px 20px;
@@ -164,11 +165,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         transition: background-color 0.3s ease;
     }
 
-    .password-form button:hover {
+    .form-group button:hover {
         background-color: #5b6fc9;
     }
 
     .evaluation-form {
+        display: flex;
+        gap: 15px;
+        flex-direction: column;
+        justify-content: center;
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
@@ -201,6 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .error {
         color: #FF6B6B;
     }
+
 .evaluation-form {
         max-width: 1500px;
         margin: 0 auto;
@@ -221,8 +227,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .evaluation-form input {
-    width: 100%;
-    max-width: 300px; /* Adjusted max-width to match the password field */
     padding: 10px;
     font-size: 14px;
     border: 1px solid #ccc;
@@ -252,35 +256,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 </style>
-<script>
-document.querySelector("form").addEventListener("submit", function(event) {
-    const username = document.getElementById("new_username").value;
-    const password = document.getElementById("new_password").value;
-    const confirmPassword = document.getElementById("confirm_password").value;
-
-    // Username validation (8-9 alphanumeric characters)
-    const usernameRegex = /^[a-zA-Z0-9]{8,9}$/;
-    if (!usernameRegex.test(username)) {
-        event.preventDefault();
-        alert("Username must be 8-9 alphanumeric characters.");
-        return false;
-    }
-
-    // Password validation
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/;
-    if (!passwordRegex.test(password)) {
-        event.preventDefault();
-        alert("Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.");
-        return false;
-    }
-
-    // Password match validation
-    if (password !== confirmPassword) {
-        event.preventDefault();
-        alert("Passwords do not match.");
-        return false;
-    }
-});
-</script>
 </body>
 </html>
