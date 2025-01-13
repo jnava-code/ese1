@@ -1,18 +1,18 @@
 <?php
-include('user_header.php');
+include('header.php');
 
 // Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
-    header("Location: ./");
+    header("Location: ./login");
     exit();
 }
 
 // Get employee details
 $username = $_SESSION['username'];
-$query = "SELECT username, password FROM employees WHERE username = ?";
+$query = "SELECT username, password FROM admin WHERE username = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('s', $username); // 's' for string parameter
 $stmt->execute();
@@ -33,38 +33,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Validate username (8-9 characters)
-    if (preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
-        // Validate password strength
-        if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
-            if ($new_password === $confirm_password) {
-                // Directly use the password (no hashing)
-                $plain_password = $new_password;
+    // Flag for errors
+    $error_message = '';
 
-                // Update the username and password in the database
-                $update_query = "UPDATE employees SET username = ?, password = ? WHERE username = ?";
-                $update_stmt = $conn->prepare($update_query);
-                $update_stmt->bind_param('sss', $new_username, $plain_password, $username);
+    // // Update username validation
+    // if (!empty($new_username)) {
+    //     if (!preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
+    //         $error_message = "Username must be 8-9 alphanumeric characters.";
+    //     }
+    // }
 
-                if ($update_stmt->execute()) {
-                    $success_message = "Username and password updated successfully!";
-                    // Update session variable
-                    $_SESSION['username'] = $new_username;
-                } else {
-                    $error_message = "Error updating details. Please try again.";
-                }
-            } else {
-                $error_message = "Passwords do not match.";
+    // Update password validation
+    if (!empty($new_password)) {
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/', $new_password)) {
+            $error_message = "Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.";
+        } elseif ($new_password !== $confirm_password) {
+            $error_message = "Passwords do not match.";
+        }
+    }
+
+    // If no errors, proceed with the update
+    if (empty($error_message)) {
+        // Prepare update query
+        $update_query = "UPDATE admin SET username = COALESCE(?, username), password = COALESCE(?, password) WHERE username = ?";
+        $update_stmt = $conn->prepare($update_query);
+
+        // Hash the password if provided
+        $hashed_password = !empty($new_password) ? password_hash($new_password, PASSWORD_DEFAULT) : null;
+
+        // Bind parameters
+        $update_stmt->bind_param('sss', $new_username, $hashed_password, $username);
+
+        // Execute and check the result
+        if ($update_stmt->execute()) {
+            $success_message = "Details updated successfully!";
+            if (!empty($new_username)) {
+                // Update session variable
+                $_SESSION['username'] = $new_username;
             }
         } else {
-            $error_message = "Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.";
+            $error_message = "Error updating details. Please try again.";
         }
-    } else {
-        $error_message = "Username must be 8-9 alphanumeric characters.";
     }
-};
-?>
+}
 
+?>
 
 <body>
 
@@ -72,41 +85,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <main class="main-content">
     <section id="dashboard">
-        <h2>EDIT USER PROFILE</h2>
+        <h2>EDIT ADMIN PROFILE</h2>
 
         <!-- Main Form -->
         <form method="POST" class="evaluation-form">
+                <!-- Display success or error messages -->
+            <?php if (isset($success_message)): ?>
+                <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
+            <?php elseif (isset($error_message)): ?>
+                <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
+            <?php endif; ?>
             <!-- Employee Username Section -->
             <div class="form-group">
                 <label for="new_username">New Username:</label>
-                <br>
-                <br>
                 <input type="text" id="new_username" name="new_username" 
                        value="<?php echo htmlspecialchars($employee['username']); ?>" 
-                       required minlength="8" maxlength="9">
+                       required minlength="5" maxlength="9">
             </div>
 
             <!-- Password Update Section -->
             <div class="form-group password-form">
                 <label for="new_password">New Password:</label>
-                <input type="password" id="new_password" name="new_password" required>
-                <label for="confirm_password">Confirm Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <input type="password" id="new_password" name="new_password">             
             </div>
-            <button type="submit" class="btn">Update to system</button>
+            <div class="form-group password-form">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password">             
+            </div>
+            <button type="submit" class="btn">Update Username or Password</button>
         </form>
-
-        <!-- Display success or error messages -->
-        <?php if (isset($success_message)): ?>
-            <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
-        <?php elseif (isset($error_message)): ?>
-            <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
-        <?php endif; ?>
     </section>
 </main>
 
 
 <style>
+    #dashboard h2{
+        margin-left: 250px;
+    }
     .header-title {
         text-align: center;
         margin-bottom: 30px;
@@ -130,16 +145,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 20px;
     }
 
-    .password-form label {
+    .form-group label {
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 8px;
         display: block;
     }
 
-    .password-form input {
-        width: 100%;
-        max-width: 300px; /* Adjusted max-width for smaller input fields */
+    .form-group input {
+        width: 98.5%;
         padding: 10px;
         font-size: 14px;
         border: 1px solid #ccc;
@@ -149,12 +163,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         transition: all 0.3s ease;
     }
 
-    .password-form input:focus {
+    .form-group input:focus {
         border-color: #6E7DFF;
         box-shadow: 0 0 5px rgba(110, 125, 255, 0.5);
     }
 
-    .password-form button {
+    .form-group button {
         background-color: #6E7DFF;
         color: #fff;
         padding: 12px 20px;
@@ -165,11 +179,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         transition: background-color 0.3s ease;
     }
 
-    .password-form button:hover {
+    .form-group button:hover {
         background-color: #5b6fc9;
     }
 
     .evaluation-form {
+        display: flex;
+        gap: 15px;
+        flex-direction: column;
+        justify-content: center;
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
@@ -202,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .error {
         color: #FF6B6B;
     }
+
 .evaluation-form {
         max-width: 1500px;
         margin: 0 auto;
@@ -222,8 +241,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .evaluation-form input {
-    width: 100%;
-    max-width: 300px; /* Adjusted max-width to match the password field */
     padding: 10px;
     font-size: 14px;
     border: 1px solid #ccc;
@@ -253,35 +270,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 </style>
-<script>
-document.querySelector("form").addEventListener("submit", function(event) {
-    const username = document.getElementById("new_username").value;
-    const password = document.getElementById("new_password").value;
-    const confirmPassword = document.getElementById("confirm_password").value;
-
-    // Username validation (8-9 alphanumeric characters)
-    const usernameRegex = /^[a-zA-Z0-9]{8,9}$/;
-    if (!usernameRegex.test(username)) {
-        event.preventDefault();
-        alert("Username must be 8-9 alphanumeric characters.");
-        return false;
-    }
-
-    // Password validation
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,12}$/;
-    if (!passwordRegex.test(password)) {
-        event.preventDefault();
-        alert("Password must be 9-12 characters long, include uppercase and lowercase letters, numbers, and special symbols.");
-        return false;
-    }
-
-    // Password match validation
-    if (password !== confirmPassword) {
-        event.preventDefault();
-        alert("Passwords do not match.");
-        return false;
-    }
-});
-</script>
 </body>
 </html>
