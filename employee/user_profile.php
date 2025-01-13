@@ -25,8 +25,6 @@ if ($result->num_rows > 0) {
     exit();
 }
 
-// Oragonini*09
-
 // Handle form submission for updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_username = $_POST['new_username'];
@@ -35,13 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Flag for errors
     $error_message = '';
-
-    // // Update username validation
-    // if (!empty($new_username)) {
-    //     if (!preg_match('/^[a-zA-Z0-9]{8,9}$/', $new_username)) {
-    //         $error_message = "Username must be 8-9 alphanumeric characters.";
-    //     }
-    // }
 
     // Update password validation
     if (!empty($new_password)) {
@@ -67,20 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Execute and check the result
         if ($update_stmt->execute()) {
             $success_message = "Details updated successfully!";
+            
+            // Update session variable and username for display
             if (!empty($new_username)) {
-                // Update session variable
                 $_SESSION['username'] = $new_username;
+                $username = $new_username; // Update $username for display
             }
         } else {
             $error_message = "Error updating details. Please try again.";
         }
     }
 }
-
 ?>
 
 <body>
-
 <?php include('includes/sideBar.php'); ?>
 
 <main class="main-content">
@@ -89,17 +80,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Main Form -->
         <form method="POST" class="evaluation-form">
-                <!-- Display success or error messages -->
+            <!-- Display success or error messages -->
             <?php if (isset($success_message)): ?>
                 <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
             <?php elseif (isset($error_message)): ?>
                 <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
             <?php endif; ?>
+
             <!-- Employee Username Section -->
             <div class="form-group">
                 <label for="new_username">New Username:</label>
                 <input type="text" id="new_username" name="new_username" 
-                       value="<?php echo htmlspecialchars($employee['username']); ?>" 
+                       value="<?php echo htmlspecialchars($username); ?>" 
                        required minlength="5" maxlength="9">
             </div>
 
@@ -117,75 +109,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 </main>
 
-
 <style>
-    #dashboard h2{
-        margin-left: 250px;
+    /* CSS styling */
+    #dashboard h2 {
+        margin-left: 600px;
     }
     .header-title {
         text-align: center;
         margin-bottom: 30px;
     }
-
-    .header-title h2 {
-        font-size: 32px;
-        color: #333;
-    }
-
-    .employee-info {
-        background-color: #f5f5f5;
-        padding: 15px;
-        margin-bottom: 25px;
-        border-radius: 5px;
-        font-size: 18px;
-        color: #333;
-    }
-
-    .password-form .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
+    .success, .error {
         font-size: 16px;
         font-weight: bold;
-        margin-bottom: 8px;
-        display: block;
+        text-align: center;
+        margin-top: 20px;
     }
-
-    .form-group input {
-        width: 98.5%;
-        padding: 10px;
-        font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #fff;
-        margin-bottom: 15px;
-        transition: all 0.3s ease;
+    .success {
+        color: #4CAF50;
     }
-
-    .form-group input:focus {
-        border-color: #6E7DFF;
-        box-shadow: 0 0 5px rgba(110, 125, 255, 0.5);
+    .error {
+        color: #FF6B6B;
     }
-
-    .form-group button {
-        background-color: #6E7DFF;
-        color: #fff;
-        padding: 12px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .form-group button:hover {
-        background-color: #5b6fc9;
-    }
-
     .evaluation-form {
         display: flex;
-        gap: 15px;
         flex-direction: column;
         justify-content: center;
         max-width: 800px;
@@ -195,66 +141,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         background-color: #f9f9f9;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-
     .evaluation-form .form-group {
         margin-bottom: 15px;
     }
-
     .evaluation-form label {
         font-weight: bold;
         font-size: 14px;
         color: #333;
     }
-
-    .success, .error {
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-        margin-top: 20px;
-    }
-
-    .success {
-        color: #4CAF50;
-    }
-
-    .error {
-        color: #FF6B6B;
-    }
-
-.evaluation-form {
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 20px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .evaluation-form .form-group {
-        margin-bottom: 15px;
-    }
-
-    .evaluation-form label {
-        font-weight: bold;
-        font-size: 14px;
-        color: #333;
-    }
-
     .evaluation-form input {
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-}
-
-.evaluation-form input:focus {
-    border-color: #6E7DFF;
-    box-shadow: 0 0 5px rgba(110, 125, 255, 0.5);
-}
-
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .evaluation-form input:focus {
+        border-color: #6E7DFF;
+        box-shadow: 0 0 5px rgba(110, 125, 255, 0.5);
+    }
     .evaluation-form button {
         padding: 10px 20px;
         background-color: #007bff;
@@ -264,11 +172,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-size: 16px;
         cursor: pointer;
     }
-
     .evaluation-form button:hover {
         background-color: #0056b3;
     }
-
 </style>
 </body>
 </html>
