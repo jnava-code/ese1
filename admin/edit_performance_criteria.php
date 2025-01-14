@@ -148,7 +148,14 @@ if (isset($_POST['update_criteria'])) {
                             // Loop through each row of the query result
                             while ($row = mysqli_fetch_assoc($performance_result)) {
                     ?>
-
+                        <tr>
+                            <td><?php echo $row['description']; ?>:</td>
+                            <td class="action-buttons">                               
+                                <!-- Edit Button -->
+                                <form method="POST" style="display:inline;">
+                                    <button id="edit_performance_criteria_btn" class="btn btn-warning" type="button">Edit</button>
+                                </form>
+                                                    
                                 <div class="edit-criteria-content">
                                     <h3>EDIT PERFORMANCE CRITERIA</h3>
                                     <form method="POST" class="label-and-input" id="edit-criteria-form">
@@ -161,14 +168,6 @@ if (isset($_POST['update_criteria'])) {
                                         </div>
                                     </form>
                                 </div>
-                        <tr>
-                            <td><?php echo $row['description']; ?>:</td>
-                            <td class="action-buttons">                               
-                                <!-- Edit Button -->
-                                <form method="POST" style="display:inline;">
-                                    <button id="edit_performance_criteria_btn" class="btn btn-warning" type="button">Edit</button>
-                                </form>
-                                                                                   
                                 <div class="edit-criteria-background"></div>
 
                                 <!-- Delete form -->
@@ -253,65 +252,6 @@ if (isset($_POST['update_criteria'])) {
             editCriteriaBack.classList.remove("show");
         });
     });
-
-    
-// Function to toggle the edit form and populate it with the current criteria data
-function editCriteria(criteriaId, criteriaName) {
-    const editForm = document.querySelector('.edit-criteria-content');
-
-    if (editForm.style.display === 'block') {
-        editForm.style.display = 'none';
-    } else {
-        // Populate the input with the current data
-        document.getElementById('criteria_name').value = criteriaName;
-
-        // Add the criteria ID as a hidden input for submission
-        const form = document.getElementById('edit-criteria-form');
-        
-        // Remove any existing criteria_id input before appending a new one (important for toggle behavior)
-        const existingCriteriaIdInput = form.querySelector('input[name="criteria_id"]');
-        if (existingCriteriaIdInput) {
-            existingCriteriaIdInput.remove();
-        }
-
-        // Create a new hidden input for the criteria ID
-        let criteriaIdInput = document.createElement("input");
-        criteriaIdInput.type = "hidden";
-        criteriaIdInput.name = "criteria_id";  // Make sure this is named "criteria_id"
-        criteriaIdInput.value = criteriaId;
-        form.appendChild(criteriaIdInput);
-
-        // Show the edit form
-        editForm.style.display = 'block';
-    }
-}
-
-// Handle the form submission (update logic)
-document.getElementById('edit-criteria-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const criteriaName = document.getElementById('criteria_name').value;
-    const criteriaId = document.querySelector('input[name="criteria_id"]').value;
-
-    // Send the updated data to the server (AJAX or form submission)
-    const formData = new FormData();
-    formData.append("criteria_id", criteriaId);
-    formData.append("criteria_name", criteriaName);
-    formData.append("update_criteria", true);
-
-    fetch(window.location.href, {
-        method: "POST",
-        body: formData,
-    })
-    .then(response => response.text())
-    .then(data => {
-        console.log(data);
-        // Optionally, close the form and update the table
-        document.querySelector('.edit-criteria-content').style.display = 'none';
-        location.reload();
-    })
-    .catch(error => console.error('Error:', error));
-});
 
 </script>
 <?php
