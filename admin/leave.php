@@ -64,22 +64,7 @@ $result = mysqli_query($conn, $sql);
                 <td><?php echo htmlspecialchars($row['start_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['end_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
-                <td>
-                    <?php
-                    // Assuming $row['start_date'] and $row['end_date'] are in 'Y-m-d' format
-                    $startDate = new DateTime($row['start_date']);
-                    $endDate = new DateTime($row['end_date']);
-                    
-                    // Calculate the difference
-                    $interval = $startDate->diff($endDate);
-                    
-                    // Get the number of days
-                    $daysDifference = $interval->days;
-
-                    // Output the number of days
-                    echo htmlspecialchars($daysDifference) . ' days';
-                    ?>
-                </td>
+                <td><?php echo htmlspecialchars($row['number_of_days']); ?></td>
                 <td><?php echo htmlspecialchars($row['reason']); ?></td>
                 <td><?php echo htmlspecialchars($row['status']); ?></td>
                 <td>
@@ -87,6 +72,9 @@ $result = mysqli_query($conn, $sql);
                         if ($row['status'] == 'Pending') {
                             echo '<form action="./process_leave" method="POST">
                                     <input type="hidden" name="leave_id" value="' . $row['leave_id'] . '">
+                                    <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
+                                    <input type="hidden" name="leave_type" value="' . $row['leave_type'] . '">
+                                    <input type="hidden" name="number_of_days" value="' . $row['number_of_days'] . '">
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>

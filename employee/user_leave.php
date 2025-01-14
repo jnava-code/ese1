@@ -37,24 +37,12 @@ if (isset($_POST['submit'])) {
 
     if (mysqli_num_rows($check_result) > 0) {
         // Insert the leave request into the database
-        $sql = "INSERT INTO leave_applications (employee_id, leave_type, start_date, end_date, reason) 
-                VALUES ('$employee_id', '$leave_type', '$start_date', '$end_date', '$reason')";
+        $sql = "INSERT INTO leave_applications (employee_id, leave_type, start_date, end_date, number_of_days, reason) 
+                VALUES ('$employee_id', '$leave_type', '$start_date', '$end_date', $noOfDays, '$reason')";
 
         if (mysqli_query($conn, $sql)) {
-            if($leave_type === "Sick") {
-                $update_sql = "UPDATE employees SET sick_leave = sick_leave - $noOfDays WHERE employee_id='$employee_id'";
-            } else if ($leave_type === "Vacation") {
-                $update_sql = "UPDATE employees SET vacation_leave = vacation_leave - $noOfDays WHERE employee_id='$employee_id'";
-            } else if($leave_type === "Maternity") {
-                $update_sql = "UPDATE employees SET maternity_leave = maternity_leave - $noOfDays WHERE employee_id='$employee_id'";
-            } else {
-                $update_sql = "UPDATE employees SET paternity_leave = paternity_leave - $noOfDays WHERE employee_id='$employee_id'";
-            }
-                      
-            if(mysqli_query($conn, $update_sql)) {
-                $message = "Leave application submitted successfully!";
-                $message_type = "success";
-            }
+            $message = "Leave application submitted successfully!";
+            $message_type = "success";
         } else {
             $message = "Error submitting leave application: " . mysqli_error($conn);
             $message_type = "error";
@@ -67,6 +55,7 @@ if (isset($_POST['submit'])) {
     // Close the connection
     mysqli_close($conn);
 }
+
 
 
 ?>
