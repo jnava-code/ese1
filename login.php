@@ -15,88 +15,81 @@ $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
-    // $_SESSION['e_username'] = $e_username;  // Set session variable to indicate the user is logged in
-
 
     // Define query array for all tables
-$queries = [
-    [
-        "query" => "SELECT id, username, password, first_name, last_name, user_type FROM admin WHERE username = ? AND status = 1",
-        "hashed" => true // Indicates password is hashed
-    ],
-    [
-        "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type, employment_status FROM employees WHERE username = ? AND e_status = 1",
-        "hashed" => false // Plain-text password
-    ],
-];
+    $queries = [
+        [
+            "query" => "SELECT id, username, password, first_name, last_name, user_type FROM admin WHERE username = ? AND status = 1",
+            "hashed" => true // For hashed passwords (admin table)
+        ],
+        [
+            "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type, employment_status FROM employees WHERE username = ? AND e_status = 1",
+            "hashed" => true // For plain-text passwords (employees table)
+        ],
+    ];
 
-// Loop through the queries to check if the password is hashed
-foreach ($queries as $entry) {
-    $stmt = mysqli_prepare($conn, $entry['query']);
-    mysqli_stmt_bind_param($stmt, 's', $username); // Bind the username parameter
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    // Loop through queries to find the user
+    foreach ($queries as $entry) {
+        $stmt = mysqli_prepare($conn, $entry['query']);
+        mysqli_stmt_bind_param($stmt, 's', $username); // Bind the username parameter
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
 
-    if (mysqli_num_rows($result) == 1) {
-        // User found
-        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) == 1) {
+            // User found
+            $row = mysqli_fetch_assoc($result);
 
-        // Check if the password is hashed by length (default length for password hash is 60 characters)
-        if (strlen($row['password']) === 60) {
-            // Password is hashed
-            $entry['hashed'] = true;
-        } else {
-            // Password is plain text
-            $entry['hashed'] = false;
-        }
-
-        // Verify the password based on hashed or plain-text status
-        if ($entry['hashed']) {
-            // For hashed passwords (admin table or others where password is hashed)
-            if (password_verify($password, $row['password'])) {
-                $authenticated = true;
-            } else {
-                $authenticated = false;
-            }
-        } else {
-            // For plain-text passwords (employees and user tables)
-            $authenticated = ($password === $row['password']);
-        }
-
-        if ($authenticated) {
-            // Set session variables
-            session_start();
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['user_type'] = $row['user_type'];
-            $_SESSION['fullname'] = $row['first_name'] . ' ' . $row['last_name'];
-            $_SESSION['gender'] = $row['gender'];
-            $_SESSION['employee_id'] = $row['employee_id'];
-            $_SESSION['employment_status'] = $row['employment_status'];
+            // Check if password is hashed or plain-text
+            if ($entry['hashed']) {
+                // For hashed passwords (admin table)
+                if (password_verify($password, $row['password'])) {
+                    $authenticated = true;
+                } elseif ($password === $row['password']) {
+                    $authenticated = true;
+                } else {
+                    $authenticated = false;
+                }
+            } 
             
-            // Redirect based on user type
-            switch ($row['user_type']) {
-                case 1: // Admin
-                    header("Location: ./admin/dashboard");
-                    break;
-                case 2: // Staff
-                    header("Location: ./employee/user_leave");
-                    break;
-                case 3: // Super Admin or Regular User
-                    header("Location: ./superadmin/dashboard");
-                    break;
+
+            // If authenticated, start session and redirect
+            if ($authenticated) {
+                session_start();
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['user_type'] = $row['user_type'];
+                $_SESSION['fullname'] = $row['first_name'] . ' ' . $row['last_name'];
+                $_SESSION['gender'] = $row['gender'] ?? ''; // If present
+                $_SESSION['employee_id'] = $row['employee_id'] ?? ''; // If present
+                $_SESSION['employment_status'] = $row['employment_status'] ?? ''; // If present
+
+                // Redirect based on user type
+                switch ($row['user_type']) {
+                    case 1: // Admin
+                        header("Location: ./admin/dashboard");
+                        break;
+                    case 2: // Staff
+                        header("Location: ./employee/user_leave");
+                        break;
+                    case 3: // Super Admin or Regular User
+                        header("Location: ./superadmin/dashboard");
+                        break;
+                    default:
+                        header("Location: ./index"); // Default redirection
+                        break;
+                }
+                exit();
+            } else {
+                $error = "Invalid Username or Password.";
             }
-            exit();
-        } else {
-            $error = "Invalid Username or Password.";
         }
     }
-}
-// If no user found or password doesn't match
-$error = "Invalid Username or Password.";
 
+    // If no user found or password doesn't match
+    if (!$authenticated) {
+        $error = "Invalid Username or Password.";
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

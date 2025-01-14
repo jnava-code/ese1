@@ -203,6 +203,7 @@
         <table id="myTable" class="evaluation-table">
             <thead>
                 <tr>
+                    <th>No.</th>
                     <th>Employee ID</th>
                     <th>Full Name</th>
                     <th>Evaluation Date</th>
@@ -214,8 +215,10 @@
             <tbody>
                 <?php
                 if ($result && mysqli_num_rows($result) > 0) {
+                    $counter = 1;
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo "<tr>";
+                        echo "<td>" . $counter++ . "</td>";
                         echo "<td class='employee_display'>" . $row['employee_id'] . "</td>";
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
