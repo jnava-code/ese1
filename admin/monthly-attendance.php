@@ -69,6 +69,9 @@ if(isset($_POST['search'])) {
             CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
             e.employee_id,
             a.date,
+            a.clock_in_time,
+            a.clock_out_time,
+            a.total_hours,
             IFNULL(la.status, 'Present') AS attendance_status
         FROM employees e
         LEFT JOIN attendance a ON e.employee_id = a.employee_id
@@ -228,38 +231,55 @@ if(isset($_POST['search'])) {
         }
         echo "</tr>";
 
-        // Attendance Status Row
-        echo "<tr>";
-        for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
-            $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
+        // Iterate over the days of the month and generate rows for the attendance table
+echo "<tr>";
+for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in_month; $day++) {
+    $date = date('Y-m-', strtotime('first day of this month')) . str_pad($day, 2, '0', STR_PAD_LEFT);
 
-            if ($date <= $today) {
-                $status = 'A'; // Default to Absent
-                foreach ($attendance as $record) {
-                    if ($record['date'] == $date) {
-                        $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                        break;
-                    }
-                }
-
-                // Map status and increment counters
-                if ($status == "A") {
-                    $status_display = "Absent";
-                    $absent_count++;
-                } elseif ($status == "P") {
-                    $status_display = "Present";
-                    $present_count++;
-                } elseif ($status == "L") {
-                    $status_display = Late;
-                    $late_count++;
-                } else {
-                    $status_display = Late;
-                }
-
-                echo "<td>" . $status_display . "</td>";
+    if ($date <= $today) {
+        $status = 'A'; // Default to Absent
+        $clock_in_time = '-';
+        $clock_out_time = '-';
+        
+        foreach ($attendance as $record) {
+            if ($record['date'] == $date) {
+                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
+                $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
+                break;
             }
         }
-        echo "</tr>";
+
+        // Map status and increment counters
+        if ($status == "A") {
+            $status_display = "Absent";
+            $absent_count++;
+        } elseif ($status == "P") {
+            $status_display = "Present";
+            $present_count++;
+        } elseif ($status == "L") {
+            $status_display = "Late";
+            $late_count++;
+        } else {
+            $status_display = "N/A";
+        }
+
+        // Display clock-in, clock-out time, and status in a clean format
+            echo "<td>";
+            if ($clock_in_time != '-') {
+                // If clock-in time is available, show clock-in and clock-out times
+                echo "<strong>In:</strong> " . $clock_in_time . "<br>";
+                echo "<strong>Out:</strong> " . $clock_out_time . "<br>";
+                echo "<strong>Total hourse:</strong> " . $total_hours . "<br>";
+            }
+            echo "<strong>Status:</strong> " . $status_display;
+            echo "</td>";
+
+    }
+}
+echo "</tr>";
+
     }
 
     echo "<div class='count-totals-container'>";

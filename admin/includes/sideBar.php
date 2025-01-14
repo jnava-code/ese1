@@ -9,8 +9,6 @@
         </div>
         <ul>
             <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
-
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
                     <i class="fas fa-user-friends"></i> Employees Profile<i class="fas fa-chevron-down toggle-icon"></i>
@@ -37,7 +35,7 @@
             <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
             <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
             <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-
+            <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Admin</a></li>
         </ul>
     </div>
 </nav>

@@ -41,27 +41,45 @@
             echo "<p>Error fetching evaluations: " . mysqli_error($conn) . "</p>";
         }
 
-        // Handle form submission
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Fetch performance criteria from the database
+            $performance_sql = "SELECT * FROM performance_criteria WHERE is_archived = 0";
+            $performance_result = mysqli_query($conn, $performance_sql);
+        
+            if (!$performance_result) {
+                die("Error fetching performance criteria: " . mysqli_error($conn));
+            }
+        
+            // Initialize an array to store criteria ratings
+            $criteria = [];
+        
+            // Loop through the criteria to collect submitted ratings
+            while ($row = mysqli_fetch_assoc($performance_result)) {
+                $name_attribute = strtolower(str_replace(' ', '_', $row['description']));
+        
+                // Check if the criteria rating is submitted
+                if (isset($_POST[$name_attribute])) {
+                    $criteria[$row['description']] = (int)$_POST[$name_attribute]; // Store the value as an integer
+                } else {
+                    $criteria[$row['description']] = null; // Handle missing ratings (optional)
+                }
+            }
+        
+            // Example: Print the collected criteria (for debugging)
+            // echo "<pre>";
+            // print_r($criteria);
+            // echo "</pre>";
+        
+            // Proceed with other form data
             $employee_id = $_POST['employee_id'];
             $evaluation_date = $_POST['evaluation_date'];
             $admin_id = 1; // Replace with actual admin ID
             $comments = mysqli_real_escape_string($conn, $_POST['comments']);
-
-            // Collect criteria ratings
-            $criteria = [
-                "job_knowledge" => $_POST['job_knowledge'],
-                "quality_of_work" => $_POST['quality_of_work'],
-                "work_ethic" => $_POST['work_ethic'],
-                "communication_skills" => $_POST['communication_skills'],
-                "punctuality" => $_POST['punctuality'],
-                "goals_achievements" => $_POST['goals_achievements']
-            ];
-
+        
             // Calculate overall score
-            $overall_score = array_sum($criteria) / count($criteria);
-
-            // Determine remarks based on decimal overall score
+            $overall_score = array_sum($criteria) / count(array_filter($criteria)); // Ignore null ratings
+        
+            // Determine remarks based on the score
             if ($overall_score <= 1.5) {
                 $remarks = "Need Guidance";
             } elseif ($overall_score > 1.5 && $overall_score <= 2.5) {
@@ -71,21 +89,32 @@
             } elseif ($overall_score >= 4.5) {
                 $remarks = "Very Effective";
             } else {
-                $remarks = "Unspecified"; // Fallback
-            }    
-
+                $remarks = "Unspecified";
+            }
+        
             // Insert evaluation data into the database
-            $insert_sql = "INSERT INTO performance_evaluations (employee_id, admin_id, evaluation_date, criteria, comments, overall_score, status, remarks)
-                    VALUES ('$employee_id', '$admin_id', '$evaluation_date', '" . json_encode($criteria) . "', '$comments', '$overall_score', 'Completed', '$remarks')";
-
+            $insert_sql = "INSERT INTO performance_evaluations (
+                employee_id, admin_id, evaluation_date, criteria, comments, overall_score, status, remarks
+            ) VALUES (
+                '$employee_id', 
+                '$admin_id', 
+                '$evaluation_date', 
+                '" . mysqli_real_escape_string($conn, json_encode($criteria)) . "', 
+                '$comments', 
+                '$overall_score', 
+                'Completed', 
+                '$remarks'
+            )";
+        
             if (mysqli_query($conn, $insert_sql)) {
                 // Redirect to prevent form resubmission
                 header("Location: performance-evaluation");
                 exit;
             } else {
-                echo "<p>Error: " . mysqli_error($conn) . "</p>";
+                echo "<p>Error inserting evaluation: " . mysqli_error($conn) . "</p>";
             }
         }
+        
         
         // Removed mysqli_close($conn) here, move it to the end
 
@@ -125,36 +154,36 @@
             // Convert description to lowercase and replace spaces with underscores for the name attribute
             $name_attribute = strtolower(str_replace(' ', '_', $row['description']));
                 ?>
-                    <!-- Display the label with the counter (e.g., "1. Job Knowledge (1-5)") -->
-                    <label for="<?php echo $name_attribute; ?>">
-                        <?php echo $counter . '. ' . $row['description']; ?> (1-5):
-                    </label>
+                    <div class="radio-content">
+                        <!-- Display the label with the counter (e.g., "1. Job Knowledge (1-5)") -->
+                        <label for="<?php echo $name_attribute; ?>">
+                            <?php echo $counter . '. ' . $row['description']; ?> (1-5):
+                        </label>
 
-                    <div class="radio-choices">
-                        <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
-                            <label class="radio-label">1. Need Guidance</label>
-                        </div>
-                        <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
-                            <label class="radio-label">2. Low</label>
-                        </div>
-                        <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
-                            <label class="radio-label">3. Satisfactory</label>
-                        </div>
-                        <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
-                            <label class="radio-label">4. Effective</label>
-                        </div>
-                        <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
-                            <label class="radio-label">5. Very Effective</label>
+                        <div class="radio-choices">
+                            <div class="radio-choice">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
+                                <label class="radio-label">1. Need Guidance</label>
+                            </div>
+                            <div class="radio-choice">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
+                                <label class="radio-label">2. Low</label>
+                            </div>
+                            <div class="radio-choice">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
+                                <label class="radio-label">3. Satisfactory</label>
+                            </div>
+                            <div class="radio-choice">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
+                                <label class="radio-label">4. Effective</label>
+                            </div>
+                            <div class="radio-choice">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
+                                <label class="radio-label">5. Very Effective</label>
+                            </div>
                         </div>
                     </div>
-
                 <?php
-                            // Increment the counter for the next row
                             $counter++;
                         }
                     }
@@ -187,7 +216,7 @@
                 if ($result && mysqli_num_rows($result) > 0) {
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo "<tr>";
-                        echo "<td>" . $row['employee_id'] . "</td>";
+                        echo "<td class='employee_display'>" . $row['employee_id'] . "</td>";
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
                         echo "<td>" . $row['overall_score'] . "</td>";
@@ -204,6 +233,21 @@
     </section>
 </main>
 
+<script>
+    // SELECT THE CLASS NAME
+    const employeeDisplay = document.querySelectorAll(".employee_display");
+
+    employeeDisplay.forEach(display => {
+        // Apply format: 00-000
+        display.textContent = display.textContent.slice(0, 2) + '-' + display.textContent.slice(2, 5);
+    });
+   
+</script>
+<style>
+    .evaluation-form .radio-content {
+        margin-top: 25px;
+    }
+</style>
 <?php
     include('footer.php');
     mysqli_close($conn); // Move mysqli_close to the end of the script

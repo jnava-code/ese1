@@ -688,9 +688,7 @@ function generatePasswordFromBday($date_of_birth) {
             event.preventDefault();
 
             // Toggle the active class
-            parent.classList.toggle('active');
-
-            
+            parent.classList.toggle('active');        
         });
     }); 
 

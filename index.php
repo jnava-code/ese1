@@ -57,23 +57,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!is_null($attendance_row['clock_out_time'])) {
                     $error = "You have already timed out for today.";
                 } else {
-                    // Calculate total hours worked
+                    // Convert clock-in time and current time to UNIX timestamps
                     $clock_in_time = strtotime($attendance_row['clock_in_time']); // Convert clock-in time to UNIX timestamp
                     $clock_out_time = strtotime($current_time); // Convert clock-out time to UNIX timestamp
-                    $total_hours = round(($clock_out_time - $clock_in_time) / 3600, 2); // Calculate hours and round to 2 decimal places
             
-                    // Update attendance record with clock-out time and total hours
-                    $update_sql = "UPDATE attendance 
-                                   SET clock_out_time = '$current_time', total_hours = '$total_hours' 
-                                   WHERE attendance_id = '{$attendance_row['attendance_id']}'";
+                    // Check if both times are valid
+                    if ($clock_in_time !== false && $clock_out_time !== false) {
+                        // Calculate total worked time in seconds
+                        $total_seconds = $clock_out_time - $clock_in_time;
             
-                    if (mysqli_query($conn, $update_sql)) {
-                        $success = "Time Out recorded successfully!";
+                        // Calculate hours worked by dividing total seconds by 3600 (seconds in an hour)
+                        $total_hours = round($total_seconds / 3600, 2); // Round to 2 decimal places
+            
+                        // Update attendance record with clock-out time and total hours worked
+                        $update_sql = "UPDATE attendance 
+                                       SET clock_out_time = '$current_time', total_hours = '$total_hours' 
+                                       WHERE attendance_id = '{$attendance_row['attendance_id']}'";
+            
+                        if (mysqli_query($conn, $update_sql)) {
+                            $success = "Time Out recorded successfully!";
+                        } else {
+                            $error = "Error recording Time Out. Please try again.";
+                        }
                     } else {
-                        $error = "Error recording Time Out. Please try again.";
+                        $error = "Invalid time format.";
                     }
                 }
             }
+            
         }
     } else {
         $error = "Invalid Employee ID.";
