@@ -27,15 +27,25 @@ $selectedWeek = isset($_POST['week']) ? $_POST['week']: 1;  // Default to Week 1
 
 // Check if the search button was clicked
 if (isset($_POST['search_week'])) {
-    // Get the start and end date for the selected week
+    // Get the start of the selected month
     $firstDayOfMonth = strtotime("{$selectedYear}-{$selectedMonth}-01");
+
+    // Find the first Sunday of the month
     $firstSunday = strtotime("next Sunday", $firstDayOfMonth);
     if (date('m', $firstSunday) != $selectedMonth) {
+        // If the first Sunday goes into the next month, get the previous Sunday
         $firstSunday = strtotime("last Sunday", $firstDayOfMonth);
     }
 
-    // Calculate the start and end date for the selected week
-    $startDate = date('Y-m-d', strtotime("+".($selectedWeek - 2) * 7 . " days", $firstSunday));
+
+    // Calculate the start date for the selected week
+    if ($selectedWeek == 1) {
+        // For the first week, no need to add any days, just use the first Sunday
+        $startDate = date('Y-m-d', strtotime($firstSunday));
+    } else {
+        // For subsequent weeks, add (selectedWeek - 1) * 7 days
+        $startDate = date('Y-m-d', strtotime("+".($selectedWeek - 2) * 7 . " days", $firstSunday));
+    }
     $endDate = date('Y-m-d', strtotime("$startDate + 6 days"));
 
 
@@ -71,6 +81,7 @@ if (isset($_POST['search_week'])) {
 <main class="main-content">
     <section id="dashboard">
         <h2>WEEKLY ATTENDANCE MONITORING</h2>
+        <?php echo $selectedYear . " " . $selectedMonth . " " . $selectedWeek?>
         <form action="" method="POST" class="month-and-week">
             <div class="col-md-6">
                 <label for="month">Month</label>
