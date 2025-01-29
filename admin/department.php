@@ -47,6 +47,7 @@
 <?php
 if (isset($_POST['add_dept'])) {
     $dept_name = $_POST['dept_name'];
+    $colors = '#' . str_pad(dechex(rand(0x000000, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     $is_archived = 0;
 
     // Use prepared statement to avoid SQL injection
@@ -61,9 +62,9 @@ if (isset($_POST['add_dept'])) {
         $message = '<p style="color: red;">The department already exists.</p>';
     } else {
         // Insert new department
-        $insertSql = "INSERT INTO departments (dept_name, is_archived) VALUES (?, ?)";
+        $insertSql = "INSERT INTO departments (dept_name, colors, is_archived) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($insertSql);
-        $stmt->bind_param('si', $dept_name, $is_archived);  // 's' for string, 'i' for integer
+        $stmt->bind_param('ssi', $dept_name, $colors, $is_archived);  // 's' for string, 'i' for integer
         $insertResult = $stmt->execute();
 
         if ($insertResult) {

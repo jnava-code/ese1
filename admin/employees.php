@@ -31,6 +31,12 @@
         $employment_status = $_POST['employment_status'] ?? '';
         $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
         $date_of_birth = $_POST['date_of_birth'] ?? '';
+        // Create DateTime objects
+        $dob = new DateTime($date_of_birth);
+        $today = new DateTime('today');
+
+        // Calculate the age
+        $age = $dob->diff($today)->y;
         $password = generatePasswordFromBday($date_of_birth);
         $contact_number = $_POST['contact_number'] ?? '';
         $perma_address = $_POST['perma_address'] ?? '';
@@ -89,17 +95,17 @@
         if (empty($errmsg)) {
             $sql = "INSERT INTO employees (
                 last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
-                employment_status, employee_id, password, date_of_birth, contact_number, perma_address,
+                employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address,
                 civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
                 emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
                 maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
-                "sssssssssssssssssssssssssssssbbbbbb",
+                "ssssssssssssssssssssssssssssssbbbbbb",
                 $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
-                $department, $employment_status, $employee_id, $password, $date_of_birth, $contact_number,
+                $department, $employment_status, $employee_id, $password, $date_of_birth, $age, $contact_number,
                 $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
                 $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
                 $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
