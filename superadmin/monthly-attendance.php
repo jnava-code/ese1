@@ -112,7 +112,7 @@ if(isset($_POST['search'])) {
 <!-- Main Content Area -->
 <main class="main-content">
     <section id="dashboard">
-        <h2>ATTENDANCE MONITORING</h2>
+        <h2>MONTHLY ATTENDANCE MONITORING</h2>
             <div class="action-buttons">
                 <button id="by_employee_btn" class="btn btn-danger by_employee_btn">By Employee</button>
                 <button id="by_department_btn" class="btn btn-danger by_department_btn">By Department</button>

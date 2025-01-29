@@ -113,9 +113,6 @@ foreach ($ageRanges as $ageRange) {
     <!-- Main Content Area -->
     <main class="main-content">
         <section id="dashboard">
-            <h2>GENERATE REPORTS</h2>
-            <!-- Content for the Dashboard -->
-
             <div class="reports">
                 <div style="width: 100%; max-width: 500px;"> <!-- This container helps control the chart's maximum size -->
                     <h1>Attendance Report</h1>

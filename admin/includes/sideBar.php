@@ -26,6 +26,7 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="./daily-attendance">Daily Attendance</a></li>
+                    <li><a href="./weekly-attendance">Weekly Attendance</a></li>
                     <li><a href="./monthly-attendance">Monthly Attendance</a></li>
                 </ul>
             </li>
