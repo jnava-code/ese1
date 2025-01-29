@@ -48,6 +48,7 @@ $result = mysqli_query($conn, $sql);
     <thead>
         <tr>
             <th>Employee Name</th>
+            <th>Date of File</th>
             <th>Start Date</th>
             <th>End Date</th>           
             <th>Leave Type</th>           
@@ -61,6 +62,7 @@ $result = mysqli_query($conn, $sql);
         <?php while ($row = mysqli_fetch_assoc($result)) { ?>
             <tr>
                 <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
+                <td><?php echo htmlspecialchars($row['file_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['start_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['end_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
@@ -230,4 +232,4 @@ button:disabled {
   $(document).ready( function () {
     $('#myTable').DataTable();
   });
-</script>   
+</script>

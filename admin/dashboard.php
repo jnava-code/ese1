@@ -12,7 +12,15 @@ $pendingLeaveQuery = "SELECT COUNT(*) AS pending_leaves FROM leave_applications 
 $pendingLeaveResult = $conn->query($pendingLeaveQuery);
 $pendingLeaves = $pendingLeaveResult->fetch_assoc()['pending_leaves'];
 
+// Query for departments
+$departments = "SELECT COUNT(*) as total_departments FROM departments";
+$resultDepartments = $conn->query($departments);
+$countDepartments = $resultDepartments->fetch_assoc()['total_departments'];
 
+// Query for departments
+$admins = "SELECT COUNT(*) as total_admins FROM admin WHERE user_type = 1";
+$resultAdmins = $conn->query($admins);
+$countAdmins = $resultAdmins->fetch_assoc()['total_admins'];
 ?>
 
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
@@ -32,6 +40,11 @@ $pendingLeaves = $pendingLeaveResult->fetch_assoc()['pending_leaves'];
         <div class="dashboard-cards">
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-users"></i></div>
+                <h3>Admins</h3>
+                <p><?php echo $countAdmins; ?></p>
+            </div>
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-users"></i></div>
                 <h3>Total Employees</h3>
                 <p><?php echo $totalEmployees; ?></p>
             </div>
@@ -39,6 +52,11 @@ $pendingLeaves = $pendingLeaveResult->fetch_assoc()['pending_leaves'];
                 <div class="icon"><i class="fas fa-calendar-times"></i></div>
                 <h3>Leave Requests</h3>
                 <p><?php echo $pendingLeaves; ?> Pending</p>
+            </div>
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-building"></i></div>
+                <h3>Departments</h3>
+                <p><?php echo $countDepartments; ?></p>
             </div>
         </div>
     </section>

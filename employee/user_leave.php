@@ -25,6 +25,7 @@ if($result) {
 if (isset($_POST['submit'])) {
     // Get form input values
     $employee_id = $_SESSION['employee_id']; // Assume employee_id is stored in session
+    $file_date = $_POST['file_date'];
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
     $leave_type = $_POST['leave_type']; // Get the selected leave type
@@ -37,8 +38,8 @@ if (isset($_POST['submit'])) {
 
     if (mysqli_num_rows($check_result) > 0) {
         // Insert the leave request into the database
-        $sql = "INSERT INTO leave_applications (employee_id, leave_type, start_date, end_date, number_of_days, reason) 
-                VALUES ('$employee_id', '$leave_type', '$start_date', '$end_date', $noOfDays, '$reason')";
+        $sql = "INSERT INTO leave_applications (employee_id, leave_type, file_date, start_date, end_date, number_of_days, reason) 
+                VALUES ('$employee_id', '$leave_type', '$file_date', '$start_date', '$end_date', $noOfDays, '$reason')";
 
         if (mysqli_query($conn, $sql)) {
             $message = "Leave application submitted successfully!";
@@ -181,6 +182,12 @@ if (isset($_POST['submit'])) {
                             </div>';
                     }
                 ?>
+
+                <div>
+                    <label for="file_date">Date of File:</label>
+                    <input type="text" id="file_date" name="file_date" value="" required>
+                </div>
+
                 <div>
                     <label for="start_date">Start Date:</label>
                     <input type="date" id="start_date" name="start_date" required min="<?= date('Y-m-d'); ?>">
@@ -225,6 +232,15 @@ if (isset($_POST['submit'])) {
 </main>
 
 <script>
+    const fileDateInput = document.getElementById('file_date');
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    let day = today.getDate().toString().padStart(2, '0'); // Pads single digit day with leading zero
+    let month = (today.getMonth() + 1).toString().padStart(2, '0'); // Pads single digit month with leading zero
+    
+    if(fileDateInput) fileDateInput.value = `${year}-${month}-${day}`
+    
     // Hide the notification after 5 seconds
     setTimeout(() => {
         const notification = document.getElementById('notification');

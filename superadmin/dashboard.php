@@ -2,51 +2,33 @@
 include('header.php');
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
+// Query for total employees
+$totalEmployeesQuery = "SELECT COUNT(*) AS total_employees FROM employees WHERE e_status = 1";
+$totalEmployeesResult = $conn->query($totalEmployeesQuery);
+$totalEmployees = $totalEmployeesResult->fetch_assoc()['total_employees'];
+
+// Query for pending leave requests
+$pendingLeaveQuery = "SELECT COUNT(*) AS pending_leaves FROM leave_applications WHERE status = 'Pending'";
+$pendingLeaveResult = $conn->query($pendingLeaveQuery);
+$pendingLeaves = $pendingLeaveResult->fetch_assoc()['pending_leaves'];
+
+// Query for departments
+$departments = "SELECT COUNT(*) as total_departments FROM departments";
+$resultDepartments = $conn->query($departments);
+$countDepartments = $resultDepartments->fetch_assoc()['total_departments'];
+
+// Query for departments
+$admins = "SELECT COUNT(*) as total_admins FROM admin WHERE user_type = 1";
+$resultAdmins = $conn->query($admins);
+$countAdmins = $resultAdmins->fetch_assoc()['total_admins'];
 ?>
 
-
+<!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
 
 
-    <style>
-    /* Dashboard cards */
-    .dashboard-cards {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .dashboard-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        flex: 1;
-        text-align: center;
-        min-width: 200px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .dashboard-card h3 {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-
-    .dashboard-card p {
-        font-size: 18px;
-        color: #666;
-    }
-
-    .dashboard-card .icon {
-        font-size: 36px;
-        margin-bottom: 10px;
-        color:#9c1111;
-    }
+<style>
+    /* nilipat ko sa "css/style.css" yung code dito */
 </style>
 
 
@@ -55,7 +37,28 @@ $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 <main class="main-content">
     <section id="dashboard">
         <h2>DASHBOARD</h2>
-
+        <div class="dashboard-cards">
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-users"></i></div>
+                <h3>Admins</h3>
+                <p><?php echo $countAdmins; ?></p>
+            </div>
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-users"></i></div>
+                <h3>Total Employees</h3>
+                <p><?php echo $totalEmployees; ?></p>
+            </div>
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-calendar-times"></i></div>
+                <h3>Leave Requests</h3>
+                <p><?php echo $pendingLeaves; ?> Pending</p>
+            </div>
+            <div class="dashboard-card">
+                <div class="icon"><i class="fas fa-building"></i></div>
+                <h3>Departments</h3>
+                <p><?php echo $countDepartments; ?></p>
+            </div>
+        </div>
     </section>
 </main>
 <script>
