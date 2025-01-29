@@ -211,7 +211,7 @@ if (!empty($searchQuery)) {
                             <td><?= htmlspecialchars($row['email']) ?></td>
                             <td><?= htmlspecialchars($row['contact_number']) ?></td>
                             <td class="action-buttons">
-                            <a href="./edit_employee?id=<?php echo $row['id']; ?>" class="btn btn-warning">Edit</a>
+                            <a href="./edit_admin?id=<?php echo $row['id']; ?>" class="btn btn-warning">Edit</a>
                             <a href="?delete_id=<?php echo $row['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this Admin?');">Archive</a>
                             </td>
                         </tr>

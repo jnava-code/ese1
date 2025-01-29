@@ -1,7 +1,5 @@
 <?php
 include('header.php'); // Admin header file
-include('includes/sideBar.php');
-
 
 // Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
@@ -28,26 +26,8 @@ if ($status_filter != 'all') {
 $result = mysqli_query($conn, $sql);
 ?>
 
-
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./employees"><i class="fas fa-user-friends"></i> Employees Profile</a></li>
-        <li class="dropdown">
-            <a href="#attendance-dropdown" class="dropdown-toggle"><i class="fas fa-calendar-check"></i> Attendance Management</a>
-            <ul class="dropdown-menu" id="attendance-dropdown">
-                <li><a href="./daily-attendance">Daily Attendance</a></li>
-                <li><a href="./monthly-attendance">Monthly Attendance</a></li>
-            </ul>
-        </li>
-        <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
-        <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
-        <li><a href="./recommendation"><i class="fas fa-lightbulb"></i> Recommendation</a></li>
-        <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
-        <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
-        <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-    </ul>
-</nav>
+<!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
+<?php include('includes/sideBar.php'); ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <!-- Main Content Area -->
@@ -69,7 +49,9 @@ $result = mysqli_query($conn, $sql);
         <tr>
             <th>Employee Name</th>
             <th>Start Date</th>
-            <th>End Date</th>
+            <th>End Date</th>           
+            <th>Leave Type</th>           
+            <th>No. Of Days</th>
             <th>Reason</th>
             <th>Status</th>
             <th>Action</th>
@@ -81,20 +63,29 @@ $result = mysqli_query($conn, $sql);
                 <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
                 <td><?php echo htmlspecialchars($row['start_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['end_date']); ?></td>
+                <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
+                <td><?php echo htmlspecialchars($row['number_of_days']); ?></td>
                 <td><?php echo htmlspecialchars($row['reason']); ?></td>
                 <td><?php echo htmlspecialchars($row['status']); ?></td>
                 <td>
-                    <form action="./process_leave" method="POST">
-                        <input type="hidden" name="leave_id" value="<?php echo $row['leave_id']; ?>">
-                        <button type="submit" name="action" value="approve" 
-                            <?php echo ($row['status'] != 'Pending') ? 'disabled' : ''; ?>>
-                            Approve
-                        </button>
-                        <button type="submit" name="action" value="reject" 
-                            <?php echo ($row['status'] != 'Pending') ? 'disabled' : ''; ?>>
-                            Reject
-                        </button>
-                    </form>
+                    <?php
+                        if ($row['status'] == 'Pending') {
+                            echo '<form action="./process_leave" method="POST">
+                                    <input type="hidden" name="leave_id" value="' . $row['leave_id'] . '">
+                                    <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
+                                    <input type="hidden" name="leave_type" value="' . $row['leave_type'] . '">
+                                    <input type="hidden" name="number_of_days" value="' . $row['number_of_days'] . '">
+                                    <button type="submit" name="action" value="approve">
+                                        Approve
+                                    </button>
+                                    <button type="submit" name="action" value="reject">
+                                        Reject
+                                    </button>
+                                </form>';
+                        } else {
+                            echo '-----';
+                        }
+                    ?>                 
                 </td>
             </tr>
         <?php } ?>
@@ -239,4 +230,4 @@ button:disabled {
   $(document).ready( function () {
     $('#myTable').DataTable();
   });
-</script>
+</script>   

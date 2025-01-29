@@ -271,7 +271,7 @@ for ($day = $start_day; $day < $start_day + $columns_per_row && $day <= $days_in
                 // If clock-in time is available, show clock-in and clock-out times
                 echo "<strong>In:</strong> " . $clock_in_time . "<br>";
                 echo "<strong>Out:</strong> " . $clock_out_time . "<br>";
-                echo "<strong>Total hourse:</strong> " . $total_hours . "<br>";
+                echo "<strong>Total hours:</strong> " . $total_hours . "<br>";
             }
             echo "<strong>Status:</strong> " . $status_display;
             echo "</td>";
