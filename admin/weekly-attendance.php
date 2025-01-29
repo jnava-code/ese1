@@ -81,7 +81,6 @@ if (isset($_POST['search_week'])) {
 <main class="main-content">
     <section id="dashboard">
         <h2>WEEKLY ATTENDANCE MONITORING</h2>
-        <?php echo $selectedYear . " " . $selectedMonth . " " . $selectedWeek?>
         <form action="" method="POST" class="month-and-week">
             <div class="col-md-6">
                 <label for="month">Month</label>
