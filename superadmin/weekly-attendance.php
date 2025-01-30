@@ -37,6 +37,7 @@ if (isset($_POST['search_week'])) {
         $firstSunday = strtotime("last Sunday", $firstDayOfMonth);
     }
 
+
     // Calculate the start date for the selected week
     if ($selectedWeek == 1) {
         // For the first week, no need to add any days, just use the first Sunday
@@ -47,12 +48,12 @@ if (isset($_POST['search_week'])) {
     }
     $endDate = date('Y-m-d', strtotime("$startDate + 6 days"));
 
+
     // Fetch attendance data for the selected week and year
     $sql = "
     SELECT 
         CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
         e.employee_id,
-        e.hire_date,
         a.date,
         a.clock_in_time,
         a.clock_out_time,
@@ -66,7 +67,8 @@ if (isset($_POST['search_week'])) {
     AND MONTH(a.date) = $selectedMonth 
     AND a.date BETWEEN '$startDate' AND '$endDate'
     ORDER BY a.date, e.employee_id
-    ";
+";
+
 
     $attendanceResult = mysqli_query($conn, $sql);
     $attendanceData = [];
@@ -137,89 +139,81 @@ if (isset($_POST['search_week'])) {
                         <?php foreach ($attendanceData as $employee_id => $attendance): ?>
                             <tr>
                                 <?php 
-                                // Get the employee's full name and hire date
+                                // Assuming that each $attendance entry is an array of records for the employee
                                 $full_name = '';
-                                $hire_date = '';
                                 if (!empty($attendance)) {
                                     $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
-                                    $hire_date = $attendance[0]['hire_date'];
                                 }
-
-                                // Convert hire_date to a comparable format
-                                $hire_date = date('Y-m-d', strtotime($hire_date));
                                 ?>
-                                <td><?php echo $full_name; ?></td>
-
+                                <td>
+                                    <?php echo $full_name; ?>
+                                </td>
+                                
                                 <?php 
+
                                 // Loop through the days of the week (Sunday to Saturday)
-for ($day = 0; $day < 7; $day++) {
-    $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
-    $status = 'A'; // Default status is Absent
-    $clock_in_time = '-';
-    $clock_out_time = '-';
-    $total_hours = '-';
-    
-    $status_display = '';
-    $status_color = '#f8f9fa'; // Default status color (light gray)
-
-    // Skip Saturday and Sunday
-    if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
-        echo "<td></td>"; // Empty cell for Saturday and Sunday
-        continue;
-    }
-
-    // Skip dates before the hire date for that employee
-    if ($currentDate < $hire_date) {
-        // Leave the cell empty if the date is before the hire date
-        echo "<td></td>";
-        continue;
-    }
-
-    // Check if attendance data exists for this day
-    foreach ($attendance as $record) {
-        if (isset($record['date']) && $record['date'] == $currentDate) {
-            $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-            $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
-            $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
-            $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
-            break; // Exit the inner loop once the record is found
-        }
-    }
-
-    // Check if employee is on approved leave
-    $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
-    $stmt = $conn->prepare($leave_query);
-    $stmt->bind_param("ss", $employee_id, $currentDate);
-    $stmt->execute();
-    $leave_result = $stmt->get_result();
-
-    if ($leave = $leave_result->fetch_assoc()) {
-        $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-        $status_color = "#74c0fc";  // Blue for leave
-    } elseif ($status == "A") {
-        $status_display = "Absent";
-        $status_color = "#ff8787";  // Red for absence
-    } elseif ($status == "P") {
-        $status_display = "Present";
-        $status_color = "#69db7c";  // Green for present
-    } elseif ($status == "L") {
-        $status_display = "Late";
-        $status_color = "#f7b731";  // Yellow for late
-    } else {
-        $status_display = "N/A";
-    }
-
-    // Output the table cell for the current day with color-coded status
-    echo "<td>";
-    echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
-    if ($clock_in_time != '-') {
-        echo "<strong>In:</strong> $clock_in_time<br>";
-        echo "<strong>Out:</strong> $clock_out_time<br>";
-        echo "<strong>Total hours:</strong> $total_hours<br>";
-    }
-    echo "</td>";
-}
-
+                                for ($day = 0; $day < 7; $day++) {
+                                    $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
+                                    $status = 'A'; // Default status is Absent
+                                    $clock_in_time = '-';
+                                    $clock_out_time = '-';
+                                    $total_hours = '-';
+                                
+                                    $status_display = '';
+                                    $status_color = '#f8f9fa'; // Default status color (light gray)
+                                
+                                    // Skip weekends (Saturday and Sunday)
+                                    if ($day == 0 || $day == 6) {
+                                        // Empty for weekends (Saturday and Sunday)
+                                        echo "<td></td>"; // Display empty cell for weekend
+                                        continue; // Skip the rest of the loop for weekends
+                                    }
+                                
+                                    // Check if attendance data exists for this day
+                                    foreach ($attendance as $record) {
+                                        if (isset($record['date']) && $record['date'] == $currentDate) {
+                                            $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                                            $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                            $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                            $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
+                                            break; // Exit the inner loop once the record is found
+                                        }
+                                    }
+                                
+                                    // Check if employee is on approved leave
+                                    $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
+                                    $stmt = $conn->prepare($leave_query);
+                                    $stmt->bind_param("ss", $employee_id, $currentDate);
+                                    $stmt->execute();
+                                    $leave_result = $stmt->get_result();
+                                
+                                    if ($leave = $leave_result->fetch_assoc()) {
+                                        $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                                        $status_color = "#74c0fc";  // Blue for leave
+                                    } elseif ($status == "A") {
+                                        $status_display = "Absent";
+                                        $status_color = "#ff8787";  // Red for absence
+                                    } elseif ($status == "P") {
+                                        $status_display = "Present";
+                                        $status_color = "#69db7c";  // Green for present
+                                    } elseif ($status == "L") {
+                                        $status_display = "Late";
+                                        $status_color = "#f7b731";  // Yellow for late
+                                    } else {
+                                        $status_display = "N/A";
+                                    }
+                                
+                                    // Output the table cell for the current day with color-coded status
+                                    echo "<td>";
+                                    echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
+                                    if ($clock_in_time != '-') {
+                                        echo "<strong>In:</strong> $clock_in_time<br>";
+                                        echo "<strong>Out:</strong> $clock_out_time<br>";
+                                        echo "<strong>Total hours:</strong> $total_hours<br>";
+                                    }
+                                    echo "</td>";
+                                }
+                                
                                 ?>
                             </tr>
                         <?php endforeach; ?>
@@ -233,16 +227,31 @@ for ($day = 0; $day < 7; $day++) {
 </main>
 
 <script>
-// Function to update the week dropdown dynamically based on the selected month
+// Function to get the number of weeks in a given month
+function getWeeksInMonth(month) {
+    var date = new Date();
+    var year = date.getFullYear(); // Get current year
+    var firstDay = new Date(year, month, 1); // First day of the month
+    var lastDay = new Date(year, month + 1, 0); // Last day of the month
+    var daysInMonth = lastDay.getDate(); // Total days in the month
+
+    // Calculate the number of weeks (7 days per week)
+    var firstWeek = Math.ceil(firstDay.getDate() / 7);
+    var lastWeek = Math.ceil(daysInMonth / 7);
+
+    return lastWeek; // Return total number of weeks in the month
+}
+
+// Function to update the week dropdown based on the selected month
 function updateWeeks() {
-    var month = document.getElementById('month').value;
-    var weeksInMonth = getWeeksInMonth(month);
-    var weekSelect = document.getElementById('week');
+    var month = document.getElementById('month').value; // Get the selected month
+    var weeksInMonth = getWeeksInMonth(month); // Get the number of weeks in the selected month
+    var weekSelect = document.getElementById('week'); // Get the week select element
 
     // Clear existing week options
     weekSelect.innerHTML = '';
 
-    // Add week options dynamically
+    // Add week options dynamically based on the number of weeks
     for (var i = 1; i <= weeksInMonth; i++) {
         var option = document.createElement('option');
         option.value = i;
@@ -250,22 +259,11 @@ function updateWeeks() {
         weekSelect.appendChild(option);
     }
 
-    // Set the default week to Week 1
+    // Set default week to Week 1 if no other week is selected
     weekSelect.value = 1;
 }
 
-// Function to calculate the number of weeks in a given month
-function getWeeksInMonth(month) {
-    var date = new Date();
-    var year = date.getFullYear();
-    var firstDay = new Date(year, month, 1); // First day of the month
-    var lastDay = new Date(year, month + 1, 0); // Last day of the month
-    var daysInMonth = lastDay.getDate(); // Total days in the month
-
-    return Math.ceil(daysInMonth / 7); // Return the number of weeks
-}
-
-updateWeeks(); // Update weeks when page loads
+updateWeeks(); // Update the weeks on page load
 </script>
 
 <style>

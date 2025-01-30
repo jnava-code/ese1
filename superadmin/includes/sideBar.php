@@ -30,10 +30,11 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="./daily-attendance">Daily Attendance</a></li>
+                    <li><a href="./weekly-attendance">Weekly Attendance</a></li>
                     <li><a href="./monthly-attendance">Monthly Attendance</a></li>
                 </ul>
             </li>
-
+            
             <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
             <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
             <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>

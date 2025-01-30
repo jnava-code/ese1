@@ -18,9 +18,62 @@
         }
     }
     
+    // Function to count weekdays (excluding Saturdays and Sundays)
+    function countWeekdays($start_date, $end_date) {
+        $start = new DateTime($start_date);
+        $end = new DateTime($end_date);
+        
+        // Add one day to include the end date in the range
+        $interval = new DateInterval('P1D');
+        $dateRange = new DatePeriod($start, $interval, $end->modify('+1 day'));
+
+        $weekdays = 0;
+        foreach ($dateRange as $date) {
+            // Check if the day is not Saturday (6) or Sunday (7)
+            if ($date->format('N') < 6) {
+                $weekdays++;
+            }
+        }
+
+        return $weekdays;
+    }
+
+    // Function to get the total absent weekdays for all employees
+    function getAbsentCount($conn, $sql) {    
+        $result = mysqli_query($conn, $sql);
+        if ($result) {
+            $total_days = 0;
+            while ($row = mysqli_fetch_assoc($result)) {
+                $employee_id = $row['employee_id']; 
+                $hire_date = $row['hire_date'];
+                // Count weekdays from hire_date to presentDate for each employee
+                $total_days += countWeekdays($hire_date, date('Y-m-d')); 
+            }
+            return $total_days;  // Return the sum of all days
+        } else {
+            echo "Error: " . mysqli_error($conn);
+            return 0;
+        }
+    }
+
+    // Get the present date
+    $presentDate = date('Y-m-d');
+
+    // SQL query to get the hire_date for each employee
+    $sql = "
+    SELECT e.employee_id, e.hire_date
+    FROM employees e
+    WHERE e.hire_date <= '$presentDate'";
+
+    // Get the total absent weekdays for all employees
+    $absent_days = getAbsentCount($conn, $sql);
+
     $late_count = getCount($conn, "SELECT count(*) as late_count FROM attendance WHERE status = 'Late'");
     $ontime_count = getCount($conn, "SELECT count(*) as ontime_count FROM attendance WHERE status = 'On Time'");
     $leave_count = getCount($conn, "SELECT count(*) as leave_count FROM leave_applications WHERE status = 'Approved'");
+
+    $notAbsent = $late_count + $ontime_count + $leave_count;
+    $total_absent_days = $absent_days - $notAbsent;
 
     // Fetch department names and colors from the departments table
     $sqlDepartments = "SELECT dept_name, colors FROM departments";
@@ -142,7 +195,7 @@ foreach ($ageRanges as $ageRange) {
         // ATTENDANCE REPORT
         var lateCount = <?php echo $late_count; ?>; 
         var onTimeCount = <?php echo $ontime_count; ?>; 
-        var absentCount = 0; 
+        var absentCount = <?php echo $total_absent_days; ?>; 
         var onLeaveCount = <?php echo $leave_count; ?>;  
 
         var ctx = document.getElementById('attendancePieChart').getContext('2d');
