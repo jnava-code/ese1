@@ -19,11 +19,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Define query array for all tables
     $queries = [
         [
-            "query" => "SELECT id, username, password, first_name, last_name, user_type FROM admin WHERE username = ? AND status = 1",
+            "query" => "SELECT id, username, password, first_name, last_name, user_type FROM admin WHERE username = ? AND status = 1 AND is_archived = 0",
             "hashed" => true // For hashed passwords (admin table)
         ],
         [
-            "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type, employment_status FROM employees WHERE username = ? AND e_status = 1",
+            "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type, employment_status FROM employees WHERE username = ? AND e_status = 1 AND is_archived = 0",
             "hashed" => true // For plain-text passwords (employees table)
         ],
     ];

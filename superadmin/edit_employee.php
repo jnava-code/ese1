@@ -104,40 +104,7 @@
         header("Location: ./employees");
         exit();
     }
-    
-    // // Execute the query using the appropriate parameters
-    // executeQuery($conn, $sql, 'ssssssssssssssssssssssi', [
-    //     $last_name, $first_name, $middle_name, $email, 
-    //     $position, $hire_date, $department, $employment_status,
-    //     $employee_id, $password, $date_of_birth, $contact_number, $perma_address,
-    //     $civil_status, $sss_number, $philhealth_number, $pagibig_number,
-    //     $tin_number, $emergency_contact_name, $emergency_contact_number, 
-    //     $educational_background, $skills, $id
-    // ]);     
 ?>
-
-
-
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./employees"><i class="fas fa-user-friends"></i> Employees Profile</a></li>
-        <li class="dropdown">
-            <a href="#attendance-dropdown" class="dropdown-toggle"><i class="fas fa-calendar-check"></i> Attendance Management</a>
-            <ul class="dropdown-menu" id="attendance-dropdown">
-                <li><a href="./daily-attendance">Daily Attendance</a></li>
-                <li><a href="./monthly-attendance">Monthly Attendance</a></li>
-            </ul>
-        </li>
-        <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
-        <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
-        <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
-        <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
-        <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-    </ul>
-</nav>
-
-
 
     <!DOCTYPE html>
     <html lang="en">
@@ -145,7 +112,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit Employee</title>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="css/styles.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     </head>
 

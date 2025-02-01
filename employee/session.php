@@ -17,6 +17,7 @@ if (isset($_POST['login_user'])) {
     // Data sanitization to prevent SQL injection
     $username = mysqli_real_escape_string($db, $_POST['username']);
     $password = mysqli_real_escape_string($db, $_POST['password']);
+    $is_archived = mysqli_real_escape_string($db, $_POST['is_archived']);
   
     // Error message if the input field is left blank
     if (empty($username)) {
@@ -33,7 +34,7 @@ if (isset($_POST['login_user'])) {
         $password = md5($password);
          
         $query = "SELECT employee_id, username FROM employees 
-                  WHERE username='$username' AND password='$password'";
+                  WHERE username='$username' AND password='$password' AND is_archived=`0`";
         $results = mysqli_query($db, $query);
   
         // If one user is found

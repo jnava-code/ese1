@@ -111,6 +111,19 @@ if (!empty($searchQuery)) {
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+<script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- FontAwesome for the eye icon -->
+
+<style>
+    .input-group {
+        position: relative;
+    }
+    .input-group-append {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+</style>
 
 
 <!-- Admin Management UI -->
@@ -133,7 +146,14 @@ if (!empty($searchQuery)) {
 
                         <div class="col-md-4">
                             <label for="password">Password</label>
-                            <input type="password" class="form-control" name="password" placeholder="Password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text" id="togglePassword">
+                                        <i class="fas fa-eye"></i> <!-- Eye icon from FontAwesome -->
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-4">
@@ -222,10 +242,27 @@ if (!empty($searchQuery)) {
     </section>
 </main>
 
+<?php include('footer.php'); ?>
+
 <script>
 $(document).ready(function () {
     $('#myTable').DataTable();
 });
+</script>
+
+<script>
+    // Get the password input and the eye icon
+    const togglePassword = document.getElementById("togglePassword");
+    const password = document.getElementById("password");
+
+    togglePassword.addEventListener("click", function () {
+        // Toggle the type of the password input between 'password' and 'text'
+        const type = password.type === "password" ? "text" : "password";
+        password.type = type;
+
+        // Toggle the eye icon between open and closed
+        this.querySelector("i").classList.toggle("fa-eye-slash");
+    });
 </script>
 
 <script>
@@ -234,6 +271,6 @@ $(document).ready(function () {
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<?php include('footer.php'); ?>
+
 </body>
 </html>
