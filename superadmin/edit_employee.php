@@ -1,7 +1,5 @@
-<?php include('header.php'); ?>
-<?php include('includes/sideBar.php'); ?>
 
-    <?php
+<?php
     // Database connection
     $conn = mysqli_connect('localhost', 'root', '', 'esetech');
     if (!$conn) {
@@ -114,28 +112,52 @@
     //     $tin_number, $emergency_contact_name, $emergency_contact_number, 
     //     $educational_background, $skills, $id
     // ]);     
+
+    function generatePasswordFromBday($date_of_birth) {
+        // Extract month, day, and year from the date
+        $date = DateTime::createFromFormat('Y-m-d', $date_of_birth);
+        
+        // Format the password as 'mmmddyyyy', where mmm is the 3-letter month, dd is day, and yyyy is year
+        $password = $date->format('M') . $date->format('d') . $date->format('Y');
+        
+        return strtolower($password); // To ensure the month is lowercase
+    }
+
+    if (isset($_POST['reset_password'])) {
+        // Get the posted data
+        $id = $_GET['id'];
+        $date_of_birth = $_POST['date_of_birth']; // The date of birth input
+    
+        // Generate the new password from the date of birth
+        $password = generatePasswordFromBday($date_of_birth);
+        
+        // Proceed to update the password in the database
+        $sqlReset = "UPDATE employees SET password=? WHERE id=?";
+        if ($stmt = $conn->prepare($sqlReset)) {
+            $stmt->bind_param("si", $password, $id);
+            
+            // Execute the query to update the password
+            if ($stmt->execute()) {
+                echo "Employee's password has been successfully changed.";
+                header("Location: ./employees");
+                exit();
+            } else {
+                echo "Error updating employee's password: " . $stmt->error;
+            }
+    
+            $stmt->close();
+        } else {
+            echo "Error preparing the statement: " . $conn->error;
+        }
+        
+        exit(); // End script execution after updating password
+    }
+    
+    
+    
+    
 ?>
 
-
-
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./employees"><i class="fas fa-user-friends"></i> Employees Profile</a></li>
-        <li class="dropdown">
-            <a href="#attendance-dropdown" class="dropdown-toggle"><i class="fas fa-calendar-check"></i> Attendance Management</a>
-            <ul class="dropdown-menu" id="attendance-dropdown">
-                <li><a href="./daily-attendance">Daily Attendance</a></li>
-                <li><a href="./monthly-attendance">Monthly Attendance</a></li>
-            </ul>
-        </li>
-        <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
-        <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
-        <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
-        <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
-        <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-    </ul>
-</nav>
 
 
 
@@ -145,11 +167,13 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit Employee</title>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="css/styles.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     </head>
 
     <body>
+    <?php include('header.php'); ?>
+    <?php include('includes/sideBar.php'); ?>
         <main class="main-content">
             <section id="edit-employee">
                 <h2>Edit Employee Details</h2>
@@ -163,7 +187,7 @@
                             <div class="form-row">
                 <div class="col-md-4">
                 <label for="date_of_birth">First Name</label>
-                    <input type="text" class="form-control" name="first_name" placeholder="First Name" value="<?php  echo $employee['first_name'] ?>" required>
+                    <input type="text" class="form-control" name="first_name" placeholder="First Name" value="<?php  echo $employee['first_name'] ?>" >
                 </div>
                 <div class="col-md-4">
                 <label for="date_of_birth">Middle Name</label>
@@ -171,7 +195,7 @@
                 </div>
                 <div class="col-md-4">
                 <label for="date_of_birth">Last Name</label>
-                    <input type="text" class="form-control" name="last_name" placeholder="Last Name" value="<?php  echo $employee['last_name'] ?>" required>
+                    <input type="text" class="form-control" name="last_name" placeholder="Last Name" value="<?php  echo $employee['last_name'] ?>" >
                 </div>
                 <div class="col-md-4">
                     <label for="suffix">Suffix</label>
@@ -182,7 +206,7 @@
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="gender">Sex</label>
-                    <select id="gender" name="gender" class="form-control" required>
+                    <select id="gender" name="gender" class="form-control" >
                         <option value="" <?php echo ($employee['gender'] == '') ? 'selected' : ''; ?>>Select Sex</option>
                         <option value="Male" <?php echo ($employee['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
                         <option value="Female" <?php echo ($employee['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
@@ -190,12 +214,12 @@
                 </div>
                 <div class="col-md-6">
                     <label for="contact_number" >Contact Number</label>
-                    <input type="text" class="form-control" name="contact_number" placeholder="e.g., +63 912-345-6789" value="<?php  echo $employee['contact_number'] ?>" required>
+                    <input type="text" class="form-control" name="contact_number" placeholder="e.g., +63 912-345-6789" value="<?php  echo $employee['contact_number'] ?>" >
                 </div>
                 <div class="col-md-6">
                     <label for="civil_status">Civil Status</label>
-                    <!-- <input type="text" class="form-control" name="civil_status" placeholder="Civil Status" value="<?php  echo $employee['civil_status'] ?>" required> -->
-                    <select name="civil_status" class="form-control" required>
+                    <!-- <input type="text" class="form-control" name="civil_status" placeholder="Civil Status" value="<?php  echo $employee['civil_status'] ?>" > -->
+                    <select name="civil_status" class="form-control" >
                         <option value="" <?php echo ($employee['civil_status'] == '') ? 'selected' : ''; ?>>Select Civil Status</option>
                         <option value="Single" <?php echo ($employee['civil_status'] == 'Single') ? 'selected' : ''; ?>>Single</option>
                         <option value="Married" <?php echo ($employee['civil_status'] == 'Married') ? 'selected' : ''; ?>>Married</option>
@@ -212,40 +236,40 @@
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="educational_background">Education Background</label>
-                    <input type="text" class="form-control" name="educational_background" placeholder="Education Background" value="<?php  echo $employee['educational_background'] ?>" required>
+                    <input type="text" class="form-control" name="educational_background" placeholder="Education Background" value="<?php  echo $employee['educational_background'] ?>" >
                 </div>
                 <div class="col-md-6">
                     <label for="date_of_birth">Date of Birth</label>
-                    <input type="date" class="form-control" name="date_of_birth" placeholder="Date of Birth" value="<?php  echo $employee['date_of_birth'] ?>" required>
+                    <input type="date" class="form-control" name="date_of_birth" placeholder="Date of Birth" value="<?php  echo $employee['date_of_birth'] ?>" >
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="position">Position</label>
-                    <input type="text" class="form-control" name="position" placeholder="Position" value="<?php  echo $employee['position'] ?>" required>
+                    <input type="text" class="form-control" name="position" placeholder="Position" value="<?php  echo $employee['position'] ?>" >
                 </div>
                 <div class="col-md-6">
                     <label for="skills">Skills</label>
-                    <input type="text" class="form-control" name="skills" placeholder="Skills" value="<?php  echo $employee['skills'] ?>" required>
+                    <input type="text" class="form-control" name="skills" placeholder="Skills" value="<?php  echo $employee['skills'] ?>" >
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="perma_address">Permanent Address</label>
-                    <input type="text" class="form-control" name="perma_address" placeholder="Permanent Address" value="<?php  echo $employee['perma_address'] ?>" required>
+                    <input type="text" class="form-control" name="perma_address" placeholder="Permanent Address" value="<?php  echo $employee['perma_address'] ?>" >
                 </div>              
             </div>
             
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="date_of_birth">Email Address</label>
-                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?php  echo $employee['email'] ?>" required>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?php  echo $employee['email'] ?>" >
                 </div>
                 <div class="col-md-6">
                     <label for="department">Department</label>
-                    <select name="department" class="form-control" required>
+                    <select name="department" class="form-control" >
                         <option value="">Select Department</option>
                         <?php 
                             $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
@@ -268,25 +292,25 @@
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="emergency_contact_name">Emergency Contact Name</label>
-                    <input type="text" class="form-control" name="emergency_contact_name" placeholder="Emergency Contact Name" value="<?php  echo $employee['emergency_contact_name'] ?>"  required>
+                    <input type="text" class="form-control" name="emergency_contact_name" placeholder="Emergency Contact Name" value="<?php  echo $employee['emergency_contact_name'] ?>"  >
                 </div>
                 <div class="col-md-6">
                     <label for="emergency_contact_number">Emergency Contact Number</label>
-                    <input type="text" class="form-control" name="emergency_contact_number" placeholder="Emergency Contact Number" value="<?php  echo $employee['emergency_contact_number'] ?>" required>
+                    <input type="text" class="form-control" name="emergency_contact_number" placeholder="Emergency Contact Number" value="<?php  echo $employee['emergency_contact_number'] ?>" >
                 </div>
             </div>
 
             <div class="form-row">
             <div class="col-md-4">
                 <label for="hire_date">Date Hired</label>
-                <input type="date" class="form-control" name="hire_date" id="hire_date" placeholder="yyyy-mm-dd" value="<?php  echo $employee['hire_date'] ?>" required>
+                <input type="date" class="form-control" name="hire_date" id="hire_date" placeholder="yyyy-mm-dd" value="<?php  echo $employee['hire_date'] ?>" >
             </div>
             </div>
          
              <div class="form-row">
                 <div class="form-group col-md-6">
                 <label>Employment Status</label>
-                <select id="employment_status" name="employment_status" class="form-control" required>
+                <select id="employment_status" name="employment_status" class="form-control" >
                         <option value="" <?php echo ($employee['employment_status'] == '') ? 'selected' : ''; ?>>Employment Status</option>
                         <option value="Regular" <?php echo ($employee['employment_status'] == 'Regular') ? 'selected' : ''; ?>>Regular</option>
                         <option value="Probationary" <?php echo ($employee['employment_status'] == 'Probationary') ? 'selected' : ''; ?>>Probationary</option>
@@ -302,7 +326,7 @@
 
                 <div class="col-md-4">
                 <label for="username">Username</label>
-                    <input type="text" class="form-control" name="username" placeholder="Username" value="<?php  echo $employee['username'] ?>" required>
+                    <input type="text" class="form-control" name="username" placeholder="Username" value="<?php  echo $employee['username'] ?>" >
                 </div>
 
                 <div class="col-md-4">
@@ -314,22 +338,22 @@
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="date_of_birth">SSS Number</label>
-                    <input type="text" class="form-control" name="sss_number" placeholder="SSS Number" required pattern="\d{2}-\d{7}-\d{1}" title="SSS should be in the format 00-0000000-0" value="<?php  echo $employee['sss_number'] ?>">
+                    <input type="text" class="form-control" name="sss_number" placeholder="SSS Number"  pattern="\d{2}-\d{7}-\d{1}" title="SSS should be in the format 00-0000000-0" value="<?php  echo $employee['sss_number'] ?>">
                 </div>
                 <div class="col-md-6">
                     <label for="date_of_birth">PHILHEALTH Number</label>
-                    <input type="text" class="form-control" name="philhealth_number" placeholder="PhilHealth Number" required pattern="\d{2}-\d{9}-\d{1}" title="PhilHealth should be in the format 00-000000000-0" value="<?php  echo $employee['philhealth_number'] ?>">
+                    <input type="text" class="form-control" name="philhealth_number" placeholder="PhilHealth Number"  pattern="\d{2}-\d{9}-\d{1}" title="PhilHealth should be in the format 00-000000000-0" value="<?php  echo $employee['philhealth_number'] ?>">
                 </div>
                 <div class="col-md-6">
                     <label for="date_of_birth">TIN Number</label>
-                    <input type="text" class="form-control" name="tin_number" placeholder="TIN Number" required pattern="\d{3}-\d{3}-\d{3}-\d{3}" title="TIN should be in the format 000-000-000-000" value="<?php  echo $employee['tin_number'] ?>">
+                    <input type="text" class="form-control" name="tin_number" placeholder="TIN Number"  pattern="\d{3}-\d{3}-\d{3}-\d{3}" title="TIN should be in the format 000-000-000-000" value="<?php  echo $employee['tin_number'] ?>">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                 <label for="date_of_birth">PAGIBIG Number</label>
-                <input type="text" class="form-control" name="pagibig_number" placeholder="PagIBIG Number" required pattern="\d{4}-\d{4}-\d{4}" title="PagIBIG should be in the format 0000-0000-0000" value="<?php  echo $employee['pagibig_number'] ?>">
+                <input type="text" class="form-control" name="pagibig_number" placeholder="PagIBIG Number"  pattern="\d{4}-\d{4}-\d{4}" title="PagIBIG should be in the format 0000-0000-0000" value="<?php  echo $employee['pagibig_number'] ?>">
                 </div>
             </div>
                         
@@ -358,7 +382,8 @@
                                 <div class="form-row">
                             <div class="form-group col-md-6">
                             <button type="submit" name="update_employee" class="btn btn-primary">Update Employee</button>
-                        <a href="./employees" class="btn btn-cancel">Cancel</a>
+                            <button type="submit" name="reset_password" class="btn btn-primary">Reset Password</button>
+                            <a href="./employees" class="btn btn-primary">Cancel</a>
                                 </div>
                                     </div>
                                 </div>

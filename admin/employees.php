@@ -229,7 +229,6 @@ function validateEmployeeData($data) {
     return $errors;
 }
 
-error_reporting(0);
 include('header.php'); 
 
 function generatePasswordFromBday($date_of_birth) {
