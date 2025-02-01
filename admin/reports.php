@@ -161,6 +161,12 @@ foreach ($ageRanges as $ageRange) {
         flex-wrap: wrap;
         justify-content: center;
     }
+
+    @media print {
+        header {
+            display: none;
+        }
+    }
 </style>
 <body>   
     <!-- Main Content Area -->

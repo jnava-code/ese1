@@ -229,7 +229,6 @@ function validateEmployeeData($data) {
     return $errors;
 }
 
-error_reporting(0);
 include('header.php'); 
 
 function generatePasswordFromBday($date_of_birth) {
@@ -247,13 +246,79 @@ function generatePasswordFromBday($date_of_birth) {
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
  
+<style>
+    .report_btn {
+        display: flex;
+        align-items: center;
+
+        margin-bottom: 15px;
+    }
+
+    .report_btn button {
+        border-radius: 0px;
+        cursor: pointer;
+    }
+
+    @media print {
+        header,
+        .main-content h2,
+        .form-content,
+        .card-body h3,
+        .card-body .report_btn,
+        .card-body .dataTables_length,
+        .card-body .dataTables_filter,
+        .card-body .dataTables_info,
+        .card-body .dataTables_paginate,
+        .actions {
+            display: none !important;
+        }
+
+        th.sorting::before,
+        th.sorting_asc::before,
+        th.sorting_desc::before,
+        th.sorting::after,
+        th.sorting_asc::after,
+        th.sorting_desc::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        .card {
+            border: none;
+            border-radius: none;
+            margin-bottom: 0px;
+            padding: 0px !important;
+            box-shadow: none !important;
+        }
+
+        .main-content {
+            padding: 0px;
+        }
+
+        .status-inactive {
+            padding: 0px;
+            color: #000;
+        }
+
+        table th,
+        table tr {
+            font-size: 12px;
+            padding: 5px;
+        }
+
+        table.dataTable thead>tr>th.sorting {
+            padding-right: 0px;
+        }
+    }
+</style>
+
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
         <section id="dashboard">
             <h2 class="text-2xl font-bold mb-6">EMPLOYEE MANAGEMENT</h2>
             
             <!-- Add Employee Form -->
-            <div class="card">
+            <div class="card form-content">
     <div class="card-header">
         <h3>Add New Employee</h3>
     </div>
@@ -534,9 +599,15 @@ function generatePasswordFromBday($date_of_birth) {
 
             <div class="card">  
             <div class="card-header">
-    <h3>Employee List</h3>
 
     <div class="card-body">
+    <h3>Employee List</h3>
+    <div class="report_btn">
+        <button class="btn print_btn">PRINT</button>
+        <button class="btn pdf_btn">PDF</button>
+        <button class="btn excel_btn">EXCEL</button>
+        <button class="btn word_btn">WORD</button>
+    </div> 
         <table id="myTable" class="employee-table">
             <thead>
                 <tr>
@@ -548,7 +619,7 @@ function generatePasswordFromBday($date_of_birth) {
                     <th>Department</th>
                     <th>Email</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="actions">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -581,7 +652,7 @@ function generatePasswordFromBday($date_of_birth) {
                                 <?php echo $employee['employment_status']; ?>
                             </span>
                         </td>
-                        <td class="action-buttons">
+                        <td class="actions action-buttons">
                             <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
                             <a href="./view_employee?id=<?php echo $employee['id']; ?>" class="btn btn-danger">View</a>
                             <a href="?delete_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
@@ -594,8 +665,12 @@ function generatePasswordFromBday($date_of_birth) {
 </div>
 </div>
 
-<style>
-</style>
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+
 <script>
     const employeeId = document.getElementById("employee_id");
     const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
@@ -775,7 +850,166 @@ $(document).ready( function () {
     $('#myTable').DataTable();
   });
 
+  const reportBtn = document.querySelector(".report_btn");
+  const buttons = document.querySelectorAll(".btn");
+
+  if(reportBtn) {
+    reportBtn.addEventListener("click", (e) => {
+        const clicked = e.target.closest(".btn");
+        
+        if(!clicked) return;
+        
+        if(clicked.classList.contains("print_btn")) {
+            window.print();
+        } else if(clicked.classList.contains("pdf_btn")) {
+            const element = document.getElementById("myTable");
+
+            // Create a temporary style element to ensure proper styling
+            const style = document.createElement("style");
+            style.innerHTML = `
+                header,
+                .main-content h2,
+                .form-content,
+                .card-body h3,
+                .card-body .report_btn,
+                .card-body .dataTables_length,
+                .card-body .dataTables_filter,
+                .card-body .dataTables_info,
+                .card-body .dataTables_paginate,
+                .actions {
+                    display: none !important;
+                }
+
+                th.sorting::before,
+                th.sorting_asc::before,
+                th.sorting_desc::before,
+                th.sorting::after,
+                th.sorting_asc::after,
+                th.sorting_desc::after {
+                    content: none !important;
+                    display: none !important;
+                }
+
+                .card {
+                    border: none;
+                    border-radius: none;
+                    margin-bottom: 0px;
+                    padding: 0px !important;
+                    box-shadow: none !important;
+                }
+
+                .main-content {
+                    padding: 0px;
+                }
+
+                .status-inactive {
+                    padding: 0px;
+                    color: #000;
+                    background: none;
+                }
+
+                table th,
+                table tr {
+                    font-size: 12px;
+                    padding: 5px;
+                }
+
+                table.dataTable thead>tr>th.sorting {
+                    padding-right: 0px;
+                }
+            `;
+
+            // Append style to the document
+            document.head.appendChild(style);
+
+            // Clone the element to avoid modifying the original table
+            const clonedElement = element.cloneNode(true);
+
+            // Convert to PDF
+            html2pdf()
+                .set({
+                    margin: 1, // Remove PDF margins
+                    filename: "employee_list.pdf",
+                    image: { type: "jpeg", quality: 0.98 },
+                    html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+                })
+                .from(clonedElement)
+                .toPdf()
+                .save()
+                .then(() => {
+                    // Remove the temporary style after PDF generation
+                    document.head.removeChild(style);
+                });
+        } else if(clicked.classList.contains("excel_btn")) {
+            // Select the table element
+            const table = document.getElementById("myTable");
+
+            // Convert table to an array while excluding the "actions" column
+            const rows = [];
+            table.querySelectorAll("tr").forEach((row) => {
+                const rowData = [];
+                row.querySelectorAll("th, td").forEach((cell, index) => {
+                    // Skip the cell if it's inside a column with class "actions"
+                    if (!cell.classList.contains("actions")) {
+                        rowData.push(cell.innerText);
+                    }
+                });
+                rows.push(rowData);
+            });
+
+            // Create a worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
+
+            // Append worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Employee List");
+
+            // Download Excel file
+            XLSX.writeFile(wb, "employee_list.xlsx");
+        } else if(clicked.classList.contains("word_btn")){
+            const table = document.getElementById("myTable").cloneNode(true);
+
+            // Remove the "Actions" column (th and td with class 'actions')
+            table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
+
+            // Create a Word-compatible HTML content with margin
+            const htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                    xmlns:w="urn:schemas-microsoft-com:office:word" 
+                    xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 5px; padding: 5px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                        table th,
+                        table tr {
+                            font-size: 12px;
+                            padding: 5px;
+                        }
+
+                    </style>
+                </head>
+                <body>
+                    ${table.outerHTML}
+                </body>
+                </html>`;
+
+            // Create a Blob with the content
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+
+            // Create a download link
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "employee_list.doc";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+  }
 </script>
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
 <?php include('footer.php'); ?>

@@ -134,6 +134,7 @@ if (isset($_POST['update_dept'])) {
 }
 ?>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
     <section id="dashboard">
         <div class="department-and-button">
