@@ -535,6 +535,11 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="card">  
             <div class="card-header">
     <h3>Employee List</h3>
+    <div class="report_btn">
+        <button class="pdf_btn">PDF</button>
+        <button class="excel_btn">EXCEL</button>
+        <button class="word_btn">WORD</button>
+    </div> 
 
     <div class="card-body">
         <table id="myTable" class="employee-table">
@@ -595,6 +600,16 @@ function generatePasswordFromBday($date_of_birth) {
 </div>
 
 <style>
+    .report_btn {
+        display: flex;
+        align-items: center;
+
+        margin-bottom: 15px;
+    }
+
+    .report_btn button {
+        cursor: pointer;
+    }
 </style>
 <script>
     const employeeId = document.getElementById("employee_id");
