@@ -116,42 +116,6 @@ button:disabled {
 .filter-buttons a.active {
     background-color: #de0d0d;
 }
-    /* Sidebar Dropdown */
-    .sidebar ul .dropdown {
-    position: relative;
-}
-
-.sidebar ul .dropdown .dropdown-toggle {
-    cursor: pointer;
-}
-
-.sidebar ul .dropdown .dropdown-menu {
-    display: none; /* Hide by default */
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #a83a3a;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a {
-    padding-left: 2rem; /* Indent for dropdown items */
-    display: block;
-    color: #fff;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a:hover {
-    background-color: #c45b5b;
-}
-
-/* Show dropdown menu when the parent is active */
-.sidebar ul .dropdown.active .dropdown-menu {
-    display: block; /* Show the dropdown */
-}
-
-/* Optional styling for active links */
-.sidebar ul li a.active {
-    background-color: #c45b5b;
-}
 
 @media print {
         header,
@@ -187,20 +151,7 @@ button:disabled {
     }
 
 </style>
-<script>
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function (event) {
-        const parent = this.parentElement;
 
-        // Prevent the link's default behavior
-        event.preventDefault();
-
-        // Toggle the active class
-        parent.classList.toggle('active');
-    });
-});
-
-</script>
 <!-- Main Content Area -->
 <main class="main-content">
     <section id="dashboard">
@@ -287,7 +238,6 @@ include('footer.php'); // Admin footer file
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
-
 <script>
   $(document).ready( function () {
     $('#myTable').DataTable();
@@ -433,4 +383,15 @@ include('footer.php'); // Admin footer file
             }
         });
     }
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function (event) {
+        const parent = this.parentElement;
+
+        // Prevent the link's default behavior
+        event.preventDefault();
+
+        // Toggle the active class
+        parent.classList.toggle('active');
+    });
+});
 </script>

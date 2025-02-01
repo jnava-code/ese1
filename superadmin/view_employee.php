@@ -20,26 +20,6 @@
     }   
 ?>
 
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./employees"><i class="fas fa-user-friends"></i> Employees Profile</a></li>
-        <li class="dropdown">
-            <a href="#attendance-dropdown" class="dropdown-toggle"><i class="fas fa-calendar-check"></i> Attendance Management</a>
-            <ul class="dropdown-menu" id="attendance-dropdown">
-                <li><a href="./daily-attendance">Daily Attendance</a></li>
-                <li><a href="./monthly-attendance">Monthly Attendance</a></li>
-            </ul>
-        </li>
-        <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
-        <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
-        <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
-        <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
-        <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-    </ul>
-</nav>
-
-
 
     <!DOCTYPE html>
     <html lang="en">
@@ -52,6 +32,9 @@
     </head>
 
     <body>
+
+    <?php include('includes/sideBar.php'); ?>
+    
         <main class="main-content">
             <section id="edit-employee">
                 <h2>View Employee Details</h2>
@@ -271,50 +254,6 @@
                     paternityContainer.style.display = paternityDisplay;
                 }
         </script>
-
-<style>
-.buttons {
-    display: flex;
-    gap: 5px;
-    justify-content: end;
-}
-        /* Sidebar Dropdown */
-.sidebar ul .dropdown {
-    position: relative;
-}
-
-.sidebar ul .dropdown .dropdown-toggle {
-    cursor: pointer;
-}
-
-.sidebar ul .dropdown .dropdown-menu {
-    display: none; /* Hide by default */
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #a83a3a;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a {
-    padding-left: 2rem; /* Indent for dropdown items */
-    display: block;
-    color: #fff;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a:hover {
-    background-color: #c45b5b;
-}
-
-/* Show dropdown menu when the parent is active */
-.sidebar ul .dropdown.active .dropdown-menu {
-    display: block; /* Show the dropdown */
-}
-
-/* Optional styling for active links */
-.sidebar ul li a.active {
-    background-color: #c45b5b;
-}
-</style>
 
 <script>
     // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)

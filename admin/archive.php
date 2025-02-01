@@ -28,7 +28,7 @@
 ?>
 
 <?php include('includes/sideBar.php'); ?>
-
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
     <section id="dashboard">
         <h2 class="text-2xl font-bold mb-6">ARCHIVED EMPLOYEES</h2>

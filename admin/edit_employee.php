@@ -158,7 +158,8 @@
     
 ?>
 
-
+<?php include('header.php'); ?>
+<?php include('includes/sideBar.php'); ?>
 
 
     <!DOCTYPE html>
@@ -172,8 +173,7 @@
     </head>
 
     <body>
-    <?php include('header.php'); ?>
-    <?php include('includes/sideBar.php'); ?>
+
         <main class="main-content">
             <section id="edit-employee">
                 <h2>Edit Employee Details</h2>
@@ -397,67 +397,6 @@
                 <?php endif; ?>
             </section>
         </main>
-<style>
-        /* Sidebar Dropdown */
-.sidebar ul .dropdown {
-    position: relative;
-}
-
-.sidebar ul .dropdown .dropdown-toggle {
-    cursor: pointer;
-}
-
-.sidebar ul .dropdown .dropdown-menu {
-    display: none; /* Hide by default */
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #a83a3a;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a {
-    padding-left: 2rem; /* Indent for dropdown items */
-    display: block;
-    color: #fff;
-}
-
-.sidebar ul .dropdown .dropdown-menu li a:hover {
-    background-color: #c45b5b;
-}
-
-/* Show dropdown menu when the parent is active */
-.sidebar ul .dropdown.active .dropdown-menu {
-    display: block; /* Show the dropdown */
-}
-
-/* Optional styling for active links */
-.sidebar ul li a.active {
-    background-color: #c45b5b;
-}
-</style>
-
-<!-- <script>
-    const employeeId = document.getElementById("employee_id");
-
-    let validDisplayValue = employeeId.value.replace(/[^0-9]/g, '');
-    // Apply format: 00-000
-    if (employeeId.value.length > 2) {
-        employeeId.value = validDisplayValue.slice(0, 2) + '-' + validDisplayValue.slice(2, 5);
-    }
-
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function (event) {
-        const parent = this.parentElement;
-
-        // Prevent the link's default behavior
-        event.preventDefault();
-
-        // Toggle the active class
-        parent.classList.toggle('active');
-    });
-});
-
-</script> -->
 
 <script>
     const employeeId = document.getElementById("employee_id");
