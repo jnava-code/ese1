@@ -45,6 +45,7 @@ $sql = "
         a.date, 
         a.clock_in_time, 
         a.clock_out_time,
+        a.total_hours,
         a.status,
         IFNULL(la.status, 'Absent') AS leave_status
     FROM attendance a
@@ -81,17 +82,19 @@ $totalPages = ceil($totalRows / $limit);
         <th>Date</th>
         <th>Time In</th>
         <th>Time Out</th>
+        <th>Total Hours</th>
         <th>Status</th>
     </tr>
 </thead>
 <tbody>
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
-            <td><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
+            <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
             <td><?php echo htmlspecialchars($row['full_name']); ?></td>
             <td><?php echo $row['date']; ?></td>
             <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
             <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
+            <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
             <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
         </tr>
     <?php endwhile; ?>
@@ -195,6 +198,14 @@ mysqli_close($conn);
 }
 </style>
 <script>
+    // SELECT THE CLASS NAME
+    const employeeDisplay = document.querySelectorAll(".employee_display");
+
+    employeeDisplay.forEach(display => {
+        // Apply format: 00-000
+        display.textContent = display.textContent.slice(0, 2) + '-' + display.textContent.slice(2, 5);
+    });
+
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
     toggle.addEventListener('click', function (event) {
         const parent = this.parentElement;
