@@ -37,7 +37,6 @@ if (isset($_POST['search_week'])) {
         $firstSunday = strtotime("last Sunday", $firstDayOfMonth);
     }
 
-
     // Calculate the start date for the selected week
     if ($selectedWeek == 1) {
         // For the first week, no need to add any days, just use the first Sunday
@@ -48,12 +47,12 @@ if (isset($_POST['search_week'])) {
     }
     $endDate = date('Y-m-d', strtotime("$startDate + 6 days"));
 
-
     // Fetch attendance data for the selected week and year
     $sql = "
     SELECT 
         CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
         e.employee_id,
+        e.hire_date,
         a.date,
         a.clock_in_time,
         a.clock_out_time,
@@ -67,8 +66,7 @@ if (isset($_POST['search_week'])) {
     AND MONTH(a.date) = $selectedMonth 
     AND a.date BETWEEN '$startDate' AND '$endDate'
     ORDER BY a.date, e.employee_id
-";
-
+    ";
 
     $attendanceResult = mysqli_query($conn, $sql);
     $attendanceData = [];
@@ -78,9 +76,90 @@ if (isset($_POST['search_week'])) {
 }
 ?>
 
+<style>
+    .report_btn {
+        display: flex;
+        align-items: center;
+
+        margin-bottom: 15px;
+    }
+
+    .report_btn button {
+        border-radius: 0px;
+        cursor: pointer;
+    }
+/* Additional CSS to style the attendance table and form */
+.month-and-week {
+    display: flex;
+    gap: 5px;
+}
+
+.attendance-table {
+    padding: 0px 2rem ;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: #fff;
+}
+
+table th, table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+table th {
+    background-color: #f8f9fa;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+@media (max-width: 768px) {
+    table th, table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+
+@media print {
+        header,
+        .main-content h2,
+        .report_btn,
+        .month-and-week {
+            display: none !important;
+        }
+
+        .main-content,
+        .attendance-table {
+            padding: 0px;
+        }
+
+        table th,
+        table tr {
+            font-size: 12px;
+        }
+    }
+</style>
+
 <main class="main-content">
     <section id="dashboard">
         <h2>WEEKLY ATTENDANCE MONITORING</h2>
+        <div class="report_btn">
+            <button class="btn print_btn">PRINT</button>
+            <button class="btn pdf_btn">PDF</button>
+            <button class="btn excel_btn">EXCEL</button>
+            <button class="btn word_btn">WORD</button>
+        </div> 
+
         <form action="" method="POST" class="month-and-week">
             <div class="col-md-6">
                 <label for="month">Month</label>
@@ -139,21 +218,31 @@ if (isset($_POST['search_week'])) {
                         <?php foreach ($attendanceData as $employee_id => $attendance): ?>
                             <tr>
                                 <?php 
-                                // Assuming that each $attendance entry is an array of records for the employee
+                                // Get the employee's full name and hire date
                                 $full_name = '';
+                                $hire_date = '';
                                 if (!empty($attendance)) {
                                     $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
+                                    $hire_date = $attendance[0]['hire_date'];
                                 }
-                                ?>
-                                <td>
-                                    <?php echo $full_name; ?>
-                                </td>
-                                
-                                <?php 
 
+                                // Convert hire_date to a comparable format
+                                $hire_date = date('Y-m-d', strtotime($hire_date));
+                                ?>
+                                <td><?php echo $full_name; ?></td>
+
+                                <?php 
                                 // Loop through the days of the week (Sunday to Saturday)
                                 for ($day = 0; $day < 7; $day++) {
                                     $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
+                                    $today = date('Y-m-d'); // Get today's date
+                                
+                                    // If the date is in the future, leave the cell empty
+                                    if ($currentDate > $today) {
+                                        echo "<td></td>";
+                                        continue;
+                                    }
+                                
                                     $status = 'A'; // Default status is Absent
                                     $clock_in_time = '-';
                                     $clock_out_time = '-';
@@ -162,11 +251,17 @@ if (isset($_POST['search_week'])) {
                                     $status_display = '';
                                     $status_color = '#f8f9fa'; // Default status color (light gray)
                                 
-                                    // Skip weekends (Saturday and Sunday)
-                                    if ($day == 0 || $day == 6) {
-                                        // Empty for weekends (Saturday and Sunday)
-                                        echo "<td></td>"; // Display empty cell for weekend
-                                        continue; // Skip the rest of the loop for weekends
+                                    // Skip Saturday and Sunday
+                                    if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
+                                        echo "<td></td>"; // Empty cell for Saturday and Sunday
+                                        continue;
+                                    }
+                                
+                                    // Skip dates before the hire date for that employee
+                                    if ($currentDate < $hire_date) {
+                                        // Leave the cell empty if the date is before the hire date
+                                        echo "<td></td>";
+                                        continue;
                                     }
                                 
                                     // Check if attendance data exists for this day
@@ -212,8 +307,8 @@ if (isset($_POST['search_week'])) {
                                         echo "<strong>Total hours:</strong> $total_hours<br>";
                                     }
                                     echo "</td>";
-                                }
-                                
+}
+
                                 ?>
                             </tr>
                         <?php endforeach; ?>
@@ -227,31 +322,144 @@ if (isset($_POST['search_week'])) {
 </main>
 
 <script>
-// Function to get the number of weeks in a given month
-function getWeeksInMonth(month) {
-    var date = new Date();
-    var year = date.getFullYear(); // Get current year
-    var firstDay = new Date(year, month, 1); // First day of the month
-    var lastDay = new Date(year, month + 1, 0); // Last day of the month
-    var daysInMonth = lastDay.getDate(); // Total days in the month
 
-    // Calculate the number of weeks (7 days per week)
-    var firstWeek = Math.ceil(firstDay.getDate() / 7);
-    var lastWeek = Math.ceil(daysInMonth / 7);
+    const reportBtn = document.querySelector(".report_btn");
+  const buttons = document.querySelectorAll(".btn");
 
-    return lastWeek; // Return total number of weeks in the month
-}
+    if(reportBtn) {
+        reportBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const clicked = e.target.closest(".btn");
+            console.log(clicked);
+            
+            if(!clicked) return;
 
-// Function to update the week dropdown based on the selected month
+            if(clicked.classList.contains("print_btn")) {
+                window.print();
+            } else if(clicked.classList.contains("pdf_btn")) {
+                const element = document.getElementById("attendance-table");
+
+                // Create a temporary style element to ensure proper styling
+                const style = document.createElement("style");
+                style.innerHTML = `
+                        header,
+                        .main-content h2,
+                        .report_btn,
+                        .month-and-week {
+                            display: none !important;
+                        }
+
+                        .main-content,
+                        .attendance-table {
+                            padding: 0px;
+                        }
+
+                        table th,
+                        table tr {
+                            font-size: 12px;
+                        }
+                `;
+
+                // Append style to the document
+                document.head.appendChild(style);
+
+                // Clone the element to avoid modifying the original table
+                const clonedElement = element.cloneNode(true);
+
+                // Convert to PDF
+                html2pdf()
+                    .set({
+                        margin: 0, // Remove PDF margins
+                        filename: "weekly_attendance.pdf",
+                        image: { type: "jpeg", quality: 0.98 },
+                        html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+                    })
+                    .from(clonedElement)
+                    .toPdf()
+                    .save()
+                    .then(() => {
+                        // Remove the temporary style after PDF generation
+                        document.head.removeChild(style);
+                    });
+            } else if(clicked.classList.contains("excel_btn")) {
+                // Select the table element
+                const table = document.getElementById("attendance-table");
+
+                // Convert table to an array while excluding the "actions" column
+                const rows = [];
+                table.querySelectorAll("tr").forEach((row) => {
+                    const rowData = [];
+                    row.querySelectorAll("th, td").forEach((cell, index) => {
+                        // Skip the cell if it's inside a column with class "actions"
+                        if (!cell.classList.contains("actions")) {
+                            rowData.push(cell.innerText);
+                        }
+                    });
+                    rows.push(rowData);
+                });
+
+                // Create a worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
+
+                // Append worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, "Weekly Attendace");
+
+                // Download Excel file
+                XLSX.writeFile(wb, "weekly_attendance.xlsx");
+            } else if(clicked.classList.contains("word_btn")){
+                const table = document.getElementById("attendance-table").cloneNode(true);
+
+                // Remove the "Actions" column (th and td with class 'actions')
+                table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
+
+                // Create a Word-compatible HTML content with margin
+                const htmlContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                        xmlns:w="urn:schemas-microsoft-com:office:word" 
+                        xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { margin: 5px; padding: 5px; }
+                            table { width: 100%; border-collapse: collapse; }
+                            th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                            table th,
+                            table tr {
+                                font-size: 12px;
+                            }
+
+                        </style>
+                    </head>
+                    <body>
+                        ${table.outerHTML}
+                    </body>
+                    </html>`;
+
+                // Create a Blob with the content
+                const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+
+                // Create a download link
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "weekly_attendance.doc";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    }
+// Function to update the week dropdown dynamically based on the selected month
 function updateWeeks() {
-    var month = document.getElementById('month').value; // Get the selected month
-    var weeksInMonth = getWeeksInMonth(month); // Get the number of weeks in the selected month
-    var weekSelect = document.getElementById('week'); // Get the week select element
+    var month = document.getElementById('month').value;
+    var weeksInMonth = getWeeksInMonth(month);
+    var weekSelect = document.getElementById('week');
 
     // Clear existing week options
     weekSelect.innerHTML = '';
 
-    // Add week options dynamically based on the number of weeks
+    // Add week options dynamically
     for (var i = 1; i <= weeksInMonth; i++) {
         var option = document.createElement('option');
         option.value = i;
@@ -259,53 +467,24 @@ function updateWeeks() {
         weekSelect.appendChild(option);
     }
 
-    // Set default week to Week 1 if no other week is selected
+    // Set the default week to Week 1
     weekSelect.value = 1;
 }
 
-updateWeeks(); // Update the weeks on page load
+// Function to calculate the number of weeks in a given month
+function getWeeksInMonth(month) {
+    var date = new Date();
+    var year = date.getFullYear();
+    var firstDay = new Date(year, month, 1); // First day of the month
+    var lastDay = new Date(year, month + 1, 0); // Last day of the month
+    var daysInMonth = lastDay.getDate(); // Total days in the month
+
+    return Math.ceil(daysInMonth / 7); // Return the number of weeks
+}
+
+updateWeeks(); // Update weeks when page loads
 </script>
 
-<style>
-/* Additional CSS to style the attendance table and form */
-.month-and-week {
-    display: flex;
-    gap: 5px;
-}
-
-.attendance-table {
-    padding: 0px 2rem ;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    background-color: #fff;
-}
-
-table th, table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-}
-
-table th {
-    background-color: #f8f9fa;
-}
-
-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-table tr:hover {
-    background-color: #f1f1f1;
-}
-
-@media (max-width: 768px) {
-    table th, table td {
-        padding: 8px;
-        font-size: 12px;
-    }
-}
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js" defer></script>
