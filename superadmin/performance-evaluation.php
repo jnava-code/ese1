@@ -27,6 +27,7 @@
             performance_evaluations.evaluation_date, 
             performance_evaluations.status, 
             performance_evaluations.overall_score, 
+            performance_evaluations.comments, 
             employees.employee_id, 
             employees.first_name, 
             employees.last_name, 
@@ -48,15 +49,24 @@
             $admin_id = 1; // Replace with actual admin ID
             $comments = mysqli_real_escape_string($conn, $_POST['comments']);
 
-            // Collect criteria ratings
-            $criteria = [
-                "job_knowledge" => $_POST['job_knowledge'],
-                "quality_of_work" => $_POST['quality_of_work'],
-                "work_ethic" => $_POST['work_ethic'],
-                "communication_skills" => $_POST['communication_skills'],
-                "punctuality" => $_POST['punctuality'],
-                "goals_achievements" => $_POST['goals_achievements']
-            ];
+            // Fetch performance criteria from the database
+            $performance_sql = "SELECT * FROM performance_criteria WHERE is_archived = 0";
+            $performance_result = mysqli_query($conn, $performance_sql);
+        
+            if (!$performance_result) {
+                die("Error fetching performance criteria: " . mysqli_error($conn));
+            }
+        
+            // Initialize an array to store criteria ratings
+            $criteria = [];
+        
+            // Loop through the criteria to collect submitted ratings
+            while ($row = mysqli_fetch_assoc($performance_result)) {
+                $name_attribute = strtolower(str_replace(' ', '_', $row['description']));
+                if (isset($_POST[$name_attribute])) {
+                    $criteria[$row['description']] = (int)$_POST[$name_attribute];
+                }
+            }
 
             // Calculate overall score
             $overall_score = array_sum($criteria) / count($criteria);
@@ -71,16 +81,32 @@
             } elseif ($overall_score >= 4.5) {
                 $remarks = "Very Effective";
             } else {
-                $remarks = "Unspecified"; // Fallback
+                $remarks = "Unspecified";
             }    
 
             // Insert evaluation data into the database
-            $insert_sql = "INSERT INTO performance_evaluations (employee_id, admin_id, evaluation_date, criteria, comments, overall_score, status, remarks)
-                    VALUES ('$employee_id', '$admin_id', '$evaluation_date', '" . json_encode($criteria) . "', '$comments', '$overall_score', 'Completed', '$remarks')";
+            $insert_sql = "INSERT INTO performance_evaluations (
+                employee_id, 
+                admin_id, 
+                evaluation_date, 
+                criteria, 
+                comments, 
+                overall_score, 
+                status, 
+                remarks
+            ) VALUES (
+                '$employee_id', 
+                '$admin_id', 
+                '$evaluation_date', 
+                '" . mysqli_real_escape_string($conn, json_encode($criteria)) . "', 
+                '$comments', 
+                '$overall_score', 
+                'Completed', 
+                '$remarks'
+            )";
 
             if (mysqli_query($conn, $insert_sql)) {
-                // Redirect to prevent form resubmission
-                header("Location: performance-evaluation");
+                echo "<script>window.location.href = 'performance-evaluation';</script>";
                 exit;
             } else {
                 echo "<p>Error: " . mysqli_error($conn) . "</p>";
@@ -132,24 +158,35 @@
 
                     <div class="radio-choices">
                         <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
-                            <label class="radio-label">1. Need Guidance</label>
+                            
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
+                                1. Need Guidance
+                            </label>
                         </div>
                         <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
-                            <label class="radio-label">2. Low</label>
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
+                                2. Low
+                            </label>
                         </div>
                         <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
-                            <label class="radio-label">3. Satisfactory</label>
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
+                                3. Satisfactory
+                            </label>
                         </div>
                         <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
-                            <label class="radio-label">4. Effective</label>
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
+                                4. Effective
+                            </label>
                         </div>
                         <div class="radio-choice">
-                            <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
-                            <label class="radio-label">5. Very Effective</label>
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
+                                5. Very Effective
+                            </label>
                         </div>
                     </div>
 
@@ -162,6 +199,10 @@
 
             </div>
 
+            <div class="form-group">
+                <label>Overall Score:</label>
+                <div id="overallScore">0</div>
+            </div>
 
             <div class="form-group">
                 <label for="comments">Comments:</label>
@@ -178,6 +219,7 @@
                     <th>Full Name</th>
                     <th>Evaluation Date</th>
                     <th>Overall Score</th>
+                    <th>Comment</th>
                     <th>Status</th>
                     <th>Remarks</th> <!-- Remarks Column -->
                 </tr>
@@ -191,6 +233,7 @@
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
                         echo "<td>" . $row['overall_score'] . "</td>";
+                        echo "<td>" . $row['comments'] . "</td>";
                         echo "<td>" . $row['status'] . "</td>";
                         echo "<td>" . (isset($row['remarks']) ? $row['remarks'] : 'No Remarks') . "</td>";
                         echo "</tr>";
@@ -208,3 +251,51 @@
     include('footer.php');
     mysqli_close($conn); // Move mysqli_close to the end of the script
 ?>
+
+
+<script>
+    // SELECT THE CLASS NAME
+    const employeeDisplay = document.querySelectorAll(".employee_display");
+
+    employeeDisplay.forEach(display => {
+        // Apply format: 00-000
+        display.textContent = display.textContent.slice(0, 2) + '-' + display.textContent.slice(2, 5);
+    });
+
+    // Calculate overall score
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    const overallScoreDisplay = document.getElementById('overallScore');
+
+    function updateOverallScore() {
+        let total = 0;
+        let count = 0;
+        
+        radioButtons.forEach(radio => {
+            if (radio.checked) {
+                total += parseInt(radio.value);
+                count++;
+            }
+        });
+
+        const average = count > 0 ? (total / count).toFixed(2) : 0;
+        overallScoreDisplay.textContent = average;
+    }
+
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', updateOverallScore);
+    });
+</script>
+<style>
+    .evaluation-form .radio-content {
+        margin-top: 25px;
+    }
+    
+    #overallScore {
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        display: inline-block;
+    }
+</style>

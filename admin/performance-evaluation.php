@@ -27,6 +27,7 @@
             performance_evaluations.evaluation_date, 
             performance_evaluations.status, 
             performance_evaluations.overall_score, 
+            performance_evaluations.comments, 
             employees.employee_id, 
             employees.first_name, 
             employees.last_name, 
@@ -162,24 +163,34 @@
 
                         <div class="radio-choices">
                             <div class="radio-choice">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
-                                <label class="radio-label">1. Need Guidance</label>
+                                <label class="radio-label">
+                                    <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
+                                    1. Need Guidance
+                                </label>
                             </div>
                             <div class="radio-choice">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
-                                <label class="radio-label">2. Low</label>
+                                <label class="radio-label">
+                                    <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
+                                    2. Low
+                                </label>
                             </div>
                             <div class="radio-choice">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
-                                <label class="radio-label">3. Satisfactory</label>
+                                <label class="radio-label">
+                                    <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
+                                    3. Satisfactory
+                                </label>
                             </div>
                             <div class="radio-choice">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
-                                <label class="radio-label">4. Effective</label>
+                                <label class="radio-label">
+                                    <input type="radio" name="<?php echo $name_attribute; ?>" value="4">
+                                    4. Effective
+                                </label>
                             </div>
                             <div class="radio-choice">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
-                                <label class="radio-label">5. Very Effective</label>
+                                <label class="radio-label">
+                                    <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
+                                    5. Very Effective
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -191,6 +202,10 @@
 
             </div>
 
+            <div class="form-group">
+                <label>Overall Score:</label>
+                <div id="overallScore">0</div>
+            </div>
 
             <div class="form-group">
                 <label for="comments">Comments:</label>
@@ -208,6 +223,7 @@
                     <th>Full Name</th>
                     <th>Evaluation Date</th>
                     <th>Overall Score</th>
+                    <th>Comment</th>
                     <th>Status</th>
                     <th>Remarks</th> <!-- Remarks Column -->
                 </tr>
@@ -223,6 +239,7 @@
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
                         echo "<td>" . $row['overall_score'] . "</td>";
+                        echo "<td>" . $row['comments'] . "</td>";
                         echo "<td>" . $row['status'] . "</td>";
                         echo "<td>" . (isset($row['remarks']) ? $row['remarks'] : 'No Remarks') . "</td>";
                         echo "</tr>";
@@ -245,10 +262,41 @@
         display.textContent = display.textContent.slice(0, 2) + '-' + display.textContent.slice(2, 5);
     });
    
+    // Calculate overall score
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    const overallScoreDisplay = document.getElementById('overallScore');
+
+    function updateOverallScore() {
+        let total = 0;
+        let count = 0;
+        
+        radioButtons.forEach(radio => {
+            if (radio.checked) {
+                total += parseInt(radio.value);
+                count++;
+            }
+        });
+
+        const average = count > 0 ? (total / count).toFixed(2) : 0;
+        overallScoreDisplay.textContent = average;
+    }
+
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', updateOverallScore);
+    });
 </script>
 <style>
     .evaluation-form .radio-content {
         margin-top: 25px;
+    }
+    
+    #overallScore {
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        display: inline-block;
     }
 </style>
 <?php

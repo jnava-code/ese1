@@ -102,7 +102,65 @@
         header("Location: ./employees");
         exit();
     }
+    
+    // // Execute the query using the appropriate parameters
+    // executeQuery($conn, $sql, 'ssssssssssssssssssssssi', [
+    //     $last_name, $first_name, $middle_name, $email, 
+    //     $position, $hire_date, $department, $employment_status,
+    //     $employee_id, $password, $date_of_birth, $contact_number, $perma_address,
+    //     $civil_status, $sss_number, $philhealth_number, $pagibig_number,
+    //     $tin_number, $emergency_contact_name, $emergency_contact_number, 
+    //     $educational_background, $skills, $id
+    // ]);     
+
+    function generatePasswordFromBday($date_of_birth) {
+        // Extract month, day, and year from the date
+        $date = DateTime::createFromFormat('Y-m-d', $date_of_birth);
+        
+        // Format the password as 'mmmddyyyy', where mmm is the 3-letter month, dd is day, and yyyy is year
+        $password = $date->format('M') . $date->format('d') . $date->format('Y');
+        
+        return strtolower($password); // To ensure the month is lowercase
+    }
+
+    if (isset($_POST['reset_password'])) {
+        // Get the posted data
+        $id = $_GET['id'];
+        $date_of_birth = $_POST['date_of_birth']; // The date of birth input
+    
+        // Generate the new password from the date of birth
+        $password = generatePasswordFromBday($date_of_birth);
+        
+        // Proceed to update the password in the database
+        $sqlReset = "UPDATE employees SET password=? WHERE id=?";
+        if ($stmt = $conn->prepare($sqlReset)) {
+            $stmt->bind_param("si", $password, $id);
+            
+            // Execute the query to update the password
+            if ($stmt->execute()) {
+                echo "Employee's password has been successfully changed.";
+                header("Location: ./employees");
+                exit();
+            } else {
+                echo "Error updating employee's password: " . $stmt->error;
+            }
+    
+            $stmt->close();
+        } else {
+            echo "Error preparing the statement: " . $conn->error;
+        }
+        
+        exit(); // End script execution after updating password
+    }
+    
+    
+    
+    
 ?>
+
+<?php include('header.php'); ?>
+<?php include('includes/sideBar.php'); ?>
+
 
     <!DOCTYPE html>
     <html lang="en">
