@@ -115,6 +115,7 @@
                                 <th>Satisfaction Score</th>
                                 <th>Attrition Risk</th>
                                 <th>Risk Level</th>
+                                <th>Recommendation</th>
                             </tr>
                         </thead>
                         <tbody>';
@@ -138,6 +139,35 @@
                         $risk_level = '<span class="medium-risk">Medium Risk</span>';
                     } else {
                         $risk_level = '<span class="high-risk">High Risk</span>';
+                    }
+
+                    // Determine recommendation based on criteria
+                    $recommendation = '';
+                    $attendance_percentage = $attendance_score * 100;
+                    $satisfaction_percentage = $satisfaction_score * 100;
+                    $risk_percentage = $risk_score * 100;
+
+                    // Promotion criteria
+                    if ($risk_percentage <= 30 && $attendance_percentage >= 85 && $satisfaction_percentage >= 80) {
+                        $recommendation = '<span class="promotion">Promotion</span>';
+                    }
+                    // Demotion criteria - at least two conditions must be met
+                    else {
+                        $demotion_conditions = 0;
+                        if ($risk_percentage > 30 && $risk_percentage <= 60) $demotion_conditions++;
+                        if ($attendance_percentage < 70) $demotion_conditions++;
+                        if ($satisfaction_percentage < 60) $demotion_conditions++;
+
+                        if ($demotion_conditions >= 2) {
+                            $recommendation = '<span class="demotion">Demotion</span>';
+                        }
+                        // Retrench criteria
+                        elseif ($risk_percentage > 60 && $attendance_percentage < 50 && $satisfaction_percentage < 40) {
+                            $recommendation = '<span class="retrench">Retrain / Retrench</span>';
+                        }
+                        else {
+                            $recommendation = '<span class="normal">No Action Required</span>';
+                        }
                     }
 
                     // Store prediction in database
@@ -169,10 +199,11 @@
                             <td>{$row['employee_id']}</td>
                             <td>{$row['first_name']} {$row['last_name']}</td>
                             <td>" . number_format($years_of_service, 1) . "</td>
-                            <td>" . number_format($attendance_score * 100, 1) . "%</td>
-                            <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
-                            <td>" . number_format($risk_score * 100, 1) . "%</td>
+                            <td>" . number_format($attendance_percentage, 1) . "%</td>
+                            <td>" . number_format($satisfaction_percentage, 1) . "%</td>
+                            <td>" . number_format($risk_percentage, 1) . "%</td>
                             <td>$risk_level</td>
+                            <td>$recommendation</td>
                         </tr>";
                 }
 
@@ -334,6 +365,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .high-risk {
     color: #dc3545;
+    font-weight: bold;
+}
+
+.promotion {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.demotion {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.retrench {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.normal {
+    color: #6c757d;
     font-weight: bold;
 }
 
