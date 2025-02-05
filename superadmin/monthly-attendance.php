@@ -322,139 +322,146 @@ table tr:hover {
                 <td style="text-align: center;">No attendance records found for the selected criteria.</td>
             </tr>
         <?php else: ?>
-            <?php foreach ($attendanceData as $employee_id => $attendance): ?>
+            <?php
+foreach ($attendanceData as $employee_id => $attendance): 
 
-                <?php
-                // Initialize counters for statuses
-                $absent_count = 0;
-                $present_count = 0;
-                $late_count = 0;
-                $leave_count = 0;
+    // Initialize counters for statuses
+    $absent_count = 0;
+    $present_count = 0;
+    $late_count = 0;
+    $leave_count = 0;
 
-                // Get the hire_date for the current employee
-                $hire_date = $attendance[0]['hire_date']; // Assuming all rows for an employee have the same hire date
-                $hire_date_timestamp = strtotime($hire_date); // Convert hire_date to timestamp for comparison
+    // Get the hire_date for the current employee
+    $hire_date = $attendance[0]['hire_date']; 
+    $hire_date_timestamp = strtotime($hire_date);
 
-                // Get the employee's leave data for the whole month to avoid querying inside the loop
-                $leave_query = "SELECT leave_type, reason, start_date, end_date FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
-                $stmt = $conn->prepare($leave_query);
-                $stmt->bind_param("ss", $employee_id, $today);
-                $stmt->execute();
-                $leave_result = $stmt->get_result();
-                $leave_data = [];
-                while ($leave = $leave_result->fetch_assoc()) {
-                    $leave_data[] = $leave;
+    // Get today's date
+    $today_date = date('Y-m-d');
+
+    // Get the employee's leave data for the month
+    $leave_query = "SELECT leave_type, reason, start_date, end_date FROM leave_applications 
+                    WHERE employee_id = ? AND status = 'Approved'";
+    $stmt = $conn->prepare($leave_query);
+    $stmt->bind_param("s", $employee_id);
+    $stmt->execute();
+    $leave_result = $stmt->get_result();
+    $leave_data = [];
+    while ($leave = $leave_result->fetch_assoc()) {
+        $leave_data[] = $leave;
+    }
+
+    // Get first day of the month and total days
+    $first_day_timestamp = strtotime("$currentYear-$currentMonth-01");
+    $days_in_month = date('t', $first_day_timestamp);
+    $first_day_of_week = date('w', $first_day_timestamp); // 0 = Sunday, 6 = Saturday
+
+    echo "<table class='table_content' border='1'>";
+    echo "<tr><th colspan='7' class='employee-header'>" . htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8') . " 
+            ( <span class='employee_id_display'>" . htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8') . "</span> )</th></tr>";
+    echo "<tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>";
+    echo "<tr>";
+
+    // Fill empty cells before the first day of the month
+    for ($i = 0; $i < $first_day_of_week; $i++) {
+        echo "<td class='prev-month'></td>";
+    }
+
+    // Loop through the days of the current month
+    for ($day = 1; $day <= $days_in_month; $day++) {
+        $date = "$currentYear-$currentMonth-" . str_pad($day, 2, '0', STR_PAD_LEFT);
+        $date_timestamp = strtotime($date);
+        $dayOfWeek = date('w', $date_timestamp); // 0 = Sunday, 6 = Saturday
+
+        // Default display
+        $status_display = "";
+        $status_color = "#f0f0f0"; // Default background
+
+        // Before hire date
+        if ($date_timestamp < $hire_date_timestamp) {
+            echo "<td class='before-hire-date'><strong>$day</strong></td>";
+        }
+        // Weekends (Saturday and Sunday) should only display the day number
+        elseif ($dayOfWeek == 0 || $dayOfWeek == 6) {
+            echo "<td><strong>$day</strong></td>";
+        }
+        // Future dates (after today) should only display the day number
+        elseif ($date > $today_date) {
+            echo "<td><strong>$day</strong></td>";
+        }
+        else {
+            // Check attendance
+            $status = 'A'; // Default to Absent
+            $clock_in_time = '-';
+            $clock_out_time = '-';
+            $total_hours = '-';
+
+            foreach ($attendance as $record) {
+                if ($record['date'] == $date) {
+                    $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                    $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
+                    $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                    $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
+                    break;
                 }
+            }
 
-                // Start rendering the table for each employee
-                echo "<table class='table_content' border='1'>";
-                echo "<tr><th colspan='7' class='employee-header'>" . htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8') . " ( <span class='employee_id_display'>" . htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8') . "</span> )</th></tr>";
-                echo "<tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>";
-                echo "<tr>";
-
-                // Fill previous month's last few days
-                for ($i = $prevMonthDaysToShow; $i > 0; $i--) {
-                    $date = str_pad($days_in_prev_month - $i + 1, 2, '0', STR_PAD_LEFT);
-                    echo "<td class='prev-month'>$date</td>";
+            // Check leave status
+            $leave_status = '';
+            foreach ($leave_data as $leave) {
+                if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
+                    $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> 
+                                     <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                    $status_color = "#74c0fc"; // Blue for leave
+                    $leave_count++;
+                    break;
                 }
+            }
 
-                // Loop through the days of the current month
-                for ($day = 1; $day <= $days_in_month; $day++) {
-                    $date = "$currentYear-$currentMonth-" . str_pad($day, 2, '0', STR_PAD_LEFT);
-                    $date_timestamp = strtotime($date); // Convert the current day to timestamp for comparison
-
-                    // Default values
-                    $status = 'A'; // Default Absent
-                    $clock_in_time = '-';
-                    $clock_out_time = '-';
-                    $total_hours = '-';
-
-                    // Get the day of the week (1 = Monday, 7 = Sunday)
-                    $dayOfWeek = date('N', strtotime($date)); 
-
-                    // If the current date is before the hire_date, show the date but no attendance data
-                    if ($date_timestamp < $hire_date_timestamp) {
-                        echo "<td class='before-hire-date'>$day</td>";
-                    } else {
-                        // Skip Saturday and Sunday by leaving the status empty
-                        if ($dayOfWeek == 6 || $dayOfWeek == 7) {
-                            echo "<td class='weekend'>$day</td>";
-                        } else {
-                            // Check if the date is today or a future date
-                            $status_display = '';
-                            
-                            if ($date > $today) {
-                                $status_display = ""; // Future dates have no status
-                            } else {
-                                // Fetch attendance record for the current date
-                                foreach ($attendance as $record) {
-                                    if ($record['date'] == $date) {
-                                        $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                                        $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                        $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                        $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
-                                        break;
-                                    }
-                                }
-
-                                // Check if employee is on approved leave
-                                $leave_status = '';
-                                foreach ($leave_data as $leave) {
-                                    if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
-                                        $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                                        $status_color = "#74c0fc";
-                                        $leave_count++;
-                                        break;
-                                    }
-                                }
-
-                                // Check attendance status
-                                if (empty($leave_status)) {
-                                    if ($status == "A") {
-                                        $status_display = "Absent";
-                                        $status_color = "#ff8787";
-                                        $absent_count++;
-                                    } elseif ($status == "P") {
-                                        $status_display = "Present";
-                                        $status_color = "#69db7c";
-                                        $present_count++;
-                                    } elseif ($status == "L") {
-                                        $status_display = "Late";
-                                        $status_color = "#f0f0f0";
-                                        $late_count++;
-                                    } else {
-                                        $status_display = "N/A";
-                                        $status_color = "#f0f0f0";
-                                    }
-                                }
-                            }
-
-                            // Output the table cell for the current day
-                            echo "<td><strong style='color: $status_color'>$day</strong><br>";
-                            echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
-                            if ($clock_in_time != '-') {
-                                echo "<strong>In:</strong> $clock_in_time<br>";
-                                echo "<strong>Out:</strong> $clock_out_time<br>";
-                                echo "<strong>Total hours:</strong> $total_hours<br>";
-                            }
-                            echo "</td>";
-                        }
-                    }
-
-                    // Break to a new row after Saturday (7th day)
-                    if ($dayOfWeek == 7) {
-                        echo "</tr><tr>";
-                    }
+            // Assign status display
+            if (empty($leave_status)) {
+                if ($status == "A") {
+                    $status_display = "Absent";
+                    $status_color = "#ff8787"; // Red for absent
+                    $absent_count++;
+                } elseif ($status == "P") {
+                    $status_display = "Present";
+                    $status_color = "#69db7c"; // Green for present
+                    $present_count++;
+                } elseif ($status == "L") {
+                    $status_display = "Late";
+                    $status_color = "#ffa94d"; // Orange for late
+                    $late_count++;
+                } else {
+                    $status_display = "N/A";
                 }
+            }
 
-                // Fill next month's first few days to complete the last week
-                for ($i = 1; $i <= $remaining_cells; $i++) {
-                    echo "<td class='next-month'>$i</td>";
-                }
+            // Display attendance details
+            echo "<td><strong style='color: $status_color'>$day</strong><br>";
+            echo $status_display ? "<strong>Status:</strong> $status_display <br>" : "";
+            if ($clock_in_time != '-') {
+                echo "<strong>In:</strong> $clock_in_time<br>";
+                echo "<strong>Out:</strong> $clock_out_time<br>";
+                echo "<strong>Total hours:</strong> $total_hours<br>";
+            }
+            echo "</td>";
+        }
 
-                echo "</tr>";
-                echo "</table>";
-                ?>
+        // Start a new row after Saturday
+        if ($dayOfWeek == 6) {
+            echo "</tr><tr>";
+        }
+    }
+
+    // Fill next month's first few days to complete the last row
+    $remaining_cells = (7 - (($days_in_month + $first_day_of_week) % 7)) % 7;
+    for ($i = 1; $i <= $remaining_cells; $i++) {
+        echo "<td class='next-month'></td>";
+    }
+
+    echo "</tr>";
+    echo "</table>";
+?>
 
 <div class='count-totals-container'>
     <div class='count-totals'>
@@ -466,8 +473,6 @@ table tr:hover {
 </div>
 
 <?php endforeach; ?>
-
-
 
         <?php endif; ?>
     </div>
