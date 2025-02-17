@@ -469,32 +469,34 @@ foreach ($attendanceData as $employee_id => $attendance):
             }
 
             // Check leave status
-            $leave_status = '';
-
-                foreach ($leave_data as $leave) {
-                    if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
-                        $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> 
-                                    <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                        $status_color = "#74c0fc"; // Blue for leave
-                        $leave_count++;
-                        break;
-                    } if ($status == "A") {
-                        $status_display = "Absent";
-                        $status_color = "#ff8787"; // Red for absent
-                        $absent_count++;
-                    } elseif ($status == "P") {
-                        $status_display = "Present";
-                        $status_color = "#69db7c"; // Green for present
-                        $present_count++;
-                    } elseif ($status == "L") {
-                        $status_display = "Late";
-                        $status_color = "#ffa94d"; // Orange for late
-                        $late_count++;
-                    } else {
-                        $status_display = "N/A";
-                    }
+            $on_leave = false;
+            foreach ($leave_data as $leave) {
+                if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
+                    $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                    $status_color = "#74c0fc"; // Blue for leave
+                    $leave_count++;
+                    $on_leave = true;
+                    break;
                 }
-            
+            }
+
+            if (!$on_leave) {
+                if ($status == "A") {
+                    $status_display = "Absent";
+                    $status_color = "#ff8787"; // Red for absent
+                    $absent_count++;
+                } elseif ($status == "P") {
+                    $status_display = "Present";
+                    $status_color = "#69db7c"; // Green for present
+                    $present_count++;
+                } elseif ($status == "L") {
+                    $status_display = "Late";
+                    $status_color = "#ffa94d"; // Orange for late
+                    $late_count++;
+                } else {
+                    $status_display = "N/A";
+                }
+            }
 
             // Display attendance details
             echo "<td><strong style='color: $status_color'>$day</strong><br>";
@@ -535,6 +537,7 @@ foreach ($attendanceData as $employee_id => $attendance):
 </div>
 
 <?php endforeach; ?>
+
 
         <?php endif; ?>
     </div>

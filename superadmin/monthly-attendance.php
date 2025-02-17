@@ -79,7 +79,6 @@ if(isset($_POST['search'])) {
         LEFT JOIN leave_applications la ON 
             e.employee_id = la.employee_id 
             AND a.date BETWEEN la.start_date AND la.end_date
-            AND la.status = 'Approved'
         WHERE " . implode(' AND ', $whereClauses) . "
         ORDER BY e.employee_id, a.date";
 
@@ -469,21 +468,18 @@ foreach ($attendanceData as $employee_id => $attendance):
             }
 
             // Check leave status
-            $leave_status = '';
-            if (!empty($leave_data)) {
-                foreach ($leave_data as $leave) {
-                    if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
-                        $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> 
-                                    <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                        $status_color = "#74c0fc"; // Blue for leave
-                        $leave_count++;
-                        break;
-                    }
+            $on_leave = false;
+            foreach ($leave_data as $leave) {
+                if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
+                    $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                    $status_color = "#74c0fc"; // Blue for leave
+                    $leave_count++;
+                    $on_leave = true;
+                    break;
                 }
             }
 
-            // Assign status display
-            if (empty($leave_status)) {
+            if (!$on_leave) {
                 if ($status == "A") {
                     $status_display = "Absent";
                     $status_color = "#ff8787"; // Red for absent
@@ -540,6 +536,7 @@ foreach ($attendanceData as $employee_id => $attendance):
 </div>
 
 <?php endforeach; ?>
+
 
         <?php endif; ?>
     </div>
