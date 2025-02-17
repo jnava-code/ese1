@@ -69,6 +69,39 @@ $totalPages = ceil($totalRows / $limit);
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <!-- CSS -->
 <style>
+        /* Dropdown styling */
+        .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 120px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .export_btn {
+        background-color:rgb(33, 59, 173);
+    }
     .report_btn {
         display: flex;
         align-items: center;
@@ -193,11 +226,20 @@ $totalPages = ceil($totalRows / $limit);
     <section id="dashboard">
         <h2>ATTENDANCE MONITORING</h2>
         <div class="report_btn">
-            <button class="btn print_btn">PRINT</button>
-            <button class="btn pdf_btn">PDF</button>
-            <button class="btn excel_btn">EXCEL</button>
-            <button class="btn word_btn">WORD</button>
-        </div> 
+                <!-- Export as Dropdown -->
+                <div class="dropdown">
+                    <button class="btn export_btn">Export as</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="pdf_btn">PDF</a>
+                        <a href="#" class="excel_btn">Excel</a>
+                        <a href="#" class="word_btn">Word</a>
+                    </div>
+                </div>
+
+        <!-- Print Button -->
+        <button class="btn print_btn">Print</button>
+    </div>
+        
         <form method="POST" class="evaluation-form">
             <div class="form-group">
                 <table id="myTable" class="table table-striped table-bordered">
@@ -275,150 +317,98 @@ mysqli_close($conn);
     });
 });
 
-const reportBtn = document.querySelector(".report_btn");
-  const buttons = document.querySelectorAll(".btn");
+document.addEventListener("DOMContentLoaded", () => {
+    // Event listener for the dropdown export buttons
+    document.querySelector(".dropdown-content").addEventListener("click", (e) => {
+        const clicked = e.target.closest("a"); 
+        if (!clicked) return;
 
-    if(reportBtn) {
-        reportBtn.addEventListener("click", (e) => {
-            const clicked = e.target.closest(".btn");
-            
-            if(!clicked) return;
-            
-            if(clicked.classList.contains("print_btn")) {
-                window.print();
-            } else if(clicked.classList.contains("pdf_btn")) {
-                const element = document.getElementById("myTable");
+        if (clicked.classList.contains("pdf_btn")) {
+            const element = document.getElementById("myTable");
 
-                // Create a temporary style element to ensure proper styling
-                const style = document.createElement("style");
-                style.innerHTML = `
-                    header,
-                    .main-content h2,
-                    .report_btn,
-                    .dataTables_length,
-                    .dataTables_filter,
-                    .dataTables_info,
-                    .dataTables_paginate,
-                    .actions {
-                        display: none !important;
+            const style = document.createElement("style");
+            style.innerHTML = `
+                header,
+                .main-content h2,
+                .report_btn,
+                .dataTables_length,
+                .dataTables_filter,
+                .dataTables_info,
+                .dataTables_paginate,
+                .actions {
+                    display: none !important;
+                }
+            `;
+            document.head.appendChild(style);
+
+            const clonedElement = element.cloneNode(true);
+
+            html2pdf()
+                .set({
+                    margin: 1,
+                    filename: "daily_attendance.pdf",
+                    image: { type: "jpeg", quality: 0.98 },
+                    html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+                })
+                .from(clonedElement)
+                .toPdf()
+                .save()
+                .then(() => document.head.removeChild(style));
+        } else if (clicked.classList.contains("excel_btn")) {
+            const table = document.getElementById("myTable");
+            const rows = [];
+            table.querySelectorAll("tr").forEach(row => {
+                const rowData = [];
+                row.querySelectorAll("th, td").forEach(cell => {
+                    if (!cell.classList.contains("actions")) {
+                        rowData.push(cell.innerText);
                     }
-
-                    th.sorting::before,
-                    th.sorting_asc::before,
-                    th.sorting_desc::before,
-                    th.sorting::after,
-                    th.sorting_asc::after,
-                    th.sorting_desc::after {
-                        content: none !important;
-                        display: none !important;
-                    }
-
-                    .evaluation-form {
-                        border: none;
-                        border-radius: none;
-                        margin-bottom: 0px;
-                        padding: 0px !important;
-                        box-shadow: none !important;
-                    }
-
-                    .main-content {
-                        padding: 0px;
-                    }
-                `;
-
-                // Append style to the document
-                document.head.appendChild(style);
-
-                // Clone the element to avoid modifying the original table
-                const clonedElement = element.cloneNode(true);
-
-                // Convert to PDF
-                html2pdf()
-                    .set({
-                        margin: 1, // Remove PDF margins
-                        filename: "daily_attendance.pdf",
-                        image: { type: "jpeg", quality: 0.98 },
-                        html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
-                        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-                    })
-                    .from(clonedElement)
-                    .toPdf()
-                    .save()
-                    .then(() => {
-                        // Remove the temporary style after PDF generation
-                        document.head.removeChild(style);
-                    });
-            } else if(clicked.classList.contains("excel_btn")) {
-                // Select the table element
-                const table = document.getElementById("myTable");
-
-                // Convert table to an array while excluding the "actions" column
-                const rows = [];
-                table.querySelectorAll("tr").forEach((row) => {
-                    const rowData = [];
-                    row.querySelectorAll("th, td").forEach((cell, index) => {
-                        // Skip the cell if it's inside a column with class "actions"
-                        if (!cell.classList.contains("actions")) {
-                            rowData.push(cell.innerText);
-                        }
-                    });
-                    rows.push(rowData);
                 });
+                rows.push(rowData);
+            });
 
-                // Create a worksheet
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "Daily Attendance");
+            XLSX.writeFile(wb, "daily_attendance.xlsx");
+        } else if (clicked.classList.contains("word_btn")) {
+            const table = document.getElementById("myTable").cloneNode(true);
+            table.querySelectorAll(".actions").forEach(cell => cell.remove());
 
-                // Append worksheet to workbook
-                XLSX.utils.book_append_sheet(wb, ws, "Daily Attendance");
+            const htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                    xmlns:w="urn:schemas-microsoft-com:office:word" 
+                    xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 5px; padding: 5px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                    </style>
+                </head>
+                <body>
+                    ${table.outerHTML}
+                </body>
+                </html>`;
 
-                // Download Excel file
-                XLSX.writeFile(wb, "daily_attendance.xlsx");
-            } else if(clicked.classList.contains("word_btn")){
-                const table = document.getElementById("myTable").cloneNode(true);
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "daily_attendance.doc";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
 
-                // Remove the "Actions" column (th and td with class 'actions')
-                table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
+    // Separate event listener for the Print button
+    document.querySelector(".print_btn").addEventListener("click", () => {
+        window.print();
+    });
 
-                // Create a Word-compatible HTML content with margin
-                const htmlContent = `
-                    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-                        xmlns:w="urn:schemas-microsoft-com:office:word" 
-                        xmlns="http://www.w3.org/TR/REC-html40">
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { margin: 5px; padding: 5px; }
-                            table { width: 100%; border-collapse: collapse; }
-                            th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                            table th,
-                            table tr {
-                                font-size: 12px;
-                                padding: 5px;
-                            }
-
-                        </style>
-                    </head>
-                    <body>
-                        ${table.outerHTML}
-                    </body>
-                    </html>`;
-
-                // Create a Blob with the content
-                const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
-
-                // Create a download link
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = "daily_attendance.doc";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        });
-    }
-  $(document).ready( function () {
-    $('#myTable').DataTable();
-  });
-
+    // Initialize DataTable
+    $("#myTable").DataTable();
+});
 </script>

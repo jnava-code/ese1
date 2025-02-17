@@ -67,65 +67,53 @@ $totalPages = ceil($totalRows / $limit);
 ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
-<!-- Main Content Area -->
-<main class="main-content">
-    <section id="dashboard">
-        <h2>ATTENDANCE MONITORING</h2>
-
-        <form method="POST" class="evaluation-form">
-            <div class="form-group">
-                <table id="myTable" class="table table-striped table-bordered">
-                <thead>
-    <tr>
-        <th>Employee ID</th> <!-- New Column for Employee ID -->
-        <th>Employee Name</th>
-        <th>Date</th>
-        <th>Time In</th>
-        <th>Time Out</th>
-        <th>Total Hours</th>
-        <th>Status</th>
-    </tr>
-</thead>
-<tbody>
-    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-        <tr>
-            <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
-            <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-            <td><?php echo $row['date']; ?></td>
-            <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
-            <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
-            <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
-            <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
-        </tr>
-    <?php endwhile; ?>
-</tbody>
-                </table>
-            </div>
-        </form>
-    </section>
-</main>
-
-<script>
-document.querySelector('form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const params = new URLSearchParams(new FormData(e.target));
-    const query = params.toString();
-    fetch(`fetch_attendance.php?${query}`)
-        .then(response => response.text())
-        .then(data => {
-            document.querySelector("#attendance-table tbody").innerHTML = data;
-        })
-        .catch(error => console.error('Error fetching attendance:', error));
-});
-</script>
-
-<?php
-mysqli_stmt_close($stmt);
-mysqli_close($conn);
-?>
-
 <!-- CSS -->
 <style>
+        /* Dropdown styling */
+        .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 120px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .export_btn {
+        background-color:rgb(33, 59, 173);
+    }
+    .report_btn {
+        display: flex;
+        align-items: center;
+
+        margin-bottom: 15px;
+    }
+
+    .report_btn button {
+        border-radius: 0px;
+        cursor: pointer;
+    }
+    
 /* Style for Table */
 .evaluation-form {
         max-width: 1500px;
@@ -196,8 +184,119 @@ mysqli_close($conn);
 #attendance-table tr:hover {
     background-color: #ddd;
 }
+
+@media print {
+        header,
+        .main-content h2,
+        .report_btn,
+        .dataTables_length,
+        .dataTables_filter,
+        .dataTables_info,
+        .dataTables_paginate,
+        .actions {
+            display: none !important;
+        }
+
+        th.sorting::before,
+        th.sorting_asc::before,
+        th.sorting_desc::before,
+        th.sorting::after,
+        th.sorting_asc::after,
+        th.sorting_desc::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        .evaluation-form {
+            border: none;
+            border-radius: none;
+            margin-bottom: 0px;
+            padding: 0px !important;
+            box-shadow: none !important;
+        }
+
+        .main-content {
+            padding: 0px;
+        }
+    }
 </style>
+
+<!-- Main Content Area -->
+<main class="main-content">
+    <section id="dashboard">
+        <h2>ATTENDANCE MONITORING</h2>
+        <div class="report_btn">
+                <!-- Export as Dropdown -->
+                <div class="dropdown">
+                    <button class="btn export_btn">Export as</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="pdf_btn">PDF</a>
+                        <a href="#" class="excel_btn">Excel</a>
+                        <a href="#" class="word_btn">Word</a>
+                    </div>
+                </div>
+
+        <!-- Print Button -->
+        <button class="btn print_btn">Print</button>
+    </div>
+        
+        <form method="POST" class="evaluation-form">
+            <div class="form-group">
+                <table id="myTable" class="table table-striped table-bordered">
+                <thead>
+    <tr>
+        <th>Employee ID</th> <!-- New Column for Employee ID -->
+        <th>Employee Name</th>
+        <th>Date</th>
+        <th>Time In</th>
+        <th>Time Out</th>
+        <th>Total Hours</th>
+        <th>Status</th>
+    </tr>
+</thead>
+<tbody>
+    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+        <tr>
+            <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
+            <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+            <td><?php echo $row['date']; ?></td>
+            <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
+            <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
+            <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
+            <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
+        </tr>
+    <?php endwhile; ?>
+</tbody>
+                </table>
+            </div>
+        </form>
+    </section>
+</main>
+
+<?php
+mysqli_stmt_close($stmt);
+mysqli_close($conn);
+?>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+
 <script>
+    document.querySelector('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const params = new URLSearchParams(new FormData(e.target));
+        const query = params.toString();
+        fetch(`fetch_attendance.php?${query}`)
+            .then(response => response.text())
+            .then(data => {
+                document.querySelector("#attendance-table tbody").innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching attendance:', error));
+    });
+
     // SELECT THE CLASS NAME
     const employeeDisplay = document.querySelectorAll(".employee_display");
 
@@ -218,11 +317,98 @@ mysqli_close($conn);
     });
 });
 
-</script>
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script>
-  $(document).ready( function () {
-    $('#myTable').DataTable();
-  });
+document.addEventListener("DOMContentLoaded", () => {
+    // Event listener for the dropdown export buttons
+    document.querySelector(".dropdown-content").addEventListener("click", (e) => {
+        const clicked = e.target.closest("a"); 
+        if (!clicked) return;
+
+        if (clicked.classList.contains("pdf_btn")) {
+            const element = document.getElementById("myTable");
+
+            const style = document.createElement("style");
+            style.innerHTML = `
+                header,
+                .main-content h2,
+                .report_btn,
+                .dataTables_length,
+                .dataTables_filter,
+                .dataTables_info,
+                .dataTables_paginate,
+                .actions {
+                    display: none !important;
+                }
+            `;
+            document.head.appendChild(style);
+
+            const clonedElement = element.cloneNode(true);
+
+            html2pdf()
+                .set({
+                    margin: 1,
+                    filename: "daily_attendance.pdf",
+                    image: { type: "jpeg", quality: 0.98 },
+                    html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+                })
+                .from(clonedElement)
+                .toPdf()
+                .save()
+                .then(() => document.head.removeChild(style));
+        } else if (clicked.classList.contains("excel_btn")) {
+            const table = document.getElementById("myTable");
+            const rows = [];
+            table.querySelectorAll("tr").forEach(row => {
+                const rowData = [];
+                row.querySelectorAll("th, td").forEach(cell => {
+                    if (!cell.classList.contains("actions")) {
+                        rowData.push(cell.innerText);
+                    }
+                });
+                rows.push(rowData);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "Daily Attendance");
+            XLSX.writeFile(wb, "daily_attendance.xlsx");
+        } else if (clicked.classList.contains("word_btn")) {
+            const table = document.getElementById("myTable").cloneNode(true);
+            table.querySelectorAll(".actions").forEach(cell => cell.remove());
+
+            const htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                    xmlns:w="urn:schemas-microsoft-com:office:word" 
+                    xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 5px; padding: 5px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                    </style>
+                </head>
+                <body>
+                    ${table.outerHTML}
+                </body>
+                </html>`;
+
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "daily_attendance.doc";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+
+    // Separate event listener for the Print button
+    document.querySelector(".print_btn").addEventListener("click", () => {
+        window.print();
+    });
+
+    // Initialize DataTable
+    $("#myTable").DataTable();
+});
 </script>

@@ -114,6 +114,40 @@ if(isset($_POST['search'])) {
 ?>
 
 <style>
+            /* Dropdown styling */
+            .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 120px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .export_btn {
+        background-color:rgb(33, 59, 173);
+    }
+
     .report_btn {
         display: flex;
         align-items: center;
@@ -227,11 +261,20 @@ table tr:hover {
     <section id="dashboard">
         <h2 class="monthly-h2">MONTHLY ATTENDANCE MONITORING</h2>
         <div class="report_btn">
-            <button class="btn print_btn">PRINT</button>
-            <button class="btn pdf_btn">PDF</button>
-            <button class="btn excel_btn">EXCEL</button>
-            <button class="btn word_btn">WORD</button>
-        </div> 
+                <!-- Export as Dropdown -->
+                <div class="dropdown">
+                    <button class="btn export_btn">Export as</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="pdf_btn">PDF</a>
+                        <a href="#" class="excel_btn">Excel</a>
+                        <a href="#" class="word_btn">Word</a>
+                    </div>
+                </div>
+
+        <!-- Print Button -->
+        <button class="btn print_btn">Print</button>
+    </div>
+
             <div class="action-buttons">
                 <button id="by_employee_btn" class="btn btn-danger by_employee_btn">By Employee</button>
                 <button id="by_department_btn" class="btn btn-danger by_department_btn">By Department</button>
@@ -480,142 +523,117 @@ foreach ($attendanceData as $employee_id => $attendance):
             </div>
 
             <script>
-                 const reportBtn = document.querySelector(".report_btn");
-                const buttons = document.querySelectorAll(".btn");
+document.addEventListener("DOMContentLoaded", function () {
+    const reportBtn = document.querySelector(".report_btn");
+    
+    if (reportBtn) {
+        reportBtn.addEventListener("click", (e) => {
+            const clicked = e.target.closest("a"); // Detect clicks on <a> elements inside dropdown-content
+            
+            if (!clicked) return; // Prevent errors if clicked outside the expected buttons
 
-                if(reportBtn) {
-                    reportBtn.addEventListener("click", (e) => {
-                        const clicked = e.target.closest(".btn");
-                        console.log(clicked);
-                        
-                        if(!clicked) return;
+            if (clicked.classList.contains("print_btn")) {
+                window.print();
+            } else if (clicked.classList.contains("pdf_btn")) {
+                generatePDF();
+            } else if (clicked.classList.contains("excel_btn")) {
+                generateExcel();
+            } else if (clicked.classList.contains("word_btn")) {
+                generateWord();
+            }
+        });
+    }
 
-                        if(clicked.classList.contains("print_btn")) {
-                            window.print();
-                        } else if(clicked.classList.contains("pdf_btn")) {
-                            const element = document.getElementById("monthly-attendance");
+    function generatePDF() {
+        const element = document.getElementById("monthly-attendance");
 
-                            // Create a temporary style element to ensure proper styling
-                            const style = document.createElement("style");
-                            style.innerHTML = `
-                                header,
-                                .main-content .monthly-h2,
-                                .report_btn,
-                                .action-buttons,
-                                .form-row {
-                                    display: none !important;
-                                }
+        const style = document.createElement("style");
+        style.innerHTML = `
+            header, .main-content .monthly-h2, .report_btn, .action-buttons, .form-row {
+                display: none !important;
+            }
+            table th, table tr {
+                font-size: 12px;
+            }
+            .main-content {
+                padding: 15px;
+            }
+            .count-totals-container {
+                margin-bottom: 380px;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        const clonedElement = element.cloneNode(true);
 
-                                table th,
-                                table tr {
-                                    font-size: 12px;
-                                }
+        html2pdf()
+            .set({
+                margin: 1,
+                filename: "monthly_attendance.pdf",
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+            })
+            .from(clonedElement)
+            .toPdf()
+            .save()
+            .then(() => {
+                document.head.removeChild(style);
+            });
+    }
 
-                                .main-content {
-                                    padding: 15px;
-                                }
+    function generateExcel() {
+        const table = document.getElementById("monthly-attendance");
+        const rows = [];
 
-                                .count-totals-container {
-                                    margin-bottom: 380px;
-                                }
-                            `;
+        const employeeName = document.querySelector('.employee_id_display').textContent;
+        rows.push([employeeName]);
 
-                            // Append style to the document
-                            document.head.appendChild(style);
-
-                            // Clone the element to avoid modifying the original table
-                            const clonedElement = element.cloneNode(true);
-
-                            // Convert to PDF
-                            html2pdf()
-                                .set({
-                                    margin: 1, // Remove PDF margins
-                                    filename: "monthly_attendance.pdf",
-                                    image: { type: "jpeg", quality: 0.98 },
-                                    html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
-                                    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-                                })
-                                .from(clonedElement)
-                                .toPdf()
-                                .save()
-                                .then(() => {
-                                    // Remove the temporary style after PDF generation
-                                    document.head.removeChild(style);
-                                });
-                        } else if(clicked.classList.contains("excel_btn")) {
-                            // Select the table element
-                            const table = document.getElementById("monthly-attendance");
-
-                            // Convert table to an array while excluding the "actions" column
-                            const rows = [];
-
-                            // Add the full name row at the top
-                            const employeeName = document.querySelector('.employee_id_display').textContent;
-                            rows.push([employeeName]); // This will add the full name to the first row
-
-                            table.querySelectorAll("tr").forEach((row) => {
-                                const rowData = [];
-                                row.querySelectorAll("th, td").forEach((cell, index) => {
-                                    // Skip the cell if it's inside a column with class "actions"
-                                    if (!cell.classList.contains("actions")) {
-                                        rowData.push(cell.innerText);
-                                    }
-                                });
-                                rows.push(rowData);
-                            });
-
-                            // Create a worksheet
-                            const wb = XLSX.utils.book_new();
-                            const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
-
-                            // Append worksheet to workbook
-                            XLSX.utils.book_append_sheet(wb, ws, "Monthly Attendance");
-
-                            // Download Excel file
-                            XLSX.writeFile(wb, "monthly_attendance.xlsx");
-                        } else if(clicked.classList.contains("word_btn")){
-                            const table = document.getElementById("monthly-attendance").cloneNode(true);
-
-                            // Remove the "Actions" column (th and td with class 'actions')
-                            table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
-
-                            // Create a Word-compatible HTML content with margin
-                            const htmlContent = `
-                                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-                                    xmlns:w="urn:schemas-microsoft-com:office:word" 
-                                    xmlns="http://www.w3.org/TR/REC-html40">
-                                <head>
-                                    <meta charset="UTF-8">
-                                    <style>
-                                        body { margin: 5px; padding: 5px; }
-                                        table { width: 100%; border-collapse: collapse; }
-                                        th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                                        table th,
-                                        table tr {
-                                            font-size: 12px;
-                                            padding: 5px;
-                                        }
-
-                                    </style>
-                                </head>
-                                <body>
-                                    ${table.outerHTML}
-                                </body>
-                                </html>`;
-
-                            // Create a Blob with the content
-                            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
-
-                            // Create a download link
-                            const link = document.createElement("a");
-                            link.href = URL.createObjectURL(blob);
-                            link.download = "monthly_attendance.doc";
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
-                    });
+        table.querySelectorAll("tr").forEach((row) => {
+            const rowData = [];
+            row.querySelectorAll("th, td").forEach((cell) => {
+                if (!cell.classList.contains("actions")) {
+                    rowData.push(cell.innerText);
                 }
+            });
+            rows.push(rowData);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Monthly Attendance");
+        XLSX.writeFile(wb, "monthly_attendance.xlsx");
+    }
+
+    function generateWord() {
+        const table = document.getElementById("monthly-attendance").cloneNode(true);
+        table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
+
+        const htmlContent = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                  xmlns:w="urn:schemas-microsoft-com:office:word" 
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { margin: 5px; padding: 5px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                </style>
+            </head>
+            <body>${table.outerHTML}</body>
+            </html>`;
+
+        const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "monthly_attendance.doc";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+});
+                
 
                 const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
                 const employeeValue = document.getElementById("employee_value");
@@ -656,4 +674,3 @@ foreach ($attendanceData as $employee_id => $attendance):
             <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 </main>
-

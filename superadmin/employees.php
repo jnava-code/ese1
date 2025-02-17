@@ -68,10 +68,18 @@
         $file_resume = getFileContent('file_resume');
         $file_prc = getFileContent('file_prc');
         $file_201 = getFileContent('file_201');
-    
-        // Initialize error message
-        $errmsg = '';
-    
+        
+        // Check if any file upload failed
+        foreach ($_FILES as $key => $file) {
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                die("File upload error in $key: " . $file['error']);
+            }
+        }
+        
+          // Initialize error message
+          $errmsg = '';
+
+
         // Check for uniqueness
         function isFieldUnique($conn, $field, $value, $fieldName) {
             $sql = "SELECT $field FROM employees WHERE $field = ?";
@@ -100,7 +108,7 @@
                 emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
                 maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
+            
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
                 "ssssssssssssssssssssssssssssssbbbbbb",
@@ -108,17 +116,18 @@
                 $department, $employment_status, $employee_id, $password, $date_of_birth, $age, $contact_number,
                 $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
                 $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
-                $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
-                $file_police, $file_resume, $file_prc, $file_201
+                $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $null, $null, $null, $null, $null, $null
             );
     
-            // Handle binary files
-            if ($file_medical !== null) $stmt->send_long_data(26, $file_medical);
-            if ($file_tor !== null) $stmt->send_long_data(27, $file_tor);
-            if ($file_police !== null) $stmt->send_long_data(28, $file_police);
-            if ($file_resume !== null) $stmt->send_long_data(29, $file_resume);
-            if ($file_prc !== null) $stmt->send_long_data(30, $file_prc);
-            if ($file_201 !== null) $stmt->send_long_data(31, $file_201);
+
+                // Ensure binary files are stored properly
+                if ($file_medical !== null) $stmt->send_long_data(30, $file_medical);
+                if ($file_tor !== null) $stmt->send_long_data(31, $file_tor);
+                if ($file_police !== null) $stmt->send_long_data(32, $file_police);
+                if ($file_resume !== null) $stmt->send_long_data(33, $file_resume);
+                if ($file_prc !== null) $stmt->send_long_data(34, $file_prc);
+                if ($file_201 !== null) $stmt->send_long_data(35, $file_201);            
+
     
             if ($stmt->execute()) {
                 $successmsg = "The employee, $first_name $last_name, has been successfully added.";
@@ -229,7 +238,6 @@ function validateEmployeeData($data) {
     return $errors;
 }
 
-error_reporting(0);
 include('header.php'); 
 
 function generatePasswordFromBday($date_of_birth) {
@@ -248,6 +256,39 @@ function generatePasswordFromBday($date_of_birth) {
 <?php include('includes/sideBar.php'); ?>
  
 <style>
+        /* Dropdown styling */
+        .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 120px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .export_btn {
+        background-color:rgb(33, 59, 173);
+    }
     .report_btn {
         display: flex;
         align-items: center;
@@ -553,7 +594,7 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="form-row">
                     <div class="col-md-6">
-                        <label for="file_medical">Medical</label>
+                        <label for="medical">Medical</label>
                         <input type="file" class="form-control" name="file_medical" accept=".pdf,image/*" required>
                     </div>
 
@@ -563,7 +604,7 @@ function generatePasswordFromBday($date_of_birth) {
                     </div>
 
                     <div class="col-md-6">
-                        <label for="police_clearace">NBI/Police Clearance</label>
+                        <label for="nbi_clearance">NBI/Police Clearance</label>
                         <input type="file" class="form-control" name="file_police" accept=".pdf,image/*" required>
                     </div>
                 </div>
@@ -571,17 +612,17 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="form-row">
                     <div class="col-md-6">
-                        <label for="file_resume">Resume</label>
+                        <label for="resume">Resume</label>
                         <input type="file" class="form-control" name="file_resume" accept=".pdf,image/*" required>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="prc_license">PRC License (If applicable)</label>
+                        <label for="prc">PRC License (If applicable)</label>
                         <input type="file" class="form-control" name="file_prc" accept=".pdf,image/*">
                     </div>   
 
                     <div class="col-md-6">
-                        <label for="201_files">Others: (201 files)</label>
+                        <label for="others">Others: (201 files)</label>
                         <input type="file" class="form-control" name="file_201" accept=".pdf,image/*" required>
                     </div>
                 </div>
@@ -601,21 +642,30 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="card">  
             <div class="card-header">
 
-    <div class="card-body">
-    <h3>Employee List</h3>
-    <div class="report_btn">
-        <button class="btn print_btn">PRINT</button>
-        <button class="btn pdf_btn">PDF</button>
-        <button class="btn excel_btn">EXCEL</button>
-        <button class="btn word_btn">WORD</button>
-    </div> 
+        <div class="card-body">
+            <h3>Employee List</h3>
+            <div class="report_btn">
+                <!-- Export as Dropdown -->
+                <div class="dropdown">
+                    <button class="btn export_btn">Export as</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="pdf_btn">PDF</a>
+                        <a href="#" class="excel_btn">Excel</a>
+                        <a href="#" class="word_btn">Word</a>
+                    </div>
+                </div>
+
+        <!-- Print Button -->
+        <button class="btn print_btn">Print</button>
+    </div>
+
+
         <table id="myTable" class="employee-table">
             <thead>
                 <tr>
                     <th>No.</th>
                     <th>Employee ID</th>
                     <th>Full Name</th>
-                    <!-- <th>Middle Name</th> -->
                     <th>Position</th>
                     <th>Department</th>
                     <th>Email</th>
@@ -665,6 +715,12 @@ function generatePasswordFromBday($date_of_birth) {
     </div>
 </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 
 <script>
     const employeeId = document.getElementById("employee_id");
@@ -845,85 +901,35 @@ $(document).ready( function () {
     $('#myTable').DataTable();
   });
 
-  const reportBtn = document.querySelector(".report_btn");
-  const buttons = document.querySelectorAll(".btn");
+  document.addEventListener("DOMContentLoaded", () => {
+    // Select each button directly
+    const printBtn = document.querySelector(".print_btn");
+    const pdfBtn = document.querySelector(".pdf_btn");
+    const excelBtn = document.querySelector(".excel_btn");
+    const wordBtn = document.querySelector(".word_btn");
 
-  if(reportBtn) {
-    reportBtn.addEventListener("click", (e) => {
-        const clicked = e.target.closest(".btn");
-        
-        if(!clicked) return;
-        
-        if(clicked.classList.contains("print_btn")) {
+    if (printBtn) {
+        printBtn.addEventListener("click", () => {
             window.print();
-        } else if(clicked.classList.contains("pdf_btn")) {
-            const element = document.getElementById("myTable");
+        });
+    }
 
-            // Create a temporary style element to ensure proper styling
+    if (pdfBtn) {
+        pdfBtn.addEventListener("click", () => {
+            const element = document.getElementById("myTable");
             const style = document.createElement("style");
             style.innerHTML = `
-                header,
-                .main-content h2,
-                .form-content,
-                .card-body h3,
-                .card-body .report_btn,
-                .card-body .dataTables_length,
-                .card-body .dataTables_filter,
-                .card-body .dataTables_info,
-                .card-body .dataTables_paginate,
-                .actions {
-                    display: none !important;
-                }
-
-                th.sorting::before,
-                th.sorting_asc::before,
-                th.sorting_desc::before,
-                th.sorting::after,
-                th.sorting_asc::after,
-                th.sorting_desc::after {
-                    content: none !important;
-                    display: none !important;
-                }
-
-                .card {
-                    border: none;
-                    border-radius: none;
-                    margin-bottom: 0px;
-                    padding: 0px !important;
-                    box-shadow: none !important;
-                }
-
-                .main-content {
-                    padding: 0px;
-                }
-
-                .status-inactive {
-                    padding: 0px;
-                    color: #000;
-                    background: none;
-                }
-
-                table th,
-                table tr {
-                    font-size: 12px;
-                    padding: 5px;
-                }
-
-                table.dataTable thead>tr>th.sorting {
-                    padding-right: 0px;
-                }
+                header, .main-content h2, .form-content, .card-body h3, .card-body .report_btn,
+                .card-body .dataTables_length, .card-body .dataTables_filter, .card-body .dataTables_info,
+                .card-body .dataTables_paginate, .actions { display: none !important; }
+                table th, table tr { font-size: 12px; padding: 5px; }
             `;
-
-            // Append style to the document
             document.head.appendChild(style);
-
-            // Clone the element to avoid modifying the original table
             const clonedElement = element.cloneNode(true);
 
-            // Convert to PDF
             html2pdf()
                 .set({
-                    margin: 1, // Remove PDF margins
+                    margin: 1,
                     filename: "employee_list.pdf",
                     image: { type: "jpeg", quality: 0.98 },
                     html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
@@ -932,20 +938,17 @@ $(document).ready( function () {
                 .from(clonedElement)
                 .toPdf()
                 .save()
-                .then(() => {
-                    // Remove the temporary style after PDF generation
-                    document.head.removeChild(style);
-                });
-        } else if(clicked.classList.contains("excel_btn")) {
-            // Select the table element
-            const table = document.getElementById("myTable");
+                .then(() => document.head.removeChild(style));
+        });
+    }
 
-            // Convert table to an array while excluding the "actions" column
+    if (excelBtn) {
+        excelBtn.addEventListener("click", () => {
+            const table = document.getElementById("myTable");
             const rows = [];
             table.querySelectorAll("tr").forEach((row) => {
                 const rowData = [];
-                row.querySelectorAll("th, td").forEach((cell, index) => {
-                    // Skip the cell if it's inside a column with class "actions"
+                row.querySelectorAll("th, td").forEach((cell) => {
                     if (!cell.classList.contains("actions")) {
                         rowData.push(cell.innerText);
                     }
@@ -953,22 +956,18 @@ $(document).ready( function () {
                 rows.push(rowData);
             });
 
-            // Create a worksheet
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
-
-            // Append worksheet to workbook
+            const ws = XLSX.utils.aoa_to_sheet(rows);
             XLSX.utils.book_append_sheet(wb, ws, "Employee List");
-
-            // Download Excel file
             XLSX.writeFile(wb, "employee_list.xlsx");
-        } else if(clicked.classList.contains("word_btn")){
-            const table = document.getElementById("myTable").cloneNode(true);
+        });
+    }
 
-            // Remove the "Actions" column (th and td with class 'actions')
+    if (wordBtn) {
+        wordBtn.addEventListener("click", () => {
+            const table = document.getElementById("myTable").cloneNode(true);
             table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
 
-            // Create a Word-compatible HTML content with margin
             const htmlContent = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" 
                     xmlns:w="urn:schemas-microsoft-com:office:word" 
@@ -979,12 +978,6 @@ $(document).ready( function () {
                         body { margin: 5px; padding: 5px; }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                        table th,
-                        table tr {
-                            font-size: 12px;
-                            padding: 5px;
-                        }
-
                     </style>
                 </head>
                 <body>
@@ -992,25 +985,18 @@ $(document).ready( function () {
                 </body>
                 </html>`;
 
-            // Create a Blob with the content
             const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
-
-            // Create a download link
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = "employee_list.doc";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-    });
-  }
+        });
+    }
+});
+
 </script>
 
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
-
 <?php include('footer.php'); ?>
+    

@@ -17,7 +17,7 @@ if (!isset($_SESSION['employee_id'])) {
 $employee_id = $_SESSION['employee_id']; // Replace with the logged-in employee's ID
 
 // Fetch leave applications for the employee
-$sql = "SELECT leave_type, start_date, end_date, reason, status 
+$sql = "SELECT leave_type, start_date, end_date, reason, status, file_date
         FROM leave_applications 
         WHERE employee_id = ?";
 $stmt = $conn->prepare($sql);
@@ -28,6 +28,7 @@ $result = $stmt->get_result();
 ?>
 
 <?php include('includes/sideBar.php'); ?>
+
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <!-- Main Content Area -->
 <main class="main-content">
@@ -59,6 +60,7 @@ $result = $stmt->get_result();
                 <thead>
                     <tr>
                         <th>Leave Type</th>
+                        <th>Date of File</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Reason</th>
@@ -69,6 +71,7 @@ $result = $stmt->get_result();
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
+                            <td><?php echo htmlspecialchars($row['file_date']); ?></td>
                             <td><?php echo htmlspecialchars($row['start_date']); ?></td>
                             <td><?php echo htmlspecialchars($row['end_date']); ?></td>
                             <td><?php echo htmlspecialchars($row['reason']); ?></td>

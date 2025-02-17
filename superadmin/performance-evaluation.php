@@ -3,6 +3,7 @@
     include('includes/sideBar.php');
 ?>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
     <section id="dashboard">
         <div class="performance-and-button">
@@ -239,7 +240,7 @@
                         echo "</tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='6'>No evaluations found.</td></tr>";
+                    echo "<tr><td colspan='8'>No evaluations found.</td></tr>"; 
                 }
                 ?>
             </tbody>
@@ -253,7 +254,18 @@
 ?>
 
 
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
 <script>
+
+$(document).ready(function () {
+    if ($('#myTable thead th').length === $('#myTable tbody tr:first-child td').length) {
+        $('#myTable').DataTable();
+    } else {
+        console.error('Column count mismatch between <thead> and <tbody>');
+    }
+});
     // SELECT THE CLASS NAME
     const employeeDisplay = document.querySelectorAll(".employee_display");
 

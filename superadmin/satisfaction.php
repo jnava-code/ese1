@@ -3,6 +3,111 @@
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
 
+<style>
+    .evaluation-form {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .evaluation-form .form-group {
+        margin-bottom: 15px;
+    }
+
+    .evaluation-form label {
+        font-weight: bold;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .evaluation-form input,
+    .evaluation-form select,
+    .evaluation-form textarea {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .evaluation-form input[type="number"] {
+        width: 60px;
+    }
+
+    .evaluation-form button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .evaluation-form button:hover {
+        background-color: #0056b3;
+    }
+  
+    /* Table Styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    td {
+        color: #555;
+    }
+
+    tr:hover {
+        background-color: #f9f9f9;
+    }
+    .notification {
+    margin: 20px auto;
+    padding: 15px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    max-width: 800px;
+}
+
+.notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.notification.status-open {
+    background-color: #e3f7df;
+    color: #0f5132;
+    border: 1px solid #d1e7dd;
+}
+
+.notification.status-closed {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+</style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
@@ -112,111 +217,7 @@
     </section>
 </main>
 
-<style>
-    .evaluation-form {
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 20px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
 
-    .evaluation-form .form-group {
-        margin-bottom: 15px;
-    }
-
-    .evaluation-form label {
-        font-weight: bold;
-        font-size: 14px;
-        color: #333;
-    }
-
-    .evaluation-form input,
-    .evaluation-form select,
-    .evaluation-form textarea {
-        width: 100%;
-        padding: 8px;
-        font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .evaluation-form input[type="number"] {
-        width: 60px;
-    }
-
-    .evaluation-form button {
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    .evaluation-form button:hover {
-        background-color: #0056b3;
-    }
-  
-    /* Table Styling */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-
-    th {
-        background-color: #f2f2f2;
-    }
-
-    td {
-        color: #555;
-    }
-
-    tr:hover {
-        background-color: #f9f9f9;
-    }
-    .notification {
-    margin: 20px auto;
-    padding: 15px;
-    text-align: center;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    max-width: 800px;
-}
-
-.notification.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.notification.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.notification.status-open {
-    background-color: #e3f7df;
-    color: #0f5132;
-    border: 1px solid #d1e7dd;
-}
-
-.notification.status-closed {
-    background-color: #f8d7da;
-    color: #842029;
-    border: 1px solid #f5c2c7;
-}
-</style>
 
 <script>
         // Toggle dropdown on click

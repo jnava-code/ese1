@@ -75,14 +75,6 @@ if (isset($_POST['update_admin'])) {
     }
 }
 
-// Delete Admin
-if (isset($_GET['delete_id'])) {
-    $id = $_GET['delete_id'];
-    $sql = "DELETE FROM admin WHERE id=?";
-    executeQuery($conn, $sql, 'i', [$id]);
-    header("Location: ./superadmin"); // Redirect to avoid duplicate submissions
-    exit;
-}
 
 
 // Fetch Admins
@@ -97,14 +89,27 @@ if (!empty($searchQuery)) {
               OR LOWER(first_name) LIKE LOWER(?) 
               OR LOWER(last_name) LIKE LOWER(?) 
               OR LOWER(email) LIKE LOWER(?)";
+    $sql .= " ORDER BY id DESC"; // Order results by latest
     $stmt = mysqli_prepare($conn, $sql);
     $searchParam = '%' . $searchQuery . '%';
     mysqli_stmt_bind_param($stmt, 'ssss', $searchParam, $searchParam, $searchParam, $searchParam);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 } else {
+    $sql .= " ORDER BY id DESC"; // Order results by latest
     $result = mysqli_query($conn, $sql);
 }
+
+//Instead of delete Archive the user
+if (isset($_GET['archive_id'])) {
+    $id = $_GET['archive_id'];
+    $sql = "UPDATE admin SET is_archived = 1 WHERE id=?";
+    executeQuery($conn, $sql, 'i', [$id]);
+    header("Location: ./superadmin"); // Redirect to avoid duplicate submissions
+    exit;
+}
+
+
 ?>
 
 <?php include('includes/sideBar.php'); ?>
@@ -212,7 +217,7 @@ if (!empty($searchQuery)) {
         <table id="myTable" class="employee-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>No.</th>
                         <th>Username</th>
                         <th>First Name</th>
                         <th>Last Name</th>
@@ -222,18 +227,22 @@ if (!empty($searchQuery)) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($result)) : ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['id']) ?></td>
-                            <td><?= htmlspecialchars($row['username']) ?></td>
-                            <td><?= htmlspecialchars($row['first_name']) ?></td>
-                            <td><?= htmlspecialchars($row['last_name']) ?></td>
-                            <td><?= htmlspecialchars($row['email']) ?></td>
-                            <td><?= htmlspecialchars($row['contact_number']) ?></td>
-                            <td class="action-buttons">
-                            <a href="./edit_admin?id=<?php echo $row['id']; ?>" class="btn btn-warning">Edit</a>
-                            <a href="?delete_id=<?php echo $row['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this Admin?');">Archive</a>
-                            </td>
+                <?php 
+                    $counter = 1; // Initialize the counter
+                    while ($employee = mysqli_fetch_assoc($result)): 
+                ?>
+                    <tr>
+                        <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
+                            <td><?php echo $employee['username'] ;?></td>
+                            <td><?php echo $employee['first_name']; ?></td>
+                            <td><?php echo $employee['last_name']; ?></td>
+                            <td><?php echo $employee['email']; ?></td>
+                            <td><?php echo $employee['contact_number']; ?></td>
+
+                            <td class="actions action-buttons">
+                            <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
+                            <a href="?archive_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
+                        </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>

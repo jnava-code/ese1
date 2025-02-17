@@ -3,6 +3,7 @@
     include('includes/sideBar.php');
 ?>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
     <section id="dashboard">
         <div class="performance-and-button">
@@ -218,7 +219,6 @@
         <table id="myTable" class="evaluation-table">
             <thead>
                 <tr>
-                    <th>No.</th>
                     <th>Employee ID</th>
                     <th>Full Name</th>
                     <th>Evaluation Date</th>
@@ -231,11 +231,9 @@
             <tbody>
                 <?php
                 if ($result && mysqli_num_rows($result) > 0) {
-                    $counter = 1;
                     while ($row = mysqli_fetch_assoc($result)) {
                         echo "<tr>";
-                        echo "<td>" . $counter++ . "</td>";
-                        echo "<td class='employee_display'>" . $row['employee_id'] . "</td>";
+                        echo "<td>" . $row['employee_id'] . "</td>";
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
                         echo "<td>" . $row['overall_score'] . "</td>";
@@ -245,7 +243,7 @@
                         echo "</tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='6'>No evaluations found.</td></tr>";
+                    echo "<tr><td colspan='8'>No evaluations found.</td></tr>"; 
                 }
                 ?>
             </tbody>
@@ -253,7 +251,24 @@
     </section>
 </main>
 
+<?php
+    include('footer.php');
+    mysqli_close($conn); // Move mysqli_close to the end of the script
+?>
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
 <script>
+
+$(document).ready(function () {
+    if ($('#myTable thead th').length === $('#myTable tbody tr:first-child td').length) {
+        $('#myTable').DataTable();
+    } else {
+        console.error('Column count mismatch between <thead> and <tbody>');
+    }
+});
     // SELECT THE CLASS NAME
     const employeeDisplay = document.querySelectorAll(".employee_display");
 
@@ -261,7 +276,7 @@
         // Apply format: 00-000
         display.textContent = display.textContent.slice(0, 2) + '-' + display.textContent.slice(2, 5);
     });
-   
+
     // Calculate overall score
     const radioButtons = document.querySelectorAll('input[type="radio"]');
     const overallScoreDisplay = document.getElementById('overallScore');
@@ -299,7 +314,3 @@
         display: inline-block;
     }
 </style>
-<?php
-    include('footer.php');
-    mysqli_close($conn); // Move mysqli_close to the end of the script
-?>

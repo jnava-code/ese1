@@ -77,6 +77,41 @@ if (isset($_POST['search_week'])) {
 ?>
 
 <style>
+        /* Dropdown styling */
+        .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 120px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .export_btn {
+        background-color:rgb(33, 59, 173);
+    }
+
+
     .report_btn {
         display: flex;
         align-items: center;
@@ -154,11 +189,19 @@ table tr:hover {
     <section id="dashboard">
         <h2>WEEKLY ATTENDANCE MONITORING</h2>
         <div class="report_btn">
-            <button class="btn print_btn">PRINT</button>
-            <button class="btn pdf_btn">PDF</button>
-            <button class="btn excel_btn">EXCEL</button>
-            <button class="btn word_btn">WORD</button>
-        </div> 
+                <!-- Export as Dropdown -->
+                <div class="dropdown">
+                    <button class="btn export_btn">Export as</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="pdf_btn">PDF</a>
+                        <a href="#" class="excel_btn">Excel</a>
+                        <a href="#" class="word_btn">Word</a>
+                    </div>
+                </div>
+
+        <!-- Print Button -->
+        <button class="btn print_btn">Print</button>
+    </div>
 
         <form action="" method="POST" class="month-and-week">
             <div class="col-md-6">
@@ -323,133 +366,105 @@ table tr:hover {
 
 <script>
 
-    const reportBtn = document.querySelector(".report_btn");
-  const buttons = document.querySelectorAll(".btn");
+const reportBtn = document.querySelector(".report_btn"); 
 
-    if(reportBtn) {
-        reportBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            const clicked = e.target.closest(".btn");
-            console.log(clicked);
-            
-            if(!clicked) return;
+if(reportBtn) {
+    reportBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        let clicked = e.target.closest(".btn, .dropdown-content a"); // Include dropdown links
 
-            if(clicked.classList.contains("print_btn")) {
-                window.print();
-            } else if(clicked.classList.contains("pdf_btn")) {
-                const element = document.getElementById("attendance-table");
+        if(!clicked) return;
 
-                // Create a temporary style element to ensure proper styling
-                const style = document.createElement("style");
-                style.innerHTML = `
-                        header,
-                        .main-content h2,
-                        .report_btn,
-                        .month-and-week {
-                            display: none !important;
-                        }
+        if(clicked.classList.contains("print_btn")) {
+            window.print();
+        } else if(clicked.classList.contains("pdf_btn")) {
+            const element = document.getElementById("attendance-table");
 
-                        .main-content,
-                        .attendance-table {
-                            padding: 0px;
-                        }
+            // Create a temporary style element to ensure proper styling
+            const style = document.createElement("style");
+            style.innerHTML = `
+                header, .main-content h2, .report_btn, .month-and-week {
+                    display: none !important;
+                }
+                .main-content, .attendance-table {
+                    padding: 0px;
+                }
+                table th, table tr {
+                    font-size: 12px;
+                }
+            `;
 
-                        table th,
-                        table tr {
-                            font-size: 12px;
-                        }
-                `;
+            document.head.appendChild(style);
+            const clonedElement = element.cloneNode(true);
 
-                // Append style to the document
-                document.head.appendChild(style);
-
-                // Clone the element to avoid modifying the original table
-                const clonedElement = element.cloneNode(true);
-
-                // Convert to PDF
-                html2pdf()
-                    .set({
-                        margin: 0, // Remove PDF margins
-                        filename: "weekly_attendance.pdf",
-                        image: { type: "jpeg", quality: 0.98 },
-                        html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
-                        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-                    })
-                    .from(clonedElement)
-                    .toPdf()
-                    .save()
-                    .then(() => {
-                        // Remove the temporary style after PDF generation
-                        document.head.removeChild(style);
-                    });
-            } else if(clicked.classList.contains("excel_btn")) {
-                // Select the table element
-                const table = document.getElementById("attendance-table");
-
-                // Convert table to an array while excluding the "actions" column
-                const rows = [];
-                table.querySelectorAll("tr").forEach((row) => {
-                    const rowData = [];
-                    row.querySelectorAll("th, td").forEach((cell, index) => {
-                        // Skip the cell if it's inside a column with class "actions"
-                        if (!cell.classList.contains("actions")) {
-                            rowData.push(cell.innerText);
-                        }
-                    });
-                    rows.push(rowData);
+            html2pdf()
+                .set({
+                    margin: 0,
+                    filename: "weekly_attendance.pdf",
+                    image: { type: "jpeg", quality: 0.98 },
+                    html2canvas: { dpi: 192, scale: 2, letterRendering: true, useCORS: true },
+                    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+                })
+                .from(clonedElement)
+                .toPdf()
+                .save()
+                .then(() => {
+                    document.head.removeChild(style);
                 });
 
-                // Create a worksheet
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(rows); // Convert array to sheet
+        } else if(clicked.classList.contains("excel_btn")) {
+            const table = document.getElementById("attendance-table");
+            const rows = [];
 
-                // Append worksheet to workbook
-                XLSX.utils.book_append_sheet(wb, ws, "Weekly Attendace");
+            table.querySelectorAll("tr").forEach((row) => {
+                const rowData = [];
+                row.querySelectorAll("th, td").forEach((cell) => {
+                    if (!cell.classList.contains("actions")) {
+                        rowData.push(cell.innerText);
+                    }
+                });
+                rows.push(rowData);
+            });
 
-                // Download Excel file
-                XLSX.writeFile(wb, "weekly_attendance.xlsx");
-            } else if(clicked.classList.contains("word_btn")){
-                const table = document.getElementById("attendance-table").cloneNode(true);
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "Weekly Attendance");
+            XLSX.writeFile(wb, "weekly_attendance.xlsx");
 
-                // Remove the "Actions" column (th and td with class 'actions')
-                table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
+        } else if(clicked.classList.contains("word_btn")) {
+            const table = document.getElementById("attendance-table").cloneNode(true);
+            table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
 
-                // Create a Word-compatible HTML content with margin
-                const htmlContent = `
-                    <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-                        xmlns:w="urn:schemas-microsoft-com:office:word" 
-                        xmlns="http://www.w3.org/TR/REC-html40">
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { margin: 5px; padding: 5px; }
-                            table { width: 100%; border-collapse: collapse; }
-                            th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                            table th,
-                            table tr {
-                                font-size: 12px;
-                            }
+            const htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                    xmlns:w="urn:schemas-microsoft-com:office:word" 
+                    xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 5px; padding: 5px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                        table th, table tr {
+                            font-size: 12px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${table.outerHTML}
+                </body>
+                </html>`;
 
-                        </style>
-                    </head>
-                    <body>
-                        ${table.outerHTML}
-                    </body>
-                    </html>`;
-
-                // Create a Blob with the content
-                const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
-
-                // Create a download link
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = "weekly_attendance.doc";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        });
-    }
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "weekly_attendance.doc";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+}
 // Function to update the week dropdown dynamically based on the selected month
 function updateWeeks() {
     var month = document.getElementById('month').value;
