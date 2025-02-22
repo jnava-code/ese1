@@ -31,7 +31,6 @@ if (!isset($_SESSION['username'])) {
     
     <!-- Right-side Icons and Profile -->
     <div class="header-right">
-        <i class="fas fa-bullhorn"></i>  <!-- Horn Icon -->
         <i class="fas fa-bell"></i>  <!-- Notifications Icon -->
         <div class="profile">
             <strong>
