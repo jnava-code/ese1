@@ -12,8 +12,15 @@ if (!isset($_SESSION['username'])) {
 
 $employee_id = $_SESSION['employee_id'];
 
-// SQL query to fetch leave requests with status, ordered by file_date in descending order
-$sql = "
+// First query to check if the job satisfaction form is 'Open'
+$sql_job_satisfaction = "
+    SELECT status 
+    FROM job_satisfaction_form_status 
+    WHERE status = 'Open'
+";
+
+// Query to fetch leave requests with status, ordered by file_date in descending order
+$sql_leave_applications = "
     SELECT 
         a.status,
         a.file_date,
@@ -23,7 +30,33 @@ $sql = "
     WHERE a.employee_id = $employee_id AND (a.status = 'Approved' OR a.status = 'Rejected')
     ORDER BY a.file_date DESC
 ";
-$result = mysqli_query($conn, $sql);
+
+// Execute queries
+$result_job_satisfaction = mysqli_query($conn, $sql_job_satisfaction);
+$result_leave_applications = mysqli_query($conn, $sql_leave_applications);
+
+// Create a list for notifications
+$notifications = [];
+
+// Add job satisfaction notification if it's 'Open'
+if ($result_job_satisfaction && mysqli_num_rows($result_job_satisfaction) > 0) {
+    $notifications[] = [
+        'type' => 'job_satisfaction',
+        'message' => 'Job Satisfaction Form is Open',
+        'timestamp' => null
+    ];
+}
+
+// Add leave application notifications
+if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 0) {
+    while ($row = mysqli_fetch_assoc($result_leave_applications)) {
+        $notifications[] = [
+            'type' => 'leave_application',
+            'message' => 'Your leave request was ' . htmlspecialchars($row['status']),
+            'timestamp' => $row['file_date']
+        ];
+    }
+}
 
 ?>
 
@@ -114,16 +147,15 @@ $result = mysqli_query($conn, $sql);
         <h1>ESE-Tech Industrial Solutions Corporation</h1>
     </div>
     
-    <!-- Right-side Icons and Profile -->
     <div class="header-right">
-        <i class="fas fa-bell bell-btn"></i>  <!-- Notifications Icon -->
+        <i class="fas fa-bell bell-btn"></i>  
         <div class="profile">
             <strong>
             <?php echo isset($_SESSION['fullname']) ? htmlspecialchars($_SESSION['fullname']) : 'Guest'; ?>
             </strong>
         </div>
-        <a href="./logout" class="logout-button">
-            <i class="fas fa-power-off"></i> <!-- Shutdown icon -->
+        <a href="./user_logout" class="logout-button">
+            <i class="fas fa-power-off"></i> 
         </a> <!-- Logout button -->
     </div>
 
@@ -131,16 +163,18 @@ $result = mysqli_query($conn, $sql);
     <div class="notification">
         <h3>Notifications</h3>
         <div class="notifications-content">
-            <?php if ($result && mysqli_num_rows($result) > 0): ?>
-                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+            <?php if (!empty($notifications)): ?>
+                <?php foreach ($notifications as $notification): ?>
                     <div class="notification-item">
                         <i class="fas fa-file-alt"></i> 
                         <div>
-                            <p>Your leave request was <strong><?php echo htmlspecialchars($row['status']); ?></strong></p>
-                            <span class="timestamp"><?php echo $row['file_date']; ?></span> 
+                            <p><?php echo htmlspecialchars($notification['message']); ?></p>
+                            <?php if ($notification['timestamp']): ?>
+                                <span class="timestamp"><?php echo date('F j, Y', strtotime($notification['timestamp'])); ?></span> 
+                            <?php endif; ?>
                         </div>
                     </div>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             <?php else: ?>
                 <p>No notifications</p>
             <?php endif; ?>
