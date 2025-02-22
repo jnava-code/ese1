@@ -70,7 +70,7 @@ $result = mysqli_query($conn, $sql);
         .notification {
             display: none;
             position: absolute;
-            top: 150px;
+            top: 180px;
             right: -20px;
             transform: translate(-50%, -50%);
             background-color: #ffffff;

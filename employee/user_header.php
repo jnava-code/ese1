@@ -79,7 +79,7 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
         .notification {
             display: none;
             position: absolute;
-            top: 150px;
+            top: 180px;
             right: -10px;
             transform: translate(-50%, -50%);
             background-color: #fff;
