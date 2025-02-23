@@ -55,15 +55,24 @@
     // Get the present date
     $presentDate = date('Y-m-d');
 
-    // SQL query to get the hire_date for each employee
-    $sql = "SELECT e.employee_id, e.hire_date FROM employees e WHERE e.hire_date <= '$presentDate'";
-
     // Get the total absent weekdays for all employees
-    $absent_days = getAbsentCount($conn, $sql);
-
+    $absent_days = getAbsentCount($conn, "SELECT e.employee_id, e.hire_date FROM employees e WHERE e.hire_date <= '$presentDate'");
     $late_count = getCount($conn, "SELECT count(*) as late_count FROM attendance WHERE status = 'Late'");
     $ontime_count = getCount($conn, "SELECT count(*) as ontime_count FROM attendance WHERE status = 'On Time'");
     $leave_count = getCount($conn, "SELECT count(*) as leave_count FROM leave_applications WHERE status = 'Approved'");
+
+    // $week_start = date('Y-m-d', strtotime('monday this week'));
+
+    // Daily Counts
+    $daily_absent = getAbsentCount($conn, "SELECT employee_id, hire_date FROM employees WHERE hire_date = '$presentDate'");
+    $daily_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND date = '$presentDate'");
+    $daily_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND date = '$presentDate'");
+    $daily_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND file_date = '$presentDate'");
+
+    // Weekly Counts
+    // $weekly_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND date >= '$week_start'");
+    // $weekly_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND date >= '$week_start'");
+    // $weekly_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND file_date >= '$week_start'");
 
     $notAbsent = $late_count + $ontime_count + $leave_count;
     $total_absent_days = $absent_days - $notAbsent;
@@ -235,7 +244,13 @@
             <div class="reports">
                 <!-- Attendance Report -->
                 <div style="width: 100%; max-width: 500px;">
-                    <h1>Attendance Report</h1>
+                    <h1>Daily Attendance Report</h1>
+                    <canvas id="dailyAttendancePieChart"></canvas>
+                    <h2>Total: <?php echo (int)$daily_late + (int)$daily_ontime + (int)$daily_leave; ?></h2>
+                </div>
+
+                <div style="width: 100%; max-width: 500px;">
+                    <h1>Monthly Attendance Report</h1>
                     <canvas id="attendancePieChart"></canvas>
                     <h2>Total: <?php echo (int)$late_count + (int)$ontime_count + (int)$leave_count; ?></h2>
                 </div>
@@ -259,6 +274,24 @@
 
     <script>
         // ATTENDANCE REPORT
+        var daily_late = <?php echo $daily_late; ?>;
+        var daily_ontime = <?php echo $daily_ontime; ?>;
+        var daily_leave = <?php echo $daily_leave; ?>;
+        var daily_absent = <?php echo $daily_absent ?? 0; ?>;
+
+        var dailyctx = document.getElementById('dailyAttendancePieChart').getContext('2d');
+        var dailyAttendancePieChart = new Chart(dailyctx, {
+            type: 'pie',
+            data: {
+                labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
+                datasets: [{
+                    data: [daily_ontime, daily_late, daily_absent, daily_leave], // Fixed
+                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
+                    borderWidth: 1
+                }]
+            },
+        });
+        
         var lateCount = <?php echo $late_count; ?>; 
         var onTimeCount = <?php echo $ontime_count; ?>; 
         var absentCount = <?php echo $total_absent_days; ?>; 
