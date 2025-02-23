@@ -243,13 +243,13 @@
             <!-- Charts Section -->
             <div class="reports">
                 <!-- Attendance Report -->
-                <div style="width: 100%; max-width: 500px;">
+                <div style="width: 100%; max-width: 0px;">
                     <h1>Daily Attendance Report</h1>
                     <canvas id="dailyAttendancePieChart"></canvas>
                     <h2>Total: <?php echo (int)$daily_late + (int)$daily_ontime + (int)$daily_leave; ?></h2>
                 </div>
 
-                <div style="width: 100%; max-width: 500px;">
+                <div style="width: 100%; max-width: 0px;">
                     <h1>Monthly Attendance Report</h1>
                     <canvas id="attendancePieChart"></canvas>
                     <h2>Total: <?php echo (int)$late_count + (int)$ontime_count + (int)$leave_count; ?></h2>
