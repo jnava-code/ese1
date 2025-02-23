@@ -210,54 +210,6 @@
     <!-- Main Content Area -->
     <main class="main-content">
         <section id="dashboard">
-            <!-- Summary Section -->
-            <div class="summary-section">
-                <h1>Summary of Reports</h1>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Metric</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Attendance Summary -->
-                        <tr>
-                            <td rowspan="4">Attendance</td>
-                            <td>On Time (Present)</td>
-                            <td><?php echo $ontime_count; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Late (Present)</td>
-                            <td><?php echo $late_count; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Absent</td>
-                            <td><?php echo $total_absent_days; ?></td>
-                        </tr>
-                        <tr>
-                            <td>On Leave</td>
-                            <td><?php echo $leave_count; ?></td>
-                        </tr>
-
-                        <!-- Job Satisfaction Summary -->
-                        <tr>
-                            <td>Job Satisfaction</td>
-                            <td>Average Rating</td>
-                            <td><?php echo number_format($jobSatisfactionSummary, 2); ?></td>
-                        </tr>
-
-                        <!-- Performance Evaluation Summary -->
-                        <tr>
-                            <td>Performance Evaluation</td>
-                            <td>Average Score</td>
-                            <td><?php echo number_format($performanceEvaluationSummary, 2); ?></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <!-- Charts Section -->
             <div class="reports">
                 <!-- Attendance Report -->
@@ -277,7 +229,7 @@
                 </div>
 
                 <!-- Employees Report -->
-                <div style="width: 100%; max-width: 500px;">
+                <div style="width: 100%; max-width: 350px;">
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
@@ -450,37 +402,31 @@
         var employees = <?php echo $employeeCountsJson; ?>;
 
         var departmentCtx = document.getElementById('departmentChart').getContext('2d');
-var departmentChart = new Chart(departmentCtx, {
-    type: 'doughnut',
-    data: {
-        labels: departments,
-        datasets: [{
-            data: employees,
-            backgroundColor: colors,
-            borderWidth: 1
-        }]
-    },
-    options: {
-        plugins: {
-            datalabels: {
-                formatter: (value, ctx) => {
-                    let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                    if (sum === 0 || value === 0) return ""; // Hide label if sum is 0 or value is 0
-                    let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                    return percentage;
+        var departmentChart = new Chart(departmentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: departments,
+                datasets: [{
+                    data: employees,
+                    backgroundColor: colors,
+                    borderWidth: 1
+                }]
+            },               
+            options: {
+                plugins: {
+                    datalabels: {
+                        anchor: 'center', // Center the label inside the doughnut
+                        align: 'center',            
+                        color: '#fff', // White text for visibility
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
                 },
-                color: '#fff',
-                font: {
-                    weight: 'bold',
-                    size: 14
-                }
-            }
-        }
-    },
-    plugins: [ChartDataLabels]
-});
-
-
+            },
+            plugins: [ChartDataLabels] // Make sure ChartDataLabels is included
+        });
 
         // AGE AND GENDER REPORT
         var ageRanges = <?php echo $ageRangesJson; ?>;
