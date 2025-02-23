@@ -281,7 +281,6 @@
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
-                    <h2>Total: <?php echo $totalEmployees; ?></h2>
                 </div>
 
                 <!-- Employees by Age and Gender Report -->
@@ -451,17 +450,37 @@
         var employees = <?php echo $employeeCountsJson; ?>;
 
         var departmentCtx = document.getElementById('departmentChart').getContext('2d');
-        var departmentChart = new Chart(departmentCtx, {
-            type: 'doughnut',
-            data: {
-                labels: departments,
-                datasets: [{
-                    data: employees,
-                    backgroundColor: colors,
-                    borderWidth: 1
-                }]
-            },
-        });
+var departmentChart = new Chart(departmentCtx, {
+    type: 'doughnut',
+    data: {
+        labels: departments,
+        datasets: [{
+            data: employees,
+            backgroundColor: colors,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        plugins: {
+            datalabels: {
+                formatter: (value, ctx) => {
+                    let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                    if (sum === 0 || value === 0) return ""; // Hide label if sum is 0 or value is 0
+                    let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                    return percentage;
+                },
+                color: '#fff',
+                font: {
+                    weight: 'bold',
+                    size: 14
+                }
+            }
+        }
+    },
+    plugins: [ChartDataLabels]
+});
+
+
 
         // AGE AND GENDER REPORT
         var ageRanges = <?php echo $ageRangesJson; ?>;
