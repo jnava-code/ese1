@@ -59,6 +59,8 @@
     $absent_days = getAbsentCount($conn, "SELECT e.employee_id, e.hire_date FROM employees e WHERE e.hire_date <= '$presentDate'");
     $late_count = getCount($conn, "SELECT count(*) as late_count FROM attendance WHERE status = 'Late'");
     $ontime_count = getCount($conn, "SELECT count(*) as ontime_count FROM attendance WHERE status = 'On Time'");
+    $undertime_count = getCount($conn, "SELECT count(*) as undertime_count FROM attendance WHERE status = 'Under Time'");
+    $overtime_count = getCount($conn, "SELECT count(*) as overtime_count FROM attendance WHERE status = 'Over Time'");
     $leave_count = getCount($conn, "SELECT count(*) as leave_count FROM leave_applications WHERE status = 'Approved'");
 
     // $week_start = date('Y-m-d', strtotime('monday this week'));
@@ -67,12 +69,28 @@
     $daily_absent = getAbsentCount($conn, "SELECT employee_id, hire_date FROM employees WHERE hire_date = '$presentDate'");
     $daily_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND date = '$presentDate'");
     $daily_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND date = '$presentDate'");
+    $daily_undertime = getCount($conn, "SELECT count(*) as undertime_count FROM attendance WHERE status = 'Under Time' AND date = '$presentDate'");
+    $daily_overtime = getCount($conn, "SELECT count(*) as overtime_count FROM attendance WHERE status = 'Over Time' AND date = '$presentDate'");
     $daily_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND file_date = '$presentDate'");
 
     // Weekly Counts
-    // $weekly_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND date >= '$week_start'");
-    // $weekly_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND date >= '$week_start'");
-    // $weekly_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND file_date >= '$week_start'");
+    $currentWeekCondition = "WEEK(date, 1) = WEEK(NOW(), 1) AND YEAR(date) = YEAR(NOW())";
+    $weekly_absent = getAbsentCount($conn, "SELECT employee_id, hire_date FROM employees WHERE WEEK(hire_date, 1) = WEEK(NOW(), 1) AND YEAR(hire_date) = YEAR(NOW())");
+    $weekly_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND $currentWeekCondition");
+    $weekly_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND $currentWeekCondition");
+    $weekly_undertime = getCount($conn, "SELECT COUNT(*) as undertime_count FROM attendance WHERE status = 'Under Time' AND $currentWeekCondition");
+    $weekly_overtime = getCount($conn, "SELECT COUNT(*) as overtime_count FROM attendance WHERE status = 'Over Time' AND $currentWeekCondition");
+    $weekly_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND WEEK(file_date, 1) = WEEK(NOW(), 1) AND YEAR(file_date) = YEAR(NOW())");
+
+    // Monthly Counts
+    $currentMonthCondition = "MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())";
+    $monthly_absent = getAbsentCount($conn, "SELECT employee_id, hire_date FROM employees WHERE MONTH(hire_date) = MONTH(NOW()) AND YEAR(hire_date) = YEAR(NOW())");
+    $monthly_late = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'Late' AND $currentMonthCondition");
+    $monthly_ontime = getCount($conn, "SELECT COUNT(*) as count FROM attendance WHERE status = 'On Time' AND $currentMonthCondition");
+    $monthly_undertime = getCount($conn, "SELECT COUNT(*) as undertime_count FROM attendance WHERE status = 'Under Time' AND $currentMonthCondition");
+    $monthly_overtime = getCount($conn, "SELECT COUNT(*) as overtime_count FROM attendance WHERE status = 'Over Time' AND $currentMonthCondition");
+    $monthly_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND MONTH(file_date) = MONTH(NOW()) AND YEAR(file_date) = YEAR(NOW())");
+
 
     $notAbsent = $late_count + $ontime_count + $leave_count;
     $total_absent_days = $absent_days - $notAbsent;
@@ -243,16 +261,19 @@
             <!-- Charts Section -->
             <div class="reports">
                 <!-- Attendance Report -->
-                <div style="width: 100%; max-width: 0px;">
+                <div style="width: 100%; max-width: 350px;">
                     <h1>Daily Attendance Report</h1>
                     <canvas id="dailyAttendancePieChart"></canvas>
-                    <h2>Total: <?php echo (int)$daily_late + (int)$daily_ontime + (int)$daily_leave; ?></h2>
                 </div>
 
-                <div style="width: 100%; max-width: 0px;">
+                <div style="width: 100%; max-width: 350px;">
+                    <h1>Weekly Attendance Report</h1>
+                    <canvas id="weeklyAttendancePieChart"></canvas>
+                </div>
+
+                <div style="width: 100%; max-width: 350px;">
                     <h1>Monthly Attendance Report</h1>
-                    <canvas id="attendancePieChart"></canvas>
-                    <h2>Total: <?php echo (int)$late_count + (int)$ontime_count + (int)$leave_count; ?></h2>
+                    <canvas id="monthlyAttendancePieChart"></canvas>
                 </div>
 
                 <!-- Employees Report -->
@@ -272,10 +293,14 @@
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
     <script>
-        // ATTENDANCE REPORT
+       // DAILY ATTENDANCE REPORT
         var daily_late = <?php echo $daily_late; ?>;
         var daily_ontime = <?php echo $daily_ontime; ?>;
+        var daily_undertime = <?php echo $daily_undertime; ?>;
+        var daily_overtime = <?php echo $daily_overtime; ?>;
         var daily_leave = <?php echo $daily_leave; ?>;
         var daily_absent = <?php echo $daily_absent ?? 0; ?>;
 
@@ -283,32 +308,142 @@
         var dailyAttendancePieChart = new Chart(dailyctx, {
             type: 'pie',
             data: {
-                labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
+                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
                 datasets: [{
-                    data: [daily_ontime, daily_late, daily_absent, daily_leave], // Fixed
-                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
+                    data: [daily_ontime, daily_late, daily_absent, daily_undertime, daily_overtime, daily_leave],
+                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
                     borderWidth: 1
                 }]
             },
+            options: {
+                plugins: {
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ""; // Hide labels when value is 0
+                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
         });
-        
-        var lateCount = <?php echo $late_count; ?>; 
-        var onTimeCount = <?php echo $ontime_count; ?>; 
-        var absentCount = <?php echo $total_absent_days; ?>; 
-        var onLeaveCount = <?php echo $leave_count; ?>;  
 
-        var ctx = document.getElementById('attendancePieChart').getContext('2d');
-        var attendancePieChart = new Chart(ctx, {
+        // WEEKLY ATTENDANCE REPORT
+        var weekly_late = <?php echo $weekly_late; ?>;
+        var weekly_ontime = <?php echo $weekly_ontime; ?>;
+        var weekly_undertime = <?php echo $weekly_undertime; ?>;
+        var weekly_overtime = <?php echo $weekly_overtime; ?>;
+        var weekly_leave = <?php echo $weekly_leave; ?>;
+        var weekly_absent = <?php echo $weekly_absent ?? 0; ?>;
+
+        var weeklyctx = document.getElementById('weeklyAttendancePieChart').getContext('2d');
+        var weeklyAttendancePieChart = new Chart(weeklyctx, {
             type: 'pie',
             data: {
-                labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
+                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
                 datasets: [{
-                    data: [onTimeCount, lateCount, absentCount, onLeaveCount],
-                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
+                    data: [weekly_ontime, weekly_late, weekly_absent, weekly_undertime, weekly_overtime, weekly_leave],
+                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
                     borderWidth: 1
                 }]
             },
+            options: {
+                plugins: {
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ""; // Hide labels when value is 0
+                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
         });
+       
+        // Monthly ATTENDANCE REPORT
+        var monthly_late = <?php echo $monthly_late; ?>;
+        var monthly_ontime = <?php echo $monthly_ontime; ?>;
+        var monthly_undertime = <?php echo $monthly_undertime; ?>;
+        var monthly_overtime = <?php echo $monthly_overtime; ?>;
+        var monthly_leave = <?php echo $monthly_leave; ?>;
+        var monthly_absent = <?php echo $monthly_absent ?? 0; ?>;
+
+        var monthlyctx = document.getElementById('monthlyAttendancePieChart').getContext('2d');
+        var monthlyAttendancePieChart = new Chart(monthlyctx, {
+            type: 'pie',
+            data: {
+                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
+                datasets: [{
+                    data: [monthly_ontime, monthly_late, monthly_absent, monthly_undertime, monthly_overtime, monthly_leave],
+                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ""; // Hide labels when value is 0
+                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+
+// var ctx = document.getElementById('attendancePieChart').getContext('2d');
+// var attendancePieChart = new Chart(ctx, {
+//     type: 'pie',
+//     data: {
+//         labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
+//         datasets: [{
+//             data: [onTimeCount, lateCount, absentCount, onLeaveCount],
+//             backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
+//             borderWidth: 1
+//         }]
+//     },
+//     options: {
+//         plugins: {
+//             datalabels: {
+//                 formatter: (value, ctx) => {
+//                     let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+//                     let percentage = ((value / sum) * 100).toFixed(1) + "%";
+//                     return percentage;
+//                 },
+//                 color: '#fff',
+//                 font: {
+//                     weight: 'bold',
+//                     size: 14
+//                 }
+//             }
+//         }
+//     },
+//     plugins: [ChartDataLabels]
+// });
+
 
         // DEPARTMENT REPORT
         var departments = <?php echo $departmentsJson; ?>;
