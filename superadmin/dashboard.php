@@ -68,31 +68,67 @@ while ($row = $attritionResult->fetch_assoc()) {
 <?php include('includes/sideBar.php'); ?>
 
 <style>
-    .chart-container {
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden; /* Prevent scrolling */
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+    }
+    .main-content {
         display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-top: 20px;
+        flex-direction: column;
+        /* height: 100%; */
+    }
+    /* #dashboard {
+        flex: 1;
+        width: 100%; 
+        overflow: hidden; 
+        padding: 5px; 
+        box-sizing: border-box;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 5px; 
+    } */
+    .dashboard-card .icon {
+        font-size: 18px; /* Adjusted icon size */
+        margin-bottom: 5px;
+    }
+    .dashboard-card .title {
+        font-size: 12px; /* Custom font size for title */
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    .dashboard-card .value {
+        font-size: 14px; /* Custom font size for value */
+    }
+    .chart-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 5px; /* Reduced gap */
+        height: calc(100% - 150px); /* Adjust height to fit within the page */
     }
     .chart {
-        flex: 1 1 calc(50% - 20px); /* Two items per row */
-        min-width: 200px; /* Adjusted to be a bit smaller */
         background: #fff;
-        padding: 20px; /* Adjusted to be a bit smaller */
+        padding: 10px; /* Reduced padding */
         border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 10px; /* Smaller font size */
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: 5px; /* Reduced margin */
     }
     table, th, td {
         border: 1px solid #ddd;
     }
     th, td {
-        padding: 10px;
+        padding: 5px;
         text-align: left;
     }
     th {
@@ -108,117 +144,115 @@ while ($row = $attritionResult->fetch_assoc()) {
             <!-- Total Employees -->
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-users"></i></div>
-                <h3>Total Employees</h3>
-                <p><?php echo $totalEmployees; ?></p>
+                <div class="title">Total Employees</div>
+                <div class="value"><?php echo $totalEmployees; ?></div>
             </div>
             <!-- New Hires -->
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-user-plus"></i></div>
-                <h3>New Hires</h3>
-                <p><?php echo $newHires; ?></p>
+                <div class="title">New Hires</div>
+                <div class="value"><?php echo $newHires; ?></div>
             </div>
             <!-- Department Distribution -->
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-building"></i></div>
-                <h3>Departments</h3>
-                <p><?php echo count($departmentData); ?></p>
+                <div class="title">Departments</div>
+                <div class="value"><?php echo count($departmentData); ?></div>
             </div>
-                        <!-- Male Employees -->
-                        <div class="dashboard-card">
+            <!-- Male Employees -->
+            <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-male"></i></div>
-                <h3>Male Employees</h3>
-                <p><?php echo $maleEmployees; ?></p>
+                <div class="title">Male Employees</div>
+                <div class="value"><?php echo $maleEmployees; ?></div>
             </div>
             <!-- Female Employees -->
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-female"></i></div>
-                <h3>Female Employees</h3>
-                <p><?php echo $femaleEmployees; ?></p>
+                <div class="title">Female Employees</div>
+                <div class="value"><?php echo $femaleEmployees; ?></div>
             </div>
             <!-- Pending Leave Requests -->
             <div class="dashboard-card">
                 <div class="icon"><i class="fas fa-calendar-times"></i></div>
-                <h3>Leave Requests</h3>
-                <p><?php echo $pendingLeaves; ?> Pending</p>
+                <div class="title">Leave Requests</div>
+                <div class="value"><?php echo $pendingLeaves; ?> Pending</div>
             </div>
-
         </div>
 
-<!-- Charts and Tables Section -->
-<div class="chart-container">
-    <!-- Department Distribution Chart -->
-    <div class="chart">
-        <h3>Department Distribution</h3>
-        <canvas id="departmentChart"></canvas>
-    </div>
+        <!-- Charts and Tables Section -->
+        <div class="chart-container">
+            <!-- Department Distribution Chart -->
+            <div class="chart">
+                <h3>Department Distribution</h3>
+                <canvas id="departmentChart"></canvas>
+            </div>
 
-    <!-- Attendance Chart -->
-    <div class="chart">
-        <h3>Attendance (Last 7 Days)</h3>
-        <canvas id="attendanceChart"></canvas>
-    </div>
+            <!-- Attendance Chart -->
+            <div class="chart">
+                <h3>Attendance (Last 7 Days)</h3>
+                <canvas id="attendanceChart"></canvas>
+            </div>
 
-    <!-- Attrition Forecasting Table -->
-    <div class="chart">
-        <h3>Attrition Forecasting (Top 5 Employees)</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Employee ID</th>
-                    <th>Attrition Probability</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($attritionData as $row): ?>
-                    <tr>
-                        <td><?php echo $row['employee_id']; ?></td>
-                        <td><?php echo $row['attrition_probability']; ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+            <!-- Attrition Forecasting Table -->
+            <div class="chart">
+                <h3>Attrition Forecasting (Top 5 Employees)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Attrition Probability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($attritionData as $row): ?>
+                            <tr>
+                                <td><?php echo $row['employee_id']; ?></td>
+                                <td><?php echo $row['attrition_probability']; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
 
-    <!-- Gender Distribution Chart -->
-    <div class="chart">
-        <h3>Gender Distribution</h3>
-        <canvas id="genderChart"></canvas>
-    </div>
-</div>
+            <!-- Gender Distribution Chart -->
+            <div class="chart">
+                <h3>Gender Distribution</h3>
+                <canvas id="genderChart"></canvas>
+            </div>
+        </div>
     </section>
 </main>
 
 <!-- Include Chart.js for visualizations -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-
     // Gender Distribution Chart
-const genderData = {
-    labels: ['Male', 'Female'],
-    datasets: [{
-        label: 'Gender Distribution',
-        data: [<?php echo $maleEmployees; ?>, <?php echo $femaleEmployees; ?>],
-        backgroundColor: [
-            '#36a2eb', // Blue for Male
-            '#ff6384'  // Pink for Female
-        ],
-        borderWidth: 1
-    }]
-};
+    const genderData = {
+        labels: ['Male', 'Female'],
+        datasets: [{
+            label: 'Gender Distribution',
+            data: [<?php echo $maleEmployees; ?>, <?php echo $femaleEmployees; ?>],
+            backgroundColor: [
+                '#36a2eb', // Blue for Male
+                '#ff6384'  // Pink for Female
+            ],
+            borderWidth: 1
+        }]
+    };
 
-const ctx3 = document.getElementById('genderChart').getContext('2d');
-const genderChart = new Chart(ctx3, {
-    type: 'pie',
-    data: genderData,
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
+    const ctx3 = document.getElementById('genderChart').getContext('2d');
+    const genderChart = new Chart(ctx3, {
+        type: 'pie',
+        data: genderData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
             }
         }
-    }
-});
+    });
 
     // Department Distribution Chart
     const departmentData = <?php echo json_encode($departmentData); ?>;

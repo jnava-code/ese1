@@ -79,33 +79,18 @@ while ($row = $attritionResult->fetch_assoc()) {
     .main-content {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        /* height: 100%; */
     }
-    #dashboard {
+    /* #dashboard {
         flex: 1;
-        height: 100%; /* Use full height */
-        width: 100%; /* Use full width */
-        overflow: hidden; /* Prevent internal scrolling */
-        padding: 5px; /* Reduced padding */
+        width: 100%; 
+        overflow: hidden; 
+        padding: 5px; 
         box-sizing: border-box;
         display: grid;
         grid-template-rows: auto 1fr;
-        gap: 5px; /* Reduced gap */
-    }
-    .dashboard-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Adjusted min-width */
-        gap: 5px; /* Reduced gap */
-    }
-    .dashboard-card {
-        background: #fff;
-        padding: 5px; /* Reduced padding */
-        border-radius: 8px;
-        border: 1px solid #ddd; /* Add border */
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        font-size: 10px; /* Smaller font size */
-    }
+        gap: 5px; 
+    } */
     .dashboard-card .icon {
         font-size: 18px; /* Adjusted icon size */
         margin-bottom: 5px;

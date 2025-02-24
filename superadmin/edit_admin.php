@@ -33,27 +33,21 @@
 
    // Update Admin
 if (isset($_POST['update_admin'])) {
-    $id = $_POST['id'];
+    $id = $_GET['id'];
     $username = $_POST['username'];
-    $password = $_POST['password'] ? password_hash($_POST['password'], PASSWORD_BCRYPT) : null;
     $user_type = $_POST['user_type'];
     $status = $_POST['status'];
-    $first_name = $_POST['first_name'];
+    $first_name = $_POST['first_name']; 
     $last_name = $_POST['last_name'];
     $email = $_POST['email'];
     $contact_number = $_POST['contact_number'];
 
-    if ($password) {
-        $sql = "UPDATE admin SET username=?, password=?, user_type=?, status=?, first_name=?, last_name=?, email=?, contact_number=? WHERE id=?";
-        executeQuery($conn, $sql, 'ssisssssi', [
-            $username, $password, $user_type, $status, $first_name, $last_name, $email, $contact_number, $id
-        ]);
-    } else {
+
         $sql = "UPDATE admin SET username=?, user_type=?, status=?, first_name=?, last_name=?, email=?, contact_number=? WHERE id=?";
         executeQuery($conn, $sql, 'sisssssi', [
             $username, $user_type, $status, $first_name, $last_name, $email, $contact_number, $id
         ]);
-    }
+    
 }
 ?>
 
@@ -75,7 +69,10 @@ if (isset($_POST['update_admin'])) {
         <link rel="stylesheet" href="styles.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     </head>
-
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+<script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- FontAwesome for the eye icon -->
+    <?php include('includes/sideBar.php'); ?>
     <body>
         <main class="main-content">
             <section id="edit-employee">
@@ -89,48 +86,45 @@ if (isset($_POST['update_admin'])) {
                             <form method="POST">
                                 <div class="form-row">
                                     <div class="form-group col-md-4">
-                                    <label>Last Name</label>
-                                        <input type="text" class="form-control" name="last_name" value="<?php echo $employee['last_name']; ?>" required>
+                                        <label>Last Name</label>
+                                        <input type="text" class="form-control" name="last_name" value="<?php echo htmlspecialchars($employee['last_name']); ?>" required>
                                     </div>
                                     <div class="form-group col-md-4">
-                                    <label>First Name</label>
-                                        <input type="text" class="form-control" name="first_name" value="<?php echo $employee['first_name']; ?>" required>
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                </div>
-
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                    <label>Email Address</label>
-                                        <input type="email" class="form-control" name="email" value="<?php echo $employee['email']; ?>" required>
-                                    </div>
-                                </div>
-
-                                    <div class="form-group col-md-6">
-                                    <label>Contact Number</label>
-                                    <input type="text" class="form-control" name="contact_number" value="<?php echo $employee['contact_number']; ?>" required>
-                                    
+                                        <label>First Name</label>
+                                        <input type="text" class="form-control" name="first_name" value="<?php echo htmlspecialchars($employee['first_name']); ?>" required>
                                     </div>
                                 </div>
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                    <label>User Type</label>
-                                        <input type="text" class="form-control" name="user_type" value="<?php echo $employee['user_type']; ?>" required>
+                                        <label>Email Address</label>
+                                        <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($employee['email']); ?>" required>
                                     </div>
+                                    <div class="form-group col-md-6">
+                                        <label>Contact Number</label>
+                                        <input type="text" class="form-control" name="contact_number" value="<?php echo htmlspecialchars($employee['contact_number']); ?>" required> 
                                     </div>
+                                </div>
+
+                                </div>
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                    <label>Username</label>
-                                        <input type="text" class="form-control" name="username" value="<?php echo $employee['username']; ?>" required>
+                                        <label>Username</label>
+                                        <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($employee['username']); ?>" required>
                                     </div>
-                            </div>
-
-                            
+                                    <div class="form-group col-md-6">
+                                        <label>User Type</label>
+                                        <input type="text" class="form-control" name="user_type" value="<?php echo htmlspecialchars($employee['user_type']); ?>" required>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>Status</label>
+                                        <input type="text" class="form-control" name="status" value="<?php echo htmlspecialchars($employee['status']); ?>" required>
+                                    </div>
+                                </div>
                                 <div class="form-row">
                             <div class="form-group col-md-6">
-                            <button type="submit" name="update_employee" class="btn btn-primary">Update Employee</button>
+                            <button type="submit" name="update_admin" class="btn btn-primary">Update Admin</button>
                         <a href="./superadmin" class="btn btn-cancel">Cancel</a>
                                 </div>
                                     </div>

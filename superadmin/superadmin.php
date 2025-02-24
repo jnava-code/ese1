@@ -233,14 +233,14 @@ if (isset($_GET['archive_id'])) {
                 ?>
                     <tr>
                         <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
-                            <td><?php echo $employee['username'] ;?></td>
-                            <td><?php echo $employee['first_name']; ?></td>
-                            <td><?php echo $employee['last_name']; ?></td>
-                            <td><?php echo $employee['email']; ?></td>
-                            <td><?php echo $employee['contact_number']; ?></td>
+                            <td><?php echo htmlspecialchars($employee['username']);?></td>
+                            <td><?php echo htmlspecialchars($employee['first_name']); ?></td>
+                            <td><?php echo htmlspecialchars($employee['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($employee['email']); ?></td>
+                            <td><?php echo htmlspecialchars($employee['contact_number']); ?></td>
 
                             <td class="actions action-buttons">
-                            <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
+                            <a href="./edit_admin?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
                             <a href="?archive_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
                         </td>
                         </tr>

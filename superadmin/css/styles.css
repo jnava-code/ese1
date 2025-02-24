@@ -436,8 +436,10 @@ textarea.form-control {
 /* Dashboard cards */
 .dashboard-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  gap: 5px;
+  height: fit-content;
+
+  margin-bottom: 15px;
 }
 
 .dashboard-card {
@@ -448,6 +450,8 @@ textarea.form-control {
   flex: 1;
   text-align: center;
   min-width: 200px;
+  height: fit-content;
+
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
