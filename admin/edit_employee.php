@@ -130,11 +130,12 @@
     
         // Generate the new password from the date of birth
         $password = generatePasswordFromBday($date_of_birth);
-        
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
         // Proceed to update the password in the database
         $sqlReset = "UPDATE employees SET password=? WHERE id=?";
         if ($stmt = $conn->prepare($sqlReset)) {
-            $stmt->bind_param("si", $password, $id);
+            $stmt->bind_param("si", $hashed_password, $id);
             
             // Execute the query to update the password
             if ($stmt->execute()) {
