@@ -4,6 +4,14 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
+    require '../vendor/autoload.php';
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
+
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/Exception.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/PHPMailer.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/SMTP.php';
+
     // Function to execute queries with error handling
     function executeQuery($conn, $sql, $types = null, $params = []) {
         $stmt = mysqli_prepare($conn, $sql);
@@ -19,18 +27,18 @@
     // Add Employee
     if (isset($_POST['add_employee'])) {
         // Retrieve POST values
-        $last_name = $_POST['last_name'] ?? '';
-        $first_name = $_POST['first_name'] ?? '';
-        $middle_name = $_POST['middle_name'] ?? '';
-        $suffix = $_POST['suffix'] ?? '';
-        $gender = $_POST['gender'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $position = $_POST['position'] ?? '';
-        $hire_date = $_POST['hire_date'] ?? '';
-        $department = $_POST['department'] ?? '';
-        $employment_status = $_POST['employment_status'] ?? '';
-        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
-        $date_of_birth = $_POST['date_of_birth'] ?? '';
+        $last_name = mysql_real_escape_string($_POST['last_name']) ?? '';
+        $first_name = mysql_real_escape_string($_POST['first_name']) ?? '';
+        $middle_name = mysql_real_escape_string($_POST['middle_name']) ?? '';
+        $suffix = mysql_real_escape_string($_POST['suffix']) ?? '';
+        $gender = mysql_real_escape_string($_POST['gender']) ?? '';
+        $email = mysql_real_escape_string($_POST['email']) ?? '';
+        $position = mysql_real_escape_string($_POST['position']) ?? '';
+        $hire_date = mysql_real_escape_string($_POST['hire_date']) ?? '';
+        $department = mysql_real_escape_string($_POST['department']) ?? '';
+        $employment_status = mysql_real_escape_string($_POST['employment_status']) ?? '';
+        $employee_id = str_replace('-', '', mysql_real_escape_string($_POST['employee_id']) ?? '');
+        $date_of_birth = mysql_real_escape_string($_POST['date_of_birth']) ?? '';
         // Create DateTime objects
         $dob = new DateTime($date_of_birth);
         $today = new DateTime('today');
@@ -38,22 +46,23 @@
         // Calculate the age
         $age = $dob->diff($today)->y;
         $password = generatePasswordFromBday($date_of_birth);
-        $contact_number = $_POST['contact_number'] ?? '';
-        $perma_address = $_POST['perma_address'] ?? '';
-        $civil_status = $_POST['civil_status'] ?? '';
-        $sss_number = $_POST['sss_number'] ?? '';
-        $philhealth_number = $_POST['philhealth_number'] ?? '';
-        $pagibig_number = $_POST['pagibig_number'] ?? '';
-        $tin_number = $_POST['tin_number'] ?? '';
-        $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
-        $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
-        $educational_background = $_POST['educational_background'] ?? '';
-        $skills = $_POST['skills'] ?? '';
-        $username = $_POST['username'] ?? '';
-        $sick_leave = $_POST['sick_leave'] ?? 0;
-        $vacation_leave = $_POST['vacation_leave'] ?? 0;
-        $maternity_leave = $_POST['maternity_leave'] ?? 0;
-        $paternity_leave = $_POST['paternity_leave'] ?? 0;
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $contact_number = mysql_real_escape_string($_POST['contact_number']) ?? '';
+        $perma_address = mysql_real_escape_string($_POST['perma_address']) ?? '';
+        $civil_status = mysql_real_escape_string($_POST['civil_status']) ?? '';
+        $sss_number = mysql_real_escape_string($_POST['sss_number']) ?? '';
+        $philhealth_number = mysql_real_escape_string($_POST['philhealth_number']) ?? '';
+        $pagibig_number = mysql_real_escape_string($_POST['pagibig_number']) ?? '';
+        $tin_number = mysql_real_escape_string($_POST['tin_number']) ?? '';
+        $emergency_contact_name = mysql_real_escape_string($_POST['emergency_contact_name']) ?? '';
+        $emergency_contact_number = mysql_real_escape_string($_POST['emergency_contact_number']) ?? '';
+        $educational_background = mysql_real_escape_string($_POST['educational_background']) ?? '';
+        $skills = mysql_real_escape_string($_POST['skills']) ?? '';
+        $username = mysql_real_escape_string($_POST['username']) ?? '';
+        $sick_leave = mysql_real_escape_string($_POST['sick_leave']) ?? 0;
+        $vacation_leave = mysql_real_escape_string($_POST['vacation_leave']) ?? 0;
+        $maternity_leave = mysql_real_escape_string($_POST['maternity_leave']) ?? 0;
+        $paternity_leave = mysql_real_escape_string($_POST['paternity_leave']) ?? 0;
     
         // File uploads
         function getFileContent($fieldName) {
@@ -113,7 +122,7 @@
             $stmt->bind_param(
                 "ssssssssssssssssssssssssssssssbbbbbb",
                 $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
-                $department, $employment_status, $employee_id, $password, $date_of_birth, $age, $contact_number,
+                $department, $employment_status, $employee_id, $hashedPassword, $date_of_birth, $age, $contact_number,
                 $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
                 $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
                 $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $null, $null, $null, $null, $null, $null
@@ -130,7 +139,40 @@
 
     
             if ($stmt->execute()) {
-                $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                 // Send email using PHPMailer
+                 $mail = new PHPMailer(true);
+
+                 try {
+                     // SMTP Settings
+                     $mail->isSMTP();
+                     $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+                     $mail->SMTPAuth = true;
+                     $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
+                     $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
+                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                     $mail->Port = 587;
+                                    
+                     // Email Headers
+                     $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
+                     $mail->addAddress($email); // The recipient's email
+                     $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+ 
+                     // Prepare the email message
+                     $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
+ 
+                     // Set email format to plain text
+                     $mail->isHTML(true);
+                     $mail->Body = $message;
+ 
+                     // Send the email
+                     if ($mail->send()) {
+                        $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                     } else {
+                        $errmsg = "An error occurred: " . $stmt->error;
+                     }
+                 } catch (Exception $e) {
+                     $errorMessage = "Mailer Error: " . $mail->ErrorInfo;
+                 }
             } else {
                 $errmsg = "An error occurred: " . $stmt->error;
             }
@@ -688,16 +730,16 @@ function generatePasswordFromBday($date_of_birth) {
                                     $full_name .= ', ' . $employee['suffix'];
                                 }
 
-                                echo $full_name;
+                                echo htmlspecialchars($full_name);
                             ?>
                         </td>
 
-                        <td><?php echo $employee['position']; ?></td>                     
-                        <td><?php echo $employee['department']; ?></td>
-                        <td><?php echo $employee['email']; ?></td>
+                        <td><?php echo htmlspecialchars($employee['position']); ?></td>                     
+                        <td><?php echo htmlspecialchars($employee['department']); ?></td>
+                        <td><?php echo htmlspecialchars($employee['email']); ?></td>
                         <td>
                             <span class="<?php echo $employee['employment_status'] === 'Active' ? 'status-active' : 'status-inactive'; ?>">
-                                <?php echo $employee['employment_status']; ?>
+                                <?php echo htmlspecialchars($employee['employment_status']); ?>
                             </span>
                         </td>
                         <td class="actions action-buttons">
