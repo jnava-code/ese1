@@ -27,18 +27,18 @@
     // Add Employee
     if (isset($_POST['add_employee'])) {
         // Retrieve POST values
-        $last_name = mysql_real_escape_string($_POST['last_name']) ?? '';
-        $first_name = mysql_real_escape_string($_POST['first_name']) ?? '';
-        $middle_name = mysql_real_escape_string($_POST['middle_name']) ?? '';
-        $suffix = mysql_real_escape_string($_POST['suffix']) ?? '';
-        $gender = mysql_real_escape_string($_POST['gender']) ?? '';
-        $email = mysql_real_escape_string($_POST['email']) ?? '';
-        $position = mysql_real_escape_string($_POST['position']) ?? '';
-        $hire_date = mysql_real_escape_string($_POST['hire_date']) ?? '';
-        $department = mysql_real_escape_string($_POST['department']) ?? '';
-        $employment_status = mysql_real_escape_string($_POST['employment_status']) ?? '';
-        $employee_id = str_replace('-', '', mysql_real_escape_string($_POST['employee_id']) ?? '');
-        $date_of_birth = mysql_real_escape_string($_POST['date_of_birth']) ?? '';
+        $last_name = $_POST['last_name'] ?? '';
+        $first_name = $_POST['first_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $suffix = $_POST['suffix'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $position = $_POST['position'] ?? '';
+        $hire_date = $_POST['hire_date'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $employment_status = $_POST['employment_status'] ?? '';
+        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
+        $date_of_birth = $_POST['date_of_birth'] ?? '';
         // Create DateTime objects
         $dob = new DateTime($date_of_birth);
         $today = new DateTime('today');
@@ -47,22 +47,22 @@
         $age = $dob->diff($today)->y;
         $password = generatePasswordFromBday($date_of_birth);
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $contact_number = mysql_real_escape_string($_POST['contact_number']) ?? '';
-        $perma_address = mysql_real_escape_string($_POST['perma_address']) ?? '';
-        $civil_status = mysql_real_escape_string($_POST['civil_status']) ?? '';
-        $sss_number = mysql_real_escape_string($_POST['sss_number']) ?? '';
-        $philhealth_number = mysql_real_escape_string($_POST['philhealth_number']) ?? '';
-        $pagibig_number = mysql_real_escape_string($_POST['pagibig_number']) ?? '';
-        $tin_number = mysql_real_escape_string($_POST['tin_number']) ?? '';
-        $emergency_contact_name = mysql_real_escape_string($_POST['emergency_contact_name']) ?? '';
-        $emergency_contact_number = mysql_real_escape_string($_POST['emergency_contact_number']) ?? '';
-        $educational_background = mysql_real_escape_string($_POST['educational_background']) ?? '';
-        $skills = mysql_real_escape_string($_POST['skills']) ?? '';
-        $username = mysql_real_escape_string($_POST['username']) ?? '';
-        $sick_leave = mysql_real_escape_string($_POST['sick_leave']) ?? 0;
-        $vacation_leave = mysql_real_escape_string($_POST['vacation_leave']) ?? 0;
-        $maternity_leave = mysql_real_escape_string($_POST['maternity_leave']) ?? 0;
-        $paternity_leave = mysql_real_escape_string($_POST['paternity_leave']) ?? 0;
+        $contact_number = $_POST['contact_number'] ?? '';
+        $perma_address = $_POST['perma_address'] ?? '';
+        $civil_status = $_POST['civil_status'] ?? '';
+        $sss_number = $_POST['sss_number'] ?? '';
+        $philhealth_number = $_POST['philhealth_number'] ?? '';
+        $pagibig_number = $_POST['pagibig_number'] ?? '';
+        $tin_number = $_POST['tin_number'] ?? '';
+        $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
+        $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
+        $educational_background = $_POST['educational_background'] ?? '';
+        $skills = $_POST['skills'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $sick_leave = $_POST['sick_leave'] ?? 0;
+        $vacation_leave = $_POST['vacation_leave'] ?? 0;
+        $maternity_leave = $_POST['maternity_leave'] ?? 0;
+        $paternity_leave = $_POST['paternity_leave'] ?? 0;
     
         // File uploads
         function getFileContent($fieldName) {
@@ -171,7 +171,7 @@
                         $errmsg = "An error occurred: " . $stmt->error;
                      }
                  } catch (Exception $e) {
-                     $errorMessage = "Mailer Error: " . $mail->ErrorInfo;
+                     $errmsg = "Mailer Error: " . $mail->ErrorInfo;
                  }
             } else {
                 $errmsg = "An error occurred: " . $stmt->error;
@@ -413,19 +413,19 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="form-row">
             <div class="col-md-4">
                     <label for="first_name">First Name</label>
-                    <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" required 
+                    <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" value="<?php echo !empty($errmsg) ? htmlspecialchars($first_name) : ''; ?>" required 
                         pattern="^[A-Za-z\s-]+$" 
                         title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
                 </div>
                 <div class="col-md-4">
                     <label for="middle_name">Middle Name</label>
-                    <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name" required
+                    <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name" value="<?php echo !empty($errmsg) ? htmlspecialchars($middle_name) : ''; ?>"required
                         pattern="^[A-Za-z\s-]+$" 
                         title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
                     </div>
                 <div class="col-md-4">
                     <label for="last_name">Last Name</label>
-                    <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" required
+                    <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" value="<?php echo !empty($errmsg) ? htmlspecialchars($last_name) : ''; ?>"required
                         pattern="^[A-Za-z\s-]+$" 
                         title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
                     </div>
@@ -448,27 +448,28 @@ function generatePasswordFromBday($date_of_birth) {
                     <label for="gender">Sex</label>
                     <select id="gender" name="gender" class="form-control" required>
                         <option value="">Select Sex</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                        <option value="Male" <?php echo (!empty($errmsg) && htmlspecialchars($gender) == "Male") ? 'selected' : ''; ?>>Male</option>
+                        <option value="Female" <?php echo (!empty($errmsg) && htmlspecialchars($gender) == "Female") ? 'selected' : ''; ?>>Female</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
-                    <input type="text" class="form-control" name="contact_number" placeholder="e.g., 09123456789" required>
+                    <input type="text" class="form-control" name="contact_number" placeholder="e.g., 09123456789" value="<?php echo !empty($errmsg) ? htmlspecialchars($contact_number) : ''; ?>"required>
                 </div>
                 <div class="col-md-6">
                     <label for="civil_status">Civil Status</label>
                     <select name="civil_status" class="form-control" required>
                         <option value="">Select Civil Status</option>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Widowed">Widowed</option>
-                        <option value="Divorced">Divorced</option>
-                        <option value="Separated">Separated</option>
-                        <option value="Annulled">Annulled</option>
-                        <option value="Domestic Partnership">Domestic Partnership</option>
-                        <option value="Legally Separated">Legally Separated</option>
+                        <option value="Single" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Single") ? 'selected' : ''; ?>>Single</option>
+                        <option value="Married" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Married") ? 'selected' : ''; ?>>Married</option>
+                        <option value="Widowed" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Widowed") ? 'selected' : ''; ?>>Widowed</option>
+                        <option value="Divorced" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Divorced") ? 'selected' : ''; ?>>Divorced</option>
+                        <option value="Separated" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Separated") ? 'selected' : ''; ?>>Separated</option>
+                        <option value="Annulled" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Annulled") ? 'selected' : ''; ?>>Annulled</option>
+                        <option value="Domestic Partnership" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Domestic Partnership") ? 'selected' : ''; ?>>Domestic Partnership</option>
+                        <option value="Legally Separated" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Legally Separated") ? 'selected' : ''; ?>>Legally Separated</option>
                     </select>
+
                 </div>
             </div>
 
@@ -478,15 +479,15 @@ function generatePasswordFromBday($date_of_birth) {
                     <!-- <input type="text" class="form-control" name="educational_background" placeholder="Education Background" required> -->
                     <select name="educational_background" class="form-control" required>
                         <option value="">Select Education Background</option>
-                        <option value="Technical-Vocational Program graduate">Technical-Vocational Program Graduate</option>
-                        <option value="College graduate">College Graduate</option>
-                        <option value="Master's degree graduate">Master's degree Graduate</option>
-                        <option value="Doctorate degree graduate">Doctorate degree Graduate</option>
+                        <option value="Technical-Vocational Program graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Technical-Vocational Program graduate") ? 'selected' : ''; ?>>Technical-Vocational Program Graduate</option>
+                        <option value="College graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "College graduate") ? 'selected' : ''; ?>>College Graduate</option>
+                        <option value="Master's degree graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Master's degree graduate") ? 'selected' : ''; ?>>Master's degree Graduate</option>
+                        <option value="Doctorate degree graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Doctorate degree graduate") ? 'selected' : ''; ?>>Doctorate degree Graduate</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label for="date_of_birth">Date of Birth</label>
-                    <input type="date" class="form-control" name="date_of_birth" placeholder="Date of Birth" required
+                    <input type="date" class="form-control" name="date_of_birth" placeholder="Date of Birth" value="<?php echo !empty($errmsg) ? htmlspecialchars($date_of_birth) : ''; ?>" required
                         max="2005-12-31">
                 </div>
             </div>
@@ -494,46 +495,52 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="position">Position</label>
-                    <input type="text" class="form-control" name="position" placeholder="Position" required>
+                    <input type="text" class="form-control" name="position" placeholder="Position" value="<?php echo !empty($errmsg) ? htmlspecialchars($position) : ''; ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label for="skills">Skills</label>
-                    <input type="text" class="form-control" name="skills" placeholder="Skills" required>
+                    <input type="text" class="form-control" name="skills" placeholder="Skills" value="<?php echo !empty($errmsg) ? htmlspecialchars($skills) : ''; ?>" required>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="perma_address">Permanent Address</label>
-                    <input type="text" class="form-control" name="perma_address" placeholder="Permanent Address" required>
+                    <input type="text" class="form-control" name="perma_address" placeholder="Permanent Address" value="<?php echo !empty($errmsg) ? htmlspecialchars($perma_address) : ''; ?>" required>
                 </div>              
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="date_of_birth">Email Address</label>
-                    <input type="email" class="form-control" name="email" placeholder="Email" required>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<?php echo !empty($errmsg) ? htmlspecialchars($email) : ''; ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label for="department">Department</label>
                     <select name="department" class="form-control" required>
                         <option value="">Select Department</option>
                         <?php 
+                            // Query to get departments that are not archived
                             $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
                             $deptResult = mysqli_query($conn, $deptSelect);
 
-                            if($deptResult) {
-                                while($row = mysqli_fetch_assoc($deptResult)) {         
+                            if ($deptResult) {
+                                while ($row = mysqli_fetch_assoc($deptResult)) {
                                     // Exclude the department named "Admin"
                                     if ($row['dept_name'] != "Admin") {
-                        ?>
-                                        <option value="<?php echo $row['dept_name']?>"><?php echo $row['dept_name']?></option>
-                        <?php 
+                                        // Check if the department matches the selected value (for pre-selection)
+                                        $selected = (!empty($errmsg) && htmlspecialchars($department) == $row['dept_name']) ? 'selected' : '';
+                                        ?>
+                                        <option value="<?php echo htmlspecialchars($row['dept_name']); ?>" <?php echo $selected; ?>>
+                                            <?php echo htmlspecialchars($row['dept_name']); ?>
+                                        </option>
+                                        <?php
                                     }
                                 }
                             }
                         ?>
                     </select>
+
                 </div>
 
             </div>
@@ -543,25 +550,26 @@ function generatePasswordFromBday($date_of_birth) {
                     <label for="emergency_contact_name">Emergency Contact Name</label>
                     <input type="text" class="form-control" name="emergency_contact_name" id="emergency_contact_name" placeholder="Emergency Contact Name" required
                         pattern="^[A-Za-z\s-]+$" 
-                        title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
+                        title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed."
+                        value="<?php echo !empty($errmsg) ? htmlspecialchars($emergency_contact_name) : ''; ?>">
                     </div>
                 <div class="col-md-6">
                     <label for="emergency_contact_number">Emergency Contact Number</label>
-                    <input type="text" class="form-control" name="emergency_contact_number" placeholder="e.g., 09123456789" required>
+                    <input type="text" class="form-control" name="emergency_contact_number" placeholder="e.g., 09123456789" value="<?php echo !empty($errmsg) ? htmlspecialchars($emergency_contact_number) : ''; ?>" required>
                 </div>
             </div>
 
             <div class="form-row">
-    <div class="col-md-4">
-        <label for="hire_date">Date Hired</label>
-        <input type="date" class="form-control" name="hire_date" id="hire_date" placeholder="yyyy-mm-dd" required>
-    </div>
+                <div class="col-md-4">
+                    <label for="hire_date">Date Hired</label>
+                    <input type="date" class="form-control" name="hire_date" id="hire_date" placeholder="yyyy-mm-dd" value="<?php echo !empty($errmsg) ? htmlspecialchars($hire_date) : ''; ?>" required>
+                </div>
             </div>
              <br>
             <div class="form-row">
                 <div class="col-md-6">
                 <label for="hire_date">Employment Status </label>
-                    <select id="employment_status" name="employment_status" class="form-control" required disabled>
+                    <select id="employment_status" name="employment_status" class="form-control" value="<?php echo !empty($errmsg) ? htmlspecialchars($employment_status) : ''; ?>" required disabled>
                         <option value="" selected hidden>Employment Status</option>
                         
                     </select>
@@ -574,24 +582,24 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Username</label>
-                    <input type="text" class="form-control" name="username" placeholder="Username" required>
+                    <input type="text" class="form-control" name="username" placeholder="Username" value="<?php echo !empty($errmsg) ? htmlspecialchars($username) : ''; ?>" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Employee ID</label>
-                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" readonly>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php echo !empty($errmsg) ? htmlspecialchars($employee_id) : ''; ?>" disabled>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="sss_number">SSS Number</label>
-                    <input type="text" class="form-control" name="sss_number" placeholder="SSS Number" required pattern="\d{2}-\d{7}-\d{1}" title="SSS should be in the format 00-0000000-0">
+                    <input type="text" class="form-control" name="sss_number" placeholder="SSS Number" required pattern="\d{2}-\d{7}-\d{1}" title="SSS should be in the format 00-0000000-0" value="<?php echo !empty($errmsg) ? htmlspecialchars($sss_number) : ''; ?>">
                 </div>
 
                 <div class="col-md-6">
                     <label for="philhealth_number">PHILHEALTH Number</label>
-                    <input type="text" class="form-control" name="philhealth_number" placeholder="PhilHealth Number" required pattern="\d{2}-\d{9}-\d{1}" title="PhilHealth should be in the format 00-000000000-0">
+                    <input type="text" class="form-control" name="philhealth_number" placeholder="PhilHealth Number" required pattern="\d{2}-\d{9}-\d{1}" title="PhilHealth should be in the format 00-000000000-0" value="<?php echo !empty($errmsg) ? htmlspecialchars($philhealth_number) : ''; ?>">
                 </div>
 
             </div>
@@ -599,11 +607,11 @@ function generatePasswordFromBday($date_of_birth) {
                 <div class="form-row">
                     <div class="col-md-6">
                         <label for="tin_number">TIN Number</label>
-                        <input type="text" class="form-control" name="tin_number" placeholder="TIN Number" required pattern="\d{3}-\d{3}-\d{3}-\d{3}" title="TIN should be in the format 000-000-000-000">
+                        <input type="text" class="form-control" name="tin_number" placeholder="TIN Number" required pattern="\d{3}-\d{3}-\d{3}-\d{3}" title="TIN should be in the format 000-000-000-000" value="<?php echo !empty($errmsg) ? htmlspecialchars($tin_number) : ''; ?>">
                     </div>
                     <div class="col-md-6">
                         <label for="pagibig_number">PAGIBIG Number</label>
-                        <input type="text" class="form-control" name="pagibig_number" placeholder="PagIBIG Number" required pattern="\d{4}-\d{4}-\d{4}" title="PagIBIG should be in the format 0000-0000-0000">
+                        <input type="text" class="form-control" name="pagibig_number" placeholder="PagIBIG Number" required pattern="\d{4}-\d{4}-\d{4}" title="PagIBIG should be in the format 0000-0000-0000" value="<?php echo !empty($errmsg) ? htmlspecialchars($pagibig_number) : ''; ?>">
                     </div>
                 </div>
 
@@ -771,27 +779,26 @@ function generatePasswordFromBday($date_of_birth) {
     const employmentStatus = document.getElementById("employment_status");
     const genderInput = document.getElementById("gender");
     const hireDate = document.getElementById("hire_date");
-    
-    
-    if (hireDate) { 
-        hireDate.addEventListener("change", async (e) => {
-            const value = e.target.value;
-            let highestValue;
-            const employees = document.querySelectorAll('.employee_js');
-            if (employees.length > 0) {
-    // Extract the last 3 digits, convert them to numbers, and find the highest value
-    const lastThreeDigits = Array.from(employees).map(emp => {
-        return parseInt(emp.value.toString().slice(-3), 10); // Extract and convert to a number
-    });
+                   
+if (hireDate) { 
+    hireDate.addEventListener("change", async (e) => {
+        const value = e.target.value;
 
-    // Get the highest number from the last 3 digits
-    highestValue = Math.max(...lastThreeDigits);
+        let highestValue;
+        const employees = document.querySelectorAll('.employee_js');
+        if (employees.length > 0) {
+            // Extract the last 3 digits, convert them to numbers, and find the highest value
+            const lastThreeDigits = Array.from(employees).map(emp => {
+                return parseInt(emp.value.toString().slice(-3), 10); // Extract and convert to a number
+            });
+
+            // Get the highest number from the last 3 digits
+            highestValue = Math.max(...lastThreeDigits);
         } else {
             highestValue = 0; // Default if no employees exist
         }
 
         let employeeLatest;
-
         // Convert highestValue to a string and check padding requirements
         let highestStr = highestValue.toString().padStart(3, '0');
 
@@ -803,39 +810,51 @@ function generatePasswordFromBday($date_of_birth) {
             employeeLatest = (highestValue + 1).toString();
         }
 
-            const notregular = '<option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
-            const regular = '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
+        const notregular = `<option value="Probationary" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Probationary") ? 'selected' : ''; ?>>Probationary</option>
+            <option value="Terminated" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Terminated") ? 'selected' : ''; ?>>Terminated</option>
+            <option value="Resigned" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Resigned") ? 'selected' : ''; ?>>Resigned</option>`;
 
-            const hireDateObj = new Date(value);
-            const hiredYear = hireDateObj.getFullYear();
-            const hiredMonth = hireDateObj.getMonth();
-            
-            const currentDate = new Date();
+        const regular = `<option value="Regular" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Regular") ? 'selected' : ''; ?>>Regular</option>
+            <option value="Probationary" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Probationary") ? 'selected' : ''; ?>>Probationary</option>
+            <option value="Terminated" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Terminated") ? 'selected' : ''; ?>>Terminated</option>
+            <option value="Resigned" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Resigned") ? 'selected' : ''; ?>>Resigned</option>`;
 
-            const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
-            const monthDiff = currentDate.getMonth() - hiredMonth;
-            
-            let totalMonths = yearDiff * 12 + monthDiff;
+        const hireDateObj = new Date(value);
+        const hiredYear = hireDateObj.getFullYear();
+        const hiredMonth = hireDateObj.getMonth();
+        
+        const currentDate = new Date();
+        const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
+        const monthDiff = currentDate.getMonth() - hiredMonth;
+        
+        let totalMonths = yearDiff * 12 + monthDiff;
 
-            if (monthDiff < 0) {
-                totalMonths--;
-            }
+        if (monthDiff < 0) {
+            totalMonths--;
+        }
 
-            employmentStatus.innerHTML = '';
-            if(totalMonths >= 6) {
-                employmentStatus.insertAdjacentHTML("beforeend", regular);
-                employmentStatus.disabled = false;
-            } else {
-                employmentStatus.insertAdjacentHTML("beforeend", notregular);
-                employmentStatus.disabled = false;
-            }
-            
-            if(employeeId) {
-                employeeId.value = hiredYear % 100 + '-' + employeeLatest;
-            }
-            
-        });
+        // Enable Employment Status and set the value based on the hire date
+        employmentStatus.innerHTML = ''; // Clear the options first
+        if (totalMonths >= 6) {
+            employmentStatus.insertAdjacentHTML("beforeend", regular);
+            employmentStatus.disabled = false;
+        } else {
+            employmentStatus.insertAdjacentHTML("beforeend", notregular);
+            employmentStatus.disabled = false;
+        }
+
+        // Update the Employee ID if hire date is not empty
+        if (employeeId) {
+            employeeId.value = hiredYear % 100 + '-' + employeeLatest;
+        }
+    });
+
+    // Trigger the change event immediately if the hire_date is already set
+    if (hireDate.value) {
+        hireDate.dispatchEvent(new Event("change"));
     }
+}
+
 
     if(employeeIdDisplay) {
         employeeIdDisplay.forEach(display => {
@@ -963,7 +982,7 @@ document.querySelectorAll('input').forEach(input => {
             return;
         } 
         
-        // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)
+        // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)       
         if(input.name === "employee_id") {
             // Apply format: 00-000
             if (value.length > 2) {
