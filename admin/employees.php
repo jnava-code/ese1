@@ -587,7 +587,7 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Employee ID</label>
-                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php echo !empty($errmsg) ? htmlspecialchars($employee_id) : ''; ?>" disabled>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php echo !empty($errmsg) ? htmlspecialchars($employee_id) : ''; ?>" readonly>
                 </div>
             </div>
 
