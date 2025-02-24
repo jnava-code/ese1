@@ -780,14 +780,6 @@ function generatePasswordFromBday($date_of_birth) {
     const genderInput = document.getElementById("gender");
     const hireDate = document.getElementById("hire_date");
                    
-                            
-    // if(employeeId) {
-    //         // Apply format: 00-000
-    //         if (employeeId.value.length > 2) {
-    //             employeeId.value = employeeId.value.slice(0, 2) + '-' + employeeId.value.slice(2, 5);
-    //         }
-    //     }
-
 if (hireDate) { 
     hireDate.addEventListener("change", async (e) => {
         const value = e.target.value;
