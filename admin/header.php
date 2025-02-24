@@ -5,8 +5,8 @@ session_start();
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
-if (!isset($_SESSION['username'])) {
-    header("Location: ./");
+if (!isset($_SESSION['admin'])) {
+    header("Location: ../login");
     exit();
 }
 

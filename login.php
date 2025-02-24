@@ -61,6 +61,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['gender'] = $row['gender'] ?? ''; // If present
                 $_SESSION['employee_id'] = $row['employee_id'] ?? ''; // If present
                 $_SESSION['employment_status'] = $row['employment_status'] ?? ''; // If present
+                if ($row['user_type'] == 1) {
+                    $_SESSION['admin'] = true;
+                } elseif ($row['user_type'] == 2) {
+                    $_SESSION['staff'] = true;
+                } elseif ($row['user_type'] == 3) {
+                    $_SESSION['superadmin'] = true;
+                } else {
+                    $_SESSION['admin'] = false;
+                    $_SESSION['staff'] = false;
+                    $_SESSION['superadmin'] = false;
+                }
+                
 
                 // Redirect based on user type
                 switch ($row['user_type']) {

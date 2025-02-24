@@ -38,6 +38,7 @@
         // Calculate the age
         $age = $dob->diff($today)->y;
         $password = generatePasswordFromBday($date_of_birth);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $contact_number = $_POST['contact_number'] ?? '';
         $perma_address = $_POST['perma_address'] ?? '';
         $civil_status = $_POST['civil_status'] ?? '';
@@ -113,7 +114,7 @@
             $stmt->bind_param(
                 "ssssssssssssssssssssssssssssssbbbbbb",
                 $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
-                $department, $employment_status, $employee_id, $password, $date_of_birth, $age, $contact_number,
+                $department, $employment_status, $employee_id, $hashedPassword, $date_of_birth, $age, $contact_number,
                 $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
                 $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
                 $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $null, $null, $null, $null, $null, $null

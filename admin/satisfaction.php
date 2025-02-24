@@ -65,15 +65,16 @@
         // Fetch employees who have already answered the survey
         $query = "
             SELECT 
-                e.employee_id, 
-                CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS full_name, 
-                ss.survey_id,
-                ss.survey_date, 
-                ss.overall_rating, 
-                ss.rating_description
-            FROM employees e
-            LEFT JOIN job_satisfaction_surveys ss 
-            ON e.employee_id = ss.employee_id
+    e.employee_id, 
+    CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS full_name, 
+    ss.survey_id,
+    ss.survey_date, 
+    ss.overall_rating, 
+    ss.rating_description
+FROM employees e
+LEFT JOIN job_satisfaction_surveys ss 
+ON e.employee_id = ss.employee_id
+ORDER BY ss.survey_date DESC;
         ";
 
         $result = mysqli_query($conn, $query);
@@ -225,9 +226,17 @@
             $(this).parent().toggleClass('active');
         });
         $(document).ready(function () {
-        // Initialize DataTable
-        $('#myTable').DataTable();
-    });
+            $('#myTable').DataTable({
+                "paging": true,  
+                "ordering": false, 
+                "info": true  
+            });
+        });
+
+    //     $(document).ready(function () {
+    //     // Initialize DataTable
+    //     $('#myTable').DataTable();
+    // });
 </script>
 
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
