@@ -164,7 +164,7 @@
 <style>
     .reports {
         display: flex;
-        gap: 100px;
+        gap: 50px;
         flex-wrap: wrap;
         justify-content: center;
     }
@@ -200,6 +200,9 @@
         color: white;
     }
 
+    .reports h1 {
+        text-align: center;
+    }
     @media print {
         header {
             display: none;
