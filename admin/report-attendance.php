@@ -134,6 +134,55 @@ if (isset($_POST['search'])) {
             box-sizing: border-box;
         }
         
+        @media print {
+            body * {
+                font-size: 12px;
+            }
+
+            table thead th,
+            table tbody td {
+                padding: 6px !important;
+            }
+
+            button,
+            header {
+                display: none;
+            }
+
+            .attendance-report-content {
+                padding: 10px;
+            }
+
+            input,
+            select {
+                padding: 0px;
+                border: none;
+            }
+
+            .department label,
+            .position label,
+            .employees label,
+            .button label {
+                width: fit-content;
+                font-weight: 600;
+            }
+
+            .month-and-year label {
+                width: 109px;
+                font-weight: 600;
+            }
+
+            select {
+                -webkit-appearance: none; /* For Safari */
+                -moz-appearance: none; /* For Firefox */
+                appearance: none; /* Standard syntax */
+                padding-right: 20px; /* Give space for custom arrow */
+            }
+
+            input {
+                color: #000;
+            }
+        }
     </style>
 </head>
 <body>
@@ -169,11 +218,11 @@ if (isset($_POST['search'])) {
                     </select>
                 </div>
                 <div class="department">
-                    <label for="">Department</label>
+                    <label for="">Department:</label>
                     <input type="text" value="<?php echo !empty($department) ? $department : ''; ?>" disabled>
                 </div>
                 <div class="position">
-                    <label for="">Position</label>
+                    <label for="">Position:</label>
                     <input type="text" value="<?php echo !empty($position) ? $position : ''; ?>" disabled>
                 </div>
                 <div class="month-and-year">
@@ -217,7 +266,8 @@ if (isset($_POST['search'])) {
                 </div>
                 <div class="button">
                     <label for=""></label>
-                    <button name="search" type="submit">Search</button>
+                    <button class="searchBtn" name="search" type="submit">Search</button>
+                    <button class="printBtn"  type="submit">Print</button>
                 </div>
             </div>
         </form>
@@ -268,5 +318,15 @@ if (isset($_POST['search'])) {
             </tbody>
         </table>
     </div>
+    <script>
+        const printBtn = document.querySelector(".printBtn");
+        if(printBtn) {
+            printBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                window.print();
+            });
+        }
+        
+    </script>
 </body>
 </html>
