@@ -67,6 +67,7 @@
             e.last_name,
             e.hire_date,
             er.recommendation_id,
+            er.recommendation_type,
             er.reason,
             COALESCE(AVG(CASE 
                 WHEN a.status = 'On Time' THEN 1
@@ -226,8 +227,18 @@
 
                 mysqli_query($conn, $store_prediction);
 
-                if($row['recommendation_id']) {
+                if ($row['recommendation_id']) {
                     $action = $row['reason'];
+                
+                    if ($action == 'Approved' && $row['recommendation_type'] == 'Promotion') {
+                        $action = 'PROMOTE';
+                    } elseif ($action == 'Approved' && $row['recommendation_type'] == 'Demotion') {
+                        $action = 'DEMOTE';
+                    } elseif ($action == 'Approved' && $row['recommendation_type'] == 'Retrenchment') {
+                        $action = 'RETRENCH';
+                    } elseif ($action == 'Rejected') {
+                        $action = 'REMAIN';
+                    }
                 } else {
                     $action = "<form class='action-buttons' method='POST'>
                                 <input type='hidden' name='employee_id' value='{$row['employee_id']}'/>
