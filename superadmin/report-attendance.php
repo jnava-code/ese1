@@ -210,13 +210,16 @@ if (isset($_POST['search'])) {
                                 $fullname = htmlspecialchars($row['middle_name']) == '' 
                                     ? htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['last_name']) 
                                     : htmlspecialchars($row['first_name']) . ' ' .  htmlspecialchars($row['middle_name']) . ' ' . htmlspecialchars($row['last_name']);
+                                $value = $row['id'] . ',' . $fullname;
                                 ?>
-                                <!-- Storing both ID and Full Name as value, separated by a comma -->
-                                <option value="<?php echo $row['id'] . ',' . $fullname; ?>"><?php echo $fullname; ?></option>
+                                <option value="<?php echo $value; ?>" <?php echo isset($selectedValue) && $selectedValue == $value ? 'selected' : ''; ?>>
+                                    <?php echo $fullname; ?>
+                                </option>
                             <?php endwhile; ?>
                             <?php endif; ?>
                     </select>
                 </div>
+
                 <div class="department">
                     <label for="">Department:</label>
                     <input type="text" value="<?php echo !empty($department) ? $department : ''; ?>" disabled>
@@ -226,48 +229,49 @@ if (isset($_POST['search'])) {
                     <input type="text" value="<?php echo !empty($position) ? $position : ''; ?>" disabled>
                 </div>
                 <div class="month-and-year">
-                    <label for="month-year">Month and Year:</label>
-                    <select name="month-year" id="month-year">
-                        <?php
-                        // Get current year and month
-                        $currentYear = date("Y");
-                        $currentMonth = date("m");
+    <label for="month-year">Month and Year:</label>
+    <select name="month-year" id="month-year">
+        <?php
+        // Get current year and month
+        $currentYear = date("Y");
+        $currentMonth = date("m");
 
-                        // Start year from 2024
-                        $startYear = 2024;
+        // Start year from 2024
+        $startYear = 2024;
 
-                        // Loop through years from 2024 to current year
-                        for ($year = $startYear; $year <= $currentYear; $year++) {
-                            // Loop through months
-                            for ($month = 1; $month <= 12; $month++) {
-                                // Skip months that are ahead of the current month if it's the current year
-                                if ($year == $currentYear && $month > $currentMonth) {
-                                    break;
-                                }
+        // Loop through years from 2024 to current year
+        for ($year = $startYear; $year <= $currentYear; $year++) {
+            // Loop through months
+            for ($month = 1; $month <= 12; $month++) {
+                // Skip months that are ahead of the current month if it's the current year
+                if ($year == $currentYear && $month > $currentMonth) {
+                    break;
+                }
 
-                                // Get month name (e.g., January, February)
-                                $monthName = date("F", strtotime("$year-$month-01"));
+                // Get month name (e.g., January, February)
+                $monthName = date("F", strtotime("$year-$month-01"));
 
-                                // Format the month to two digits
-                                $monthNumber = str_pad($month, 2, "0", STR_PAD_LEFT);
+                // Format the month to two digits
+                $monthNumber = str_pad($month, 2, "0", STR_PAD_LEFT);
 
-                                // Format the month-year as "Month YYYY"
-                                $monthYear = $monthName . " " . $year;
+                // Format the month-year as "Month YYYY"
+                $monthYear = $monthNumber . "-" . $year;
 
-                                // Determine the selected option (set to current month-year as default)
-                                $selected = ($year == $currentYear && $month == $currentMonth) ? 'selected' : '';
+                // Check if this month-year should be selected
+                $selectedMonthYear = (isset($_POST['month-year']) && $_POST['month-year'] == $monthYear) ? 'selected' : '';
 
-                                // Output option for each month-year
-                                echo "<option value='$monthNumber-$year' $selected>$monthYear</option>";
-                            }
-                        }
-                        ?>
-                    </select>
-                </div>
+                echo "<option value='$monthYear' $selectedMonthYear>$monthName $year</option>";
+            }
+        }
+        ?>
+    </select>
+</div>
+
+
                 <div class="button">
                     <label for=""></label>
                     <button class="searchBtn" name="search" type="submit">Search</button>
-                    <button class="printBtn"  type="submit">Print</button>
+                    <button class="printBtn" type="submit">Print</button>
                 </div>
             </div>
         </form>
@@ -285,7 +289,7 @@ if (isset($_POST['search'])) {
             </thead>
             <tbody>
                 <?php
-                // Loop through all days in the monthf
+                // Loop through all days in the month
                 for ($day = 1; $day <= $days_in_month; $day++) {
                     // Check if there's attendance for the current day
                     $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
@@ -318,6 +322,7 @@ if (isset($_POST['search'])) {
             </tbody>
         </table>
     </div>
+
     <script>
         const printBtn = document.querySelector(".printBtn");
         if(printBtn) {
@@ -326,7 +331,6 @@ if (isset($_POST['search'])) {
                 window.print();
             });
         }
-        
     </script>
 </body>
 </html>
