@@ -44,7 +44,16 @@
                 </ul>
             </li>
             
-            <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
+                        <i class="fas fa-paper-plane"></i> Leave<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="./leave">Request Leave</a></li>
+                    <li><a href="./remaining_leave">Remaining Leave</a></li>
+                </ul>
+            </li>
+            
             <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
             <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
             <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>

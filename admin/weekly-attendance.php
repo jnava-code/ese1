@@ -57,6 +57,7 @@ if (isset($_POST['search_week'])) {
         a.clock_in_time,
         a.clock_out_time,
         a.total_hours,
+        a.status,
         IFNULL(la.status, 'Present') AS attendance_status
     FROM employees e
     LEFT JOIN attendance a ON e.employee_id = a.employee_id
@@ -129,10 +130,6 @@ if (isset($_POST['search_week'])) {
     gap: 5px;
 }
 
-.attendance-table {
-    padding: 0px 2rem ;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -175,13 +172,19 @@ table tr:hover {
 
         .main-content,
         .attendance-table {
-            padding: 0px;
+            padding: 0px !important;
         }
 
-        table th,
-        table tr {
+        table > thead > tr > th,
+        table > tbody > tr > td {
+            border-bottom: none !important;
+            border: 1px solid #000 !important;
             font-size: 12px;
         }
+
+        .main-content {
+            padding: 0px 10px !important;
+        }   
     }
 </style>
 
@@ -245,7 +248,8 @@ table tr:hover {
         <div class="attendance-table">
             <table id="attendance-table" class="table table-striped">
                 <thead>
-                    <tr>
+                    <tr>    
+                        <th></th>
                         <th>Employee</th>
                         <th>Sunday</th>
                         <th>Monday</th>
@@ -257,104 +261,104 @@ table tr:hover {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (isset($attendanceData) && !empty($attendanceData)): ?>
-                        <?php foreach ($attendanceData as $employee_id => $attendance): ?>
-                            <tr>
-                                <?php 
-                                // Get the employee's full name and hire date
-                                $full_name = '';
-                                $hire_date = '';
-                                if (!empty($attendance)) {
-                                    $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
-                                    $hire_date = $attendance[0]['hire_date'];
-                                }
+                        <?php if (isset($attendanceData) && !empty($attendanceData)): ?>
+                            <?php $count = 1; ?>    
+                            <?php foreach ($attendanceData as $employee_id => $attendance): ?>
+                                <tr>
+                                    <td><?php echo $count++; ?></td>
+                                    <?php 
+                                    // Get the employee's full name and hire date
+                                    $full_name = '';
+                                    $hire_date = '';
+                                    if (!empty($attendance)) {
+                                        $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
+                                        $hire_date = $attendance[0]['hire_date'];
+                                    }
 
-                                // Convert hire_date to a comparable format
-                                $hire_date = date('Y-m-d', strtotime($hire_date));
-                                ?>
-                                <td><?php echo $full_name; ?></td>
+                                    // Convert hire_date to a comparable format
+                                    $hire_date = date('Y-m-d', strtotime($hire_date));
+                                    ?>
+                                    <td><?php echo $full_name; ?></td>
 
-                                <?php 
-                                // Loop through the days of the week (Sunday to Saturday)
-                                for ($day = 0; $day < 7; $day++) {
-                                    $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
-                                    $today = date('Y-m-d'); // Get today's date
-                                
-                                    // If the date is in the future, leave the cell empty
-                                    if ($currentDate > $today) {
-                                        echo "<td></td>";
-                                        continue;
-                                    }
-                                
-                                    $status = 'A'; // Default status is Absent
-                                    $clock_in_time = '-';
-                                    $clock_out_time = '-';
-                                    $total_hours = '-';
-                                
-                                    $status_display = '';
-                                    $status_color = '#f8f9fa'; // Default status color (light gray)
-                                
-                                    // Skip Saturday and Sunday
-                                    if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
-                                        echo "<td></td>"; // Empty cell for Saturday and Sunday
-                                        continue;
-                                    }
-                                
-                                    // Skip dates before the hire date for that employee
-                                    if ($currentDate < $hire_date) {
-                                        // Leave the cell empty if the date is before the hire date
-                                        echo "<td></td>";
-                                        continue;
-                                    }
-                                
-                                    // Check if attendance data exists for this day
-                                    foreach ($attendance as $record) {
-                                        if (isset($record['date']) && $record['date'] == $currentDate) {
-                                            $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                                            $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                            $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                            $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
-                                            break; // Exit the inner loop once the record is found
+                                    <?php 
+                                    // Loop through the days of the week (Sunday to Saturday)
+                                    for ($day = 0; $day < 7; $day++) {
+                                        $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
+                                        $today = date('Y-m-d'); // Get today's date
+                                    
+                                        // If the date is in the future, leave the cell empty
+                                        if ($currentDate > $today) {
+                                            echo "<td></td>";
+                                            continue;
                                         }
-                                    }
-                                
-                                    // Check if employee is on approved leave
-                                    $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
-                                    $stmt = $conn->prepare($leave_query);
-                                    $stmt->bind_param("ss", $employee_id, $currentDate);
-                                    $stmt->execute();
-                                    $leave_result = $stmt->get_result();
-                                
-                                    if ($leave = $leave_result->fetch_assoc()) {
-                                        $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                                        $status_color = "#74c0fc";  // Blue for leave
-                                    } elseif ($status == "A") {
-                                        $status_display = "Absent";
-                                        $status_color = "#ff8787";  // Red for absence
-                                    } elseif ($status == "P") {
-                                        $status_display = "Present";
-                                        $status_color = "#69db7c";  // Green for present
-                                    } elseif ($status == "L") {
-                                        $status_display = "Late";
-                                        $status_color = "#f7b731";  // Yellow for late
-                                    } else {
-                                        $status_display = "N/A";
-                                    }
-                                
-                                    // Output the table cell for the current day with color-coded status
-                                    echo "<td>";
-                                    echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
-                                    if ($clock_in_time != '-') {
-                                        echo "<strong>In:</strong> $clock_in_time<br>";
-                                        echo "<strong>Out:</strong> $clock_out_time<br>";
-                                        echo "<strong>Total hours:</strong> $total_hours<br>";
-                                    }
-                                    echo "</td>";
-}
+                                    
+                                        $status = 'A'; // Default status is Absent
+                                        $clock_in_time = '-';
+                                        $clock_out_time = '-';
+                                        $total_hours = '-';
+                                    
+                                        $status_display = '';
+                                        $status_color = '#f8f9fa'; // Default status color (light gray)
+                                    
+                                        // Skip Saturday and Sunday
+                                        if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
+                                            echo "<td></td>"; // Empty cell for Saturday and Sunday
+                                            continue;
+                                        }
+                                    
+                                        // Skip dates before the hire date for that employee
+                                        if ($currentDate < $hire_date) {
+                                            // Leave the cell empty if the date is before the hire date
+                                            echo "<td></td>";
+                                            continue;
+                                        }
+                    
+                                        // Check if attendance data exists for this day
+                                        foreach ($attendance as $record) {
+                                            if (isset($record['date']) && $record['date'] == $currentDate) {
+                                                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                                                $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                                $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                                $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
+                                                $rstatus = htmlspecialchars($record['status']);
+                                                break; // Exit the inner loop once the record is found
+                                            }
+                                        }
+                                    
+                                        // Check if employee is on approved leave
+                                        $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
+                                        $stmt = $conn->prepare($leave_query);
+                                        $stmt->bind_param("ss", $employee_id, $currentDate);
+                                        $stmt->execute();
+                                        $leave_result = $stmt->get_result();
+                                    
+                                        if ($leave = $leave_result->fetch_assoc()) {
+                                            $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                                            $status_color = "#74c0fc";  // Blue for leave
+                                        } elseif ($status == "A") {
+                                            $status_display = "Absent";
+                                            $status_color = "#ff8787";  // Red for absence
+                                        } elseif ($status == "P") {
+                                            $status_display = "Present" . ' '  . '(' . $rstatus . ')';
+                                            $status_color = "#69db7c";  // Green for present
+                                        }  else {
+                                            $status_display = "N/A";
+                                        }
+                                    
+                                        // Output the table cell for the current day with color-coded status
+                                        echo "<td>";
+                                        echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
+                                        if ($clock_in_time != '-') {
+                                            echo "<strong>In:</strong> $clock_in_time<br>";
+                                            echo "<strong>Out:</strong> $clock_out_time<br>";
+                                            echo "<strong>Total hours:</strong> $total_hours<br>";
+                                        }
+                                        echo "</td>";
+    }
 
-                                ?>
-                            </tr>
-                        <?php endforeach; ?>
+                                    ?>
+                                </tr>
+                            <?php endforeach; ?>
                     <?php else: ?>
                         <tr><td colspan="8">No attendance records found for the selected week.</td></tr>
                     <?php endif; ?>
@@ -365,46 +369,22 @@ table tr:hover {
 </main>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const reportBtn = document.querySelector(".report_btn");
-    const dropdown = document.querySelector(".dropdown-content");
-    const printBtn = document.querySelector(".print_btn");
-    const pdfBtn = document.querySelector(".pdf_btn");
-    const excelBtn = document.querySelector(".excel_btn");
-    const wordBtn = document.querySelector(".word_btn");
 
-    // Toggle dropdown visibility
-    document.querySelector(".export_btn").addEventListener("click", (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle("show");
-    });
+const reportBtn = document.querySelector(".report_btn"); 
 
-    // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest(".dropdown")) {
-            dropdown.classList.remove("show");
-        }
-    });
+if(reportBtn) {
+    reportBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        let clicked = e.target.closest(".btn, .dropdown-content a"); // Include dropdown links
 
-    // Print Function
-    if (printBtn) {
-        printBtn.addEventListener("click", () => {
-            console.log("Print button clicked");
+        if(!clicked) return;
+
+        if(clicked.classList.contains("print_btn")) {
             window.print();
-        });
-    }
-
-    // PDF Export Function
-    if (pdfBtn) {
-        pdfBtn.addEventListener("click", (e) => {
-            e.preventDefault();
+        } else if(clicked.classList.contains("pdf_btn")) {
             const element = document.getElementById("attendance-table");
 
-            if (!element) {
-                console.error("Table not found!");
-                return;
-            }
-
+            // Create a temporary style element to ensure proper styling
             const style = document.createElement("style");
             style.innerHTML = `
                 header, .main-content h2, .report_btn, .month-and-week {
@@ -435,20 +415,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(() => {
                     document.head.removeChild(style);
                 });
-        });
-    }
 
-    // Excel Export Function
-    if (excelBtn) {
-        excelBtn.addEventListener("click", () => {
+        } else if(clicked.classList.contains("excel_btn")) {
             const table = document.getElementById("attendance-table");
-
-            if (!table) {
-                console.error("Table not found!");
-                return;
-            }
-
             const rows = [];
+
             table.querySelectorAll("tr").forEach((row) => {
                 const rowData = [];
                 row.querySelectorAll("th, td").forEach((cell) => {
@@ -463,22 +434,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const ws = XLSX.utils.aoa_to_sheet(rows);
             XLSX.utils.book_append_sheet(wb, ws, "Weekly Attendance");
             XLSX.writeFile(wb, "weekly_attendance.xlsx");
-        });
-    }
 
-    // Word Export Function
-    if (wordBtn) {
-        wordBtn.addEventListener("click", () => {
-            const table = document.getElementById("attendance-table");
-            if (!table) {
-                console.error("Table not found!");
-                return;
-            }
+        } else if(clicked.classList.contains("word_btn")) {
+            const table = document.getElementById("attendance-table").cloneNode(true);
+            table.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
 
-            const clonedTable = table.cloneNode(true);
-            clonedTable.querySelectorAll("th.actions, td.actions").forEach(cell => cell.remove());
-
-            const htmlContent = `<!DOCTYPE html>
+            const htmlContent = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" 
                     xmlns:w="urn:schemas-microsoft-com:office:word" 
                     xmlns="http://www.w3.org/TR/REC-html40">
@@ -494,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </style>
                 </head>
                 <body>
-                    ${clonedTable.outerHTML}
+                    ${table.outerHTML}
                 </body>
                 </html>`;
 
@@ -505,10 +466,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        });
-    }
-});
-
+        }
+    });
+}
 // Function to update the week dropdown dynamically based on the selected month
 function updateWeeks() {
     var month = document.getElementById('month').value;

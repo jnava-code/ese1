@@ -264,10 +264,10 @@ $totalPages = ceil($totalRows / $limit);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                            <?php $count = 1; ?>
+                        <?php $count = 1; ?>
+                        <?php while ($row = mysqli_fetch_assoc($result)): ?>                   
                             <tr>
-                                <td><?php echo $count; ?></td>
+                                <td><?php echo $count++; ?></td>
                                 <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
                                 <td><?php echo htmlspecialchars($row['full_name']); ?></td>
                                 <td><?php echo $row['date']; ?></td>

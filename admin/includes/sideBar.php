@@ -8,7 +8,20 @@
             <img src="images/logo1.png" alt="ESE-Tech Logo">
         </div>
         <ul>
+
             <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
+                    <i class="fas fa-user-cog"></i> Manage Admins<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                <li><a href="./superadmin">Admins Profile</a></li>
+                    <li><a href="./admin_archive">Archive</a></li>
+                </ul>
+            </li>
+
+
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
                     <i class="fas fa-user-friends"></i> Employees Profile<i class="fas fa-chevron-down toggle-icon"></i>
@@ -30,13 +43,22 @@
                     <li><a href="./monthly-attendance">Monthly Attendance</a></li>
                 </ul>
             </li>
-
-            <li><a href="./leave"><i class="fas fa-paper-plane"></i> Request Leave</a></li>
+            
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
+                        <i class="fas fa-paper-plane"></i> Leave<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="./leave">Request Leave</a></li>
+                    <li><a href="./remaining_leave">Remaining Leave</a></li>
+                </ul>
+            </li>
+            
             <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
             <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
             <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
             <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-            <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Admin</a></li>
+
         </ul>
     </div>
 </nav>

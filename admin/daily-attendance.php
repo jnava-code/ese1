@@ -207,17 +207,25 @@ $totalPages = ceil($totalRows / $limit);
             display: none !important;
         }
 
+        table > thead > tr > th,
+        table > tbody > tr > td {
+            border-bottom: none !important;
+            border: 1px solid #000 !important;
+            font-size: 12px;
+        }
+
         .evaluation-form {
             border: none;
             border-radius: none;
             margin-bottom: 0px;
-            padding: 0px !important;
+            /* padding: 0px 10px !important; */
             box-shadow: none !important;
+            
         }
 
         .main-content {
-            padding: 0px;
-        }
+            padding: 0px !important;
+        }   
     }
 </style>
 
@@ -243,30 +251,33 @@ $totalPages = ceil($totalRows / $limit);
         <form method="POST" class="evaluation-form">
             <div class="form-group">
                 <table id="myTable" class="table table-striped table-bordered">
-                <thead>
-    <tr>
-        <th>Employee ID</th> <!-- New Column for Employee ID -->
-        <th>Employee Name</th>
-        <th>Date</th>
-        <th>Time In</th>
-        <th>Time Out</th>
-        <th>Total Hours</th>
-        <th>Status</th>
-    </tr>
-</thead>
-<tbody>
-    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-        <tr>
-            <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
-            <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-            <td><?php echo $row['date']; ?></td>
-            <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
-            <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
-            <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
-            <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
-        </tr>
-    <?php endwhile; ?>
-</tbody>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Employee ID</th> 
+                            <th>Employee Name</th>
+                            <th>Date</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Total Hours</th>
+                            <th>Status</th>       
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $count = 1; ?>
+                        <?php while ($row = mysqli_fetch_assoc($result)): ?>                   
+                            <tr>
+                                <td><?php echo $count++; ?></td>
+                                <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
+                                <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                                <td><?php echo $row['date']; ?></td>
+                                <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
+                                <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
+                                <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
+                                <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
                 </table>
             </div>
         </form>

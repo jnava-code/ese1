@@ -14,8 +14,7 @@ $current_date = date('Y-m-d'); // YYYY-MM-DD format
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $employee_id = $_POST['employee_id'];
     $inorout = $_POST['in-or-out'];
-    // $action = $_POST['action'];
-
+    
     // Prevent SQL injection
     $employee_id = mysqli_real_escape_string($conn, $employee_id);
 
@@ -23,8 +22,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $work_start = strtotime("08:00:00"); // 8:00 AM
     $work_end = strtotime("17:00:00"); // 5:00 PM
 
-    // Current time
-    $current_time = date('g:i:s A'); // Use 12-hour format with AM/PM
+    // Current date and time
+    $current_date = date('Y-m-d'); 
+    $current_time = date('g:i:s A'); // 12-hour format with AM/PM
     $current_time_unix = strtotime($current_time); // Convert to UNIX timestamp
 
     // Check if employee exists
@@ -60,22 +60,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     // Convert clock-in time and current time to UNIX timestamps
                     $clock_in_time = strtotime($attendance_row['clock_in_time']); // Convert clock-in time to UNIX timestamp
                     $clock_out_time = strtotime($current_time); // Convert clock-out time to UNIX timestamp
-            
+
                     // Check if both times are valid
                     if ($clock_in_time !== false && $clock_out_time !== false) {
                         // Calculate total worked time in seconds
                         $total_seconds = $clock_out_time - $clock_in_time;
-            
+
                         // Calculate hours worked by dividing total seconds by 3600 (seconds in an hour)
                         $total_hours = round($total_seconds / 3600, 2); // Round to 2 decimal places
-            
-                        // Update attendance record with clock-out time and total hours worked
+
+                        // Determine status based on total hours worked
+                        if ($total_hours < 8.99) {
+                            $status = "Under Time";
+                        } elseif ($total_hours >= 9) {
+                            $status = "Over Time";
+                        } else {
+                            $status = "Present"; // Default status
+                        }
+
+                        // Update attendance record with clock-out time, total hours worked, and status
                         $update_sql = "UPDATE attendance 
-                                       SET clock_out_time = '$current_time', total_hours = '$total_hours' 
+                                       SET clock_out_time = '$current_time', total_hours = '$total_hours', status = '$status'
                                        WHERE attendance_id = '{$attendance_row['attendance_id']}'";
-            
+
                         if (mysqli_query($conn, $update_sql)) {
-                            $success = "Time Out recorded successfully!";
+                            $success = "Time Out recorded successfully! Status: $status";
                         } else {
                             $error = "Error recording Time Out. Please try again.";
                         }
@@ -84,12 +93,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
-            
         }
     } else {
         $error = "Invalid Employee ID.";
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

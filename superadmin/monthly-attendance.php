@@ -73,6 +73,7 @@ if(isset($_POST['search'])) {
             a.clock_in_time,
             a.clock_out_time,
             a.total_hours,
+            a.status,
             IFNULL(la.status, 'Present') AS attendance_status
         FROM employees e
         LEFT JOIN attendance a ON e.employee_id = a.employee_id
@@ -463,6 +464,7 @@ foreach ($attendanceData as $employee_id => $attendance):
                     $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
                     $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
                     $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
+                    $rstatus = htmlspecialchars($record['status']);
                     break;
                 }
             }
@@ -485,7 +487,7 @@ foreach ($attendanceData as $employee_id => $attendance):
                     $status_color = "#ff8787"; // Red for absent
                     $absent_count++;
                 } elseif ($status == "P") {
-                    $status_display = "Present";
+                    $status_display = "Present" . ' '  . '(' . $rstatus . ')';
                     $status_color = "#69db7c"; // Green for present
                     $present_count++;
                 } elseif ($status == "L") {

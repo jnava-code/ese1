@@ -176,17 +176,11 @@ foreach ($ageRanges as $ageRange) {
                 <div style="width: 100%; max-width: 500px;"> <!-- This container helps control the chart's maximum size -->
                     <h1>Attendance Report</h1>
                     <canvas id="attendancePieChart"></canvas>
-                    <h2>Total: <?php echo (int)$late_count + (int)$ontime_count + (int)$leave_count; ?></h2>
                 </div>
 
                 <div style="width: 100%; max-width: 500px;"> <!-- This container helps control the chart's maximum size -->
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
-                    <?php
-                        // Sum the employee counts
-                        $totalEmployees = array_sum($employeeCounts);
-                    ?>
-                    <h2>Total: <?php echo $totalEmployees; ?></h2>
                 </div>
 
                 <div style="width: 100%; max-width: 500px;"> <!-- This container helps control the chart's maximum size -->
@@ -197,26 +191,73 @@ foreach ($ageRanges as $ageRange) {
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
     <script>
-        // ATTENDANCE REPORT
+      // ATTENDANCE REPORT
         var lateCount = <?php echo $late_count; ?>; 
         var onTimeCount = <?php echo $ontime_count; ?>; 
         var absentCount = <?php echo $total_absent_days; ?>; 
         var onLeaveCount = <?php echo $leave_count; ?>;  
 
+        // Calculate total
+        var total = lateCount + onTimeCount + absentCount + onLeaveCount;
+
+        // Calculate percentages
+        var latePercentage = ((lateCount / total) * 100).toFixed(1);
+        var onTimePercentage = ((onTimeCount / total) * 100).toFixed(1);
+        var absentPercentage = ((absentCount / total) * 100).toFixed(1);
+        var onLeavePercentage = ((onLeaveCount / total) * 100).toFixed(1);
+
         var ctx = document.getElementById('attendancePieChart').getContext('2d');
         var attendancePieChart = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
+                labels: [
+                    `On Time (Present) ${onTimePercentage}%`, 
+                    `Late (Present) ${latePercentage}%`, 
+                    `Absent ${absentPercentage}%`, 
+                    `On Leave ${onLeavePercentage}%`
+                ],
                 datasets: [{
                     data: [onTimeCount, lateCount, absentCount, onLeaveCount],
                     backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
                     borderWidth: 1
                 }]
             },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                let dataset = tooltipItem.dataset.data;
+                                let value = dataset[tooltipItem.dataIndex];
+                                let percentage = ((value / total) * 100).toFixed(1);
+                                return `${percentage}%`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true, 
+                        position: 'bottom'
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        formatter: function(value, context) {
+                            let percentage = ((value / total) * 100).toFixed(1);
+                            return `${percentage}%`; // Display percentage in the center of each slice
+                        }
+                    }
+                }
+            }
         });
-  
+
         var departments = <?php echo $departmentsJson; ?>;
         var colors = <?php echo $colorsJson; ?>;
         var employees = <?php echo $employeeCountsJson; ?>
