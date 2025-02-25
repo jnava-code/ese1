@@ -1,18 +1,47 @@
 <?php include('header.php'); ?>
 <?php include('includes/sideBar.php'); ?>
 
+<?php
+    // Database connection
+    $conn = mysqli_connect('localhost', 'root', '', 'esetech');
+            
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    $succMsg = '';
+    $errMsg = '';
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (isset($_POST['approve']) || isset($_POST['reject'])) {
+            $employee_id = mysqli_real_escape_string($conn, $_POST['employee_id']);
+            $recommendation = mysqli_real_escape_string($conn, $_POST['recommendation']);
+            $reason = isset($_POST['approve']) ? 'Approved' : 'Rejected';
+
+            $sql = "INSERT INTO `e_recommendations` (`employee_id`, `recommendation_type`, `reason`, `effective_date`) 
+                    VALUES ('$employee_id', '$recommendation', '$reason', NOW())";
+
+            $result = mysqli_query($conn, $sql);
+
+            if ($result) {
+                $succMsg = $recommendation . ' has been ' . $reason;
+            } else {
+                $errMsg = 'Error ' . ($reason == 'Approved' ? 'approving' : 'rejecting') . ' ' . $recommendation;
+            }
+        }
+    }
+?>
 <main class="main-content">
     <section id="dashboard">
         <h2>ATTRITION PREDICTION</h2>
-        
+            <?php if ($succMsg): ?>
+                <div class="bg-green-500 text-white p-3 rounded mb-4"> <?php echo $succMsg; ?> </div>
+            <?php endif; ?>
+            
+            <?php if ($errMsg): ?>
+                <div class="bg-red-500 text-white p-3 rounded mb-4"> <?php echo $errMsg; ?> </div>
+            <?php endif; ?>
         <?php
-        // Database connection
-        $conn = mysqli_connect('localhost', 'root', '', 'esetech');
-        
-        if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
-        }
-
         // Function to calculate attrition risk score using linear regression
         function calculateAttritionRisk($attendance_score, $satisfaction_score, $years_of_service) {
             // Weights for each factor (can be adjusted based on importance)
@@ -37,6 +66,8 @@
             e.first_name,
             e.last_name,
             e.hire_date,
+            er.recommendation_id,
+            er.reason,
             COALESCE(AVG(CASE 
                 WHEN a.status = 'On Time' THEN 1
                 WHEN a.status = 'Late' THEN 0.5
@@ -47,6 +78,7 @@
             FROM employees e
             LEFT JOIN attendance a ON e.employee_id = a.employee_id
             LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+            LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
             WHERE e.is_archived = 0
             GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
 
@@ -110,7 +142,9 @@
                             <th>Satisfaction Score</th>
                             <th>Attrition Risk</th>
                             <th>Risk Level</th>
+                            <th>Justification</th>
                             <th>Recommendations</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>';
@@ -130,33 +164,42 @@
                 // Determine risk level
                 if ($risk_score <= 0.3) {
                     $risk_level = '<span class="low-risk">Low Risk</span>';
-                    $recommendations = [
-                        'No action required',
-                        'Recognition or small incentives',
-                        'Career development opportunities'
+                    $recommendation = 'Promotion';
+                    $justifications = [
+                        'Outstanding Performance - Scores above 90% in evaluations.',
+                        'Excellent Attendance - Consistently punctual and reliable.', 
+                        'High Job Satisfaction - Reports commitment to the company.', 
+                        'Super Low Attrition Risk - Likely to stay and grow with the company.', 
+                        'Leadership Potential - Strong teamwork and leadership feedback.'
                     ];
                 } elseif ($risk_score <= 0.6) {
                     $risk_level = '<span class="medium-risk">Medium Risk</span>';
-                    $recommendations = [
-                        'Training programs',
-                        'Mentorship',
-                        'Workload adjustment'
+                    $recommendation = 'Demotion';
+                    $justifications = [
+                        'Consistently Poor Performance – Below 50% in multiple evaluation periods.',
+                        'High Absenteeism – 40% absence rate significantly affecting productivity.',
+                        'Job Dissatisfaction – Reports strong discontent with workload and environment.',
+                        'Multiple Warnings Issued – No improvement despite HR interventions.',
+                        'Company Downsizing – Retrenchment is necessary due to business restructuring and cost-cutting measures.'
                     ];
                 } else {
                     $risk_level = '<span class="high-risk">High Risk</span>';
-                    $recommendations = [
-                        'Performance improvement plan',
-                        'Reassignment to a different role',
-                        'Exit interviews'
+                    $recommendation = 'Retrenchment';
+                    $justifications = [
+                        'Consistently Poor Performance - Below 50% in multiple evaluation periods.', 
+                        'High Absenteeism - 40% absence rate significantly affecting productivity.',
+                        'Job Dissatisfaction - Reports strong discontent with workload and environment.', 
+                        'Multiple Warnings Issued - No improvement despite HR interventions.', 
+                        'Company Downsizing - Retrenchment is necessary due to business restructuring and cost-cutting measures.'
                     ];
                 }
 
                 // Format recommendations as a list
-                $recommendation_list = '<ul>';
-                foreach ($recommendations as $rec) {
-                    $recommendation_list .= "<li>$rec</li>";
+                $justification_list = '<ul>';
+                foreach ($justifications as $jus) {
+                    $justification_list .= "<li>$jus</li>";
                 }
-                $recommendation_list .= '</ul>';
+                $justification_list .= '</ul>';
 
                 // Store prediction in database
                 $store_prediction = "INSERT INTO attrition_forecasting (
@@ -183,6 +226,16 @@
 
                 mysqli_query($conn, $store_prediction);
 
+                if($row['recommendation_id']) {
+                    $action = $row['reason'];
+                } else {
+                    $action = "<form class='action-buttons' method='POST'>
+                                <input type='hidden' name='employee_id' value='{$row['employee_id']}'/>
+                                <input type='hidden' name='recommendation' value='{$recommendation}'/>
+                                <input class='btn btn-warning' type='submit' name='approve' value='Approve'/>
+                                <input class='btn btn-danger' type='submit' name='reject' value='Reject'/>
+                            </form>";
+                }
                 echo "<tr>
                         <td>{$row['employee_id']}</td>
                         <td>{$row['first_name']} {$row['last_name']}</td>
@@ -191,8 +244,11 @@
                         <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
                         <td>" . number_format($risk_score * 100, 1) . "%</td>
                         <td>$risk_level</td>
-                        <td>$recommendation_list</td>
+                        <td>$recommendation</td>
+                        <td>$justification_list</td>
+                        <td>$action</td>
                     </tr>";
+
             }
 
             echo '</tbody></table></div>';
@@ -314,6 +370,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+}
+
 .attrition-table-container {
     padding: 20px;
     background: #fff;

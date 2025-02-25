@@ -1,4 +1,5 @@
 <?php
+ob_start();
     include('header.php');
     include('includes/sideBar.php');
 ?>
@@ -67,11 +68,6 @@
                 }
             }
         
-            // Example: Print the collected criteria (for debugging)
-            // echo "<pre>";
-            // print_r($criteria);
-            // echo "</pre>";
-        
             // Proceed with other form data
             $employee_id = $_POST['employee_id'];
             $evaluation_date = $_POST['evaluation_date'];
@@ -111,7 +107,7 @@
             if (mysqli_query($conn, $insert_sql)) {
                 // Redirect to prevent form resubmission
                 header("Location: performance-evaluation");
-                exit;
+                exit();
             } else {
                 echo "<p>Error inserting evaluation: " . mysqli_error($conn) . "</p>";
             }
