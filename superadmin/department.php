@@ -30,13 +30,13 @@
     // Get employees with optional department filter
     $selected_dept = isset($_GET['department']) ? $_GET['department'] : '';
     
-    $sql = "SELECT * FROM employees WHERE is_archived = 0";
+    $sql_employees = "SELECT * FROM employees WHERE is_archived = 0";
     if (!empty($selected_dept)) {
-        $sql .= " AND department = '$selected_dept'";
+        $sql_employees .= " AND department = '$selected_dept'";
     }
-    $sql .= " ORDER BY last_name ASC";
+    $sql_employees .= " ORDER BY last_name ASC";
     
-    $result = mysqli_query($conn, $sql);
+    $result_employees = mysqli_query($conn, $sql_employees);
 
     include('header.php');
 ?>
@@ -89,6 +89,23 @@ if (isset($_POST['delete_dept'])) {
     } else {
         $message = '<p style="color: red;">Error deleting department.</p>';
     }
+}
+
+function executeQuery($conn, $sql, $types = null, $params = []) {
+    $stmt = mysqli_prepare($conn, $sql);
+    if ($types && $params) {
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+    }
+    if (!mysqli_stmt_execute($stmt)) {
+        echo "Error: " . mysqli_stmt_error($stmt);
+    }
+    mysqli_stmt_close($stmt);
+}
+
+if (isset($_GET['delete_id'])) {
+    $id = $_GET['delete_id'];
+    $sql = "UPDATE employees SET is_archived = 1 WHERE id=?";
+    executeQuery($conn, $sql, 'i', [$id]);
 }
 
 if (isset($_POST['archive_name'])) {
@@ -170,7 +187,7 @@ if (isset($_POST['update_dept'])) {
         <div class="dept-background"></div>
         <div class="card">
 
-        <?php if(!empty($message)) echo $message; ?>
+        <?php echo empty($message) ? $message : ''; ?>
 
         <table>
             <thead>
@@ -249,7 +266,7 @@ if (isset($_POST['update_dept'])) {
                     <tbody>
                         <?php 
                             $counter = 1;
-                            while ($employee = mysqli_fetch_assoc($result)): 
+                            while ($employee = mysqli_fetch_assoc($result_employees)): 
                         ?>
                             <tr>
                                 <td><?php echo $counter++; ?></td>
