@@ -41,6 +41,7 @@
                     <li><a href="./daily-attendance">Daily Attendance</a></li>
                     <li><a href="./weekly-attendance">Weekly Attendance</a></li>
                     <li><a href="./monthly-attendance">Monthly Attendance</a></li>
+                    <li><a href="./report-attendance">Attendance Report</a></li>
                 </ul>
             </li>
             
