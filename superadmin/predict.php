@@ -1,219 +1,273 @@
 <?php include('header.php'); ?>
-
-<!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
 
-
-
-<!-- Main Content Area -->
-<main class="main-content">
-        <section id="dashboard">
-            <h2>ATTRITION PREDICTION</h2>
+<?php
+    // Database connection
+    $conn = mysqli_connect('localhost', 'root', '', 'esetech');
             
-            <?php
-            // Database connection
-            $conn = mysqli_connect('localhost', 'root', '', 'esetech');
-            
-            if (!$conn) {
-                die("Connection failed: " . mysqli_connect_error());
-            }
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
 
-            // Function to calculate attrition risk score using linear regression
-            function calculateAttritionRisk($attendance_score, $satisfaction_score, $years_of_service) {
-                // Weights for each factor (can be adjusted based on importance)
-                $attendance_weight = 0.3;
-                $satisfaction_weight = 0.4;
-                $years_weight = 0.3;
+    $succMsg = '';
+    $errMsg = '';
 
-                // Normalize years of service (assuming max 30 years)
-                $normalized_years = min($years_of_service / 30, 1);
-                
-                // Calculate weighted score (inverse for years as longer tenure typically means lower risk)
-                $risk_score = ($attendance_weight * (1 - $attendance_score)) + 
-                             ($satisfaction_weight * (1 - $satisfaction_score)) + 
-                             ($years_weight * (1 - $normalized_years));
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (isset($_POST['approve']) || isset($_POST['reject'])) {
+            $employee_id = mysqli_real_escape_string($conn, $_POST['employee_id']);
+            $recommendation = mysqli_real_escape_string($conn, $_POST['recommendation']);
+            $reason = isset($_POST['approve']) ? 'Approved' : 'Rejected';
 
-                return $risk_score;
-            }
+            $sql = "INSERT INTO `e_recommendations` (`employee_id`, `recommendation_type`, `reason`, `effective_date`) 
+                    VALUES ('$employee_id', '$recommendation', '$reason', NOW())";
 
-            // Fetch employee data and calculate attrition risk
-            $query = "SELECT 
-                e.employee_id,
-                e.first_name,
-                e.last_name,
-                e.hire_date,
-                COALESCE(AVG(CASE 
-                    WHEN a.status = 'On Time' THEN 1
-                    WHEN a.status = 'Late' THEN 0.5
-                    ELSE 0 
-                END), 0) as attendance_score,
-                COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
-                DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
-                FROM employees e
-                LEFT JOIN attendance a ON e.employee_id = a.employee_id
-                LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
-                WHERE e.is_archived = 0
-                GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
-
-            $result = mysqli_query($conn, $query);
+            $result = mysqli_query($conn, $sql);
 
             if ($result) {
-                // Prepare arrays for chart data
-                $labels = [];
-                $riskData = [];
-                $attendanceData = [];
-                $satisfactionData = [];
-                $backgroundColor = [];
-
-                // First pass to collect data for the chart
-                $allRows = [];
-                while ($row = mysqli_fetch_assoc($result)) {
-                    $allRows[] = $row;
-                    
-                    $attendance_score = floatval($row['attendance_score']);
-                    $satisfaction_score = floatval($row['satisfaction_score']);
-                    $years_of_service = floatval($row['years_of_service']);
-
-                    $risk_score = calculateAttritionRisk(
-                        $attendance_score,
-                        $satisfaction_score,
-                        $years_of_service
-                    );
-
-                    // Collect data for charts
-                    $labels[] = $row['first_name'] . ' ' . $row['last_name'];
-                    $riskData[] = round($risk_score * 100, 1);
-                    $attendanceData[] = round($attendance_score * 100, 1);
-                    $satisfactionData[] = round($satisfaction_score * 100, 1);
-                    
-                    // Set color based on risk level
-                    if ($risk_score <= 0.3) {
-                        $backgroundColor[] = 'rgba(40, 167, 69, 0.5)'; // green
-                    } elseif ($risk_score <= 0.6) {
-                        $backgroundColor[] = 'rgba(255, 193, 7, 0.5)'; // yellow
-                    } else {
-                        $backgroundColor[] = 'rgba(220, 53, 69, 0.5)'; // red
-                    }
-                }
-
-                // Display only the regression chart
-                echo '<div class="charts-container">
-                        <div class="chart-wrapper full-width">
-                            <canvas id="regressionChart"></canvas>
-                        </div>
-                      </div>';
-
-                // Display the table
-                echo '<div class="attrition-table-container">';
-                echo '<table id="attritionTable" class="display">
-                        <thead>
-                            <tr>
-                                <th>Employee ID</th>
-                                <th>Name</th>
-                                <th>Years of Service</th>
-                                <th>Attendance Score</th>
-                                <th>Satisfaction Score</th>
-                                <th>Attrition Risk</th>
-                                <th>Risk Level</th>
-                                <th>Recommendation</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
-
-                // Second pass to display table data
-                foreach ($allRows as $row) {
-                    $attendance_score = floatval($row['attendance_score']);
-                    $satisfaction_score = floatval($row['satisfaction_score']);
-                    $years_of_service = floatval($row['years_of_service']);
-
-                    $risk_score = calculateAttritionRisk(
-                        $attendance_score,
-                        $satisfaction_score,
-                        $years_of_service
-                    );
-
-                    // Determine risk level
-                    if ($risk_score <= 0.3) {
-                        $risk_level = '<span class="low-risk">Low Risk</span>';
-                    } elseif ($risk_score <= 0.6) {
-                        $risk_level = '<span class="medium-risk">Medium Risk</span>';
-                    } else {
-                        $risk_level = '<span class="high-risk">High Risk</span>';
-                    }
-
-                    // Determine recommendation based on criteria
-                    $recommendation = '';
-                    $attendance_percentage = $attendance_score * 100;
-                    $satisfaction_percentage = $satisfaction_score * 100;
-                    $risk_percentage = $risk_score * 100;
-
-                    // Promotion criteria
-                    if ($risk_percentage <= 30 && $attendance_percentage >= 85 && $satisfaction_percentage >= 80) {
-                        $recommendation = '<span class="promotion">Promotion</span>';
-                    }
-                    // Demotion criteria - at least two conditions must be met
-                    else {
-                        $demotion_conditions = 0;
-                        if ($risk_percentage > 30 && $risk_percentage <= 60) $demotion_conditions++;
-                        if ($attendance_percentage < 70) $demotion_conditions++;
-                        if ($satisfaction_percentage < 60) $demotion_conditions++;
-
-                        if ($demotion_conditions >= 2) {
-                            $recommendation = '<span class="demotion">Demotion</span>';
-                        }
-                        // Retrench criteria
-                        elseif ($risk_percentage > 60 && $attendance_percentage < 50 && $satisfaction_percentage < 40) {
-                            $recommendation = '<span class="retrench">Retrain / Retrench</span>';
-                        }
-                        else {
-                            $recommendation = '<span class="normal">No Action Required</span>';
-                        }
-                    }
-
-                    // Store prediction in database
-                    $store_prediction = "INSERT INTO attrition_forecasting (
-                        employee_id,
-                        prediction_date,
-                        attrition_probability,
-                        factors
-                    ) VALUES (
-                        '{$row['employee_id']}',
-                        CURRENT_DATE,
-                        $risk_score,
-                        '" . json_encode([
-                            'attendance_score' => $attendance_score,
-                            'satisfaction_score' => $satisfaction_score,
-                            'years_of_service' => $years_of_service
-                        ]) . "'
-                    ) ON DUPLICATE KEY UPDATE 
-                        attrition_probability = $risk_score,
-                        factors = '" . json_encode([
-                            'attendance_score' => $attendance_score,
-                            'satisfaction_score' => $satisfaction_score,
-                            'years_of_service' => $years_of_service
-                        ]) . "'";
-
-                    mysqli_query($conn, $store_prediction);
-
-                    echo "<tr>
-                            <td>{$row['employee_id']}</td>
-                            <td>{$row['first_name']} {$row['last_name']}</td>
-                            <td>" . number_format($years_of_service, 1) . "</td>
-                            <td>" . number_format($attendance_percentage, 1) . "%</td>
-                            <td>" . number_format($satisfaction_percentage, 1) . "%</td>
-                            <td>" . number_format($risk_percentage, 1) . "%</td>
-                            <td>$risk_level</td>
-                            <td>$recommendation</td>
-                        </tr>";
-                }
-
-                echo '</tbody></table></div>';
+                $succMsg = $recommendation . ' has been ' . $reason;
+            } else {
+                $errMsg = 'Error ' . ($reason == 'Approved' ? 'approving' : 'rejecting') . ' ' . $recommendation;
             }
-            mysqli_close($conn);
-            ?>
-        </section>
-    </main>
-</div>
+        }
+    }
+?>
+<main class="main-content">
+    <section id="dashboard">
+        <h2>ATTRITION PREDICTION</h2>
+            <?php if ($succMsg): ?>
+                <div class="bg-green-500 text-white p-3 rounded mb-4"> <?php echo $succMsg; ?> </div>
+            <?php endif; ?>
+            
+            <?php if ($errMsg): ?>
+                <div class="bg-red-500 text-white p-3 rounded mb-4"> <?php echo $errMsg; ?> </div>
+            <?php endif; ?>
+        <?php
+        // Function to calculate attrition risk score using linear regression
+        function calculateAttritionRisk($attendance_score, $satisfaction_score, $years_of_service) {
+            // Weights for each factor (can be adjusted based on importance)
+            $attendance_weight = 0.3;
+            $satisfaction_weight = 0.4;
+            $years_weight = 0.3;
+
+            // Normalize years of service (assuming max 30 years)
+            $normalized_years = min($years_of_service / 30, 1);
+            
+            // Calculate weighted score (inverse for years as longer tenure typically means lower risk)
+            $risk_score = ($attendance_weight * (1 - $attendance_score)) + 
+                         ($satisfaction_weight * (1 - $satisfaction_score)) + 
+                         ($years_weight * (1 - $normalized_years));
+
+            return $risk_score;
+        }
+
+        // Fetch employee data and calculate attrition risk
+        $query = "SELECT 
+            e.employee_id,
+            e.first_name,
+            e.last_name,
+            e.hire_date,
+            er.recommendation_id,
+            er.recommendation_type,
+            er.reason,
+            COALESCE(AVG(CASE 
+                WHEN a.status = 'On Time' THEN 1
+                WHEN a.status = 'Late' THEN 0.5
+                ELSE 0 
+            END), 0) as attendance_score,
+            COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
+            DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
+            FROM employees e
+            LEFT JOIN attendance a ON e.employee_id = a.employee_id
+            LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+            LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
+            WHERE e.is_archived = 0
+            GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
+
+        $result = mysqli_query($conn, $query);
+
+        if ($result) {
+            // Prepare arrays for chart data
+            $labels = [];
+            $riskData = [];
+            $attendanceData = [];
+            $satisfactionData = [];
+            $backgroundColor = [];
+
+            // First pass to collect data for the chart
+            $allRows = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $allRows[] = $row;
+                
+                $attendance_score = floatval($row['attendance_score']);
+                $satisfaction_score = floatval($row['satisfaction_score']);
+                $years_of_service = floatval($row['years_of_service']);
+
+                $risk_score = calculateAttritionRisk(
+                    $attendance_score,
+                    $satisfaction_score,
+                    $years_of_service
+                );
+
+                // Collect data for charts
+                $labels[] = $row['first_name'] . ' ' . $row['last_name'];
+                $riskData[] = round($risk_score * 100, 1);
+                $attendanceData[] = round($attendance_score * 100, 1);
+                $satisfactionData[] = round($satisfaction_score * 100, 1);
+                
+                // Set color based on risk level
+                if ($risk_score <= 0.3) {
+                    $backgroundColor[] = 'rgba(40, 167, 69, 0.5)'; // green
+                } elseif ($risk_score <= 0.6) {
+                    $backgroundColor[] = 'rgba(255, 193, 7, 0.5)'; // yellow
+                } else {
+                    $backgroundColor[] = 'rgba(220, 53, 69, 0.5)'; // red
+                }
+            }
+
+            // Display only the regression chart
+            echo '<div class="charts-container" style="display: flex; justify-content: center; align-items: center; height: 500px;">
+            <div class="chart-wrapper" style="width: 90%; height: 90%; display: flex; justify-content: center; align-items: center;">
+                <canvas id="regressionChart"></canvas>
+            </div>
+            </div>';
+
+            // Display the table
+            echo '<div class="attrition-table-container">';
+            echo '<table id="attritionTable" class="display">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Years of Service</th>
+                            <th>Attendance Score</th>
+                            <th>Satisfaction Score</th>
+                            <th>Attrition Risk</th>
+                            <th>Risk Level</th>
+                            <th>Justification</th>
+                            <th>Recommendations</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+
+            // Second pass to display table data
+            foreach ($allRows as $row) {
+                $attendance_score = floatval($row['attendance_score']);
+                $satisfaction_score = floatval($row['satisfaction_score']);
+                $years_of_service = floatval($row['years_of_service']);
+
+                $risk_score = calculateAttritionRisk(
+                    $attendance_score,
+                    $satisfaction_score,
+                    $years_of_service
+                );
+
+                // Determine risk level
+                if ($risk_score <= 0.3) {
+                    $risk_level = '<span class="low-risk">Low Risk</span>';
+                    $recommendation = 'Promotion';
+                    $justifications = [
+                        'Outstanding Performance - Scores above 90% in evaluations.',
+                        'Excellent Attendance - Consistently punctual and reliable.', 
+                        'High Job Satisfaction - Reports commitment to the company.', 
+                        'Super Low Attrition Risk - Likely to stay and grow with the company.', 
+                        'Leadership Potential - Strong teamwork and leadership feedback.'
+                    ];
+                } elseif ($risk_score <= 0.6) {
+                    $risk_level = '<span class="medium-risk">Medium Risk</span>';
+                    $recommendation = 'Demotion';
+                    $justifications = [
+                        'Consistently Poor Performance – Below 50% in multiple evaluation periods.',
+                        'High Absenteeism – 40% absence rate significantly affecting productivity.',
+                        'Job Dissatisfaction – Reports strong discontent with workload and environment.',
+                        'Multiple Warnings Issued – No improvement despite HR interventions.',
+                        'Company Downsizing – Retrenchment is necessary due to business restructuring and cost-cutting measures.'
+                    ];
+                } else {
+                    $risk_level = '<span class="high-risk">High Risk</span>';
+                    $recommendation = 'Retrenchment';
+                    $justifications = [
+                        'Consistently Poor Performance - Below 50% in multiple evaluation periods.', 
+                        'High Absenteeism - 40% absence rate significantly affecting productivity.',
+                        'Job Dissatisfaction - Reports strong discontent with workload and environment.', 
+                        'Multiple Warnings Issued - No improvement despite HR interventions.', 
+                        'Company Downsizing - Retrenchment is necessary due to business restructuring and cost-cutting measures.'
+                    ];
+                }
+
+                // Format recommendations as a list
+                $justification_list = '<ul>';
+                foreach ($justifications as $jus) {
+                    $justification_list .= "<li>$jus</li>";
+                }
+                $justification_list .= '</ul>';
+
+                // Store prediction in database
+                $store_prediction = "INSERT INTO attrition_forecasting (
+                    employee_id,
+                    prediction_date,
+                    attrition_probability,
+                    factors
+                ) VALUES (
+                    '{$row['employee_id']}',
+                    CURRENT_DATE,
+                    $risk_score,
+                    '" . json_encode([
+                        'attendance_score' => $attendance_score,
+                        'satisfaction_score' => $satisfaction_score,
+                        'years_of_service' => $years_of_service
+                    ]) . "'
+                ) ON DUPLICATE KEY UPDATE 
+                    attrition_probability = $risk_score,
+                    factors = '" . json_encode([
+                        'attendance_score' => $attendance_score,
+                        'satisfaction_score' => $satisfaction_score,
+                        'years_of_service' => $years_of_service
+                    ]) . "'";
+
+                mysqli_query($conn, $store_prediction);
+
+                if ($row['recommendation_id']) {
+                    $action = $row['reason'];
+                
+                    if ($action == 'Approved' && $row['recommendation_type'] == 'Promotion') {
+                        $action = 'PROMOTE';
+                    } elseif ($action == 'Approved' && $row['recommendation_type'] == 'Demotion') {
+                        $action = 'DEMOTE';
+                    } elseif ($action == 'Approved' && $row['recommendation_type'] == 'Retrenchment') {
+                        $action = 'RETRENCH';
+                    } elseif ($action == 'Rejected') {
+                        $action = 'REMAIN';
+                    }
+                } else {
+                    $action = "<form class='action-buttons' method='POST'>
+                                <input type='hidden' name='employee_id' value='{$row['employee_id']}'/>
+                                <input type='hidden' name='recommendation' value='{$recommendation}'/>
+                                <input class='btn btn-warning' type='submit' name='approve' value='Approve'/>
+                                <input class='btn btn-danger' type='submit' name='reject' value='Reject'/>
+                            </form>";
+                }
+                echo "<tr>
+                        <td>{$row['employee_id']}</td>
+                        <td>{$row['first_name']} {$row['last_name']}</td>
+                        <td>" . number_format($years_of_service, 1) . "</td>
+                        <td>" . number_format($attendance_score * 100, 1) . "%</td>
+                        <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
+                        <td>" . number_format($risk_score * 100, 1) . "%</td>
+                        <td>$risk_level</td>
+                        <td>$recommendation</td>
+                        <td>$justification_list</td>
+                        <td>$action</td>
+                    </tr>";
+
+            }
+
+            echo '</tbody></table></div>';
+        }
+        mysqli_close($conn);
+        ?>
+    </section>
+</main>
 
 <!-- Add Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -327,6 +381,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+}
+
 .attrition-table-container {
     padding: 20px;
     background: #fff;
@@ -368,26 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: bold;
 }
 
-.promotion {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.demotion {
-    color: #ffc107;
-    font-weight: bold;
-}
-
-.retrench {
-    color: #dc3545;
-    font-weight: bold;
-}
-
-.normal {
-    color: #6c757d;
-    font-weight: bold;
-}
-
 .charts-container {
     display: flex;
     flex-wrap: wrap;
@@ -420,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
 $(document).ready(function() {
     $('#attritionTable').DataTable({
         order: [[5, 'desc']], // Sort by attrition risk by default
-        pageLength: 10,
+        pageLength:
         responsive: true
     });
 });
