@@ -170,8 +170,6 @@ if (isset($_POST['update_dept'])) {
         <div class="dept-background"></div>
         <div class="card">
 
-        <?php if(!empty($message)) echo $message; ?>
-
         <table>
             <thead>
                 <tr>

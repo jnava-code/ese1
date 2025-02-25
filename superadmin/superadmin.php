@@ -75,15 +75,13 @@ if (isset($_POST['update_admin'])) {
     }
 }
 
-
-
 // Fetch Admins
 $searchQuery = '';
 if (isset($_GET['search'])) {
     $searchQuery = $_GET['search'];
 }
 
-$sql = "SELECT * FROM admin";
+$sql = "SELECT * FROM admin WHERE is_archived = 0";
 if (!empty($searchQuery)) {
     $sql .= " WHERE LOWER(username) LIKE LOWER(?) 
               OR LOWER(first_name) LIKE LOWER(?) 
@@ -101,13 +99,28 @@ if (!empty($searchQuery)) {
 }
 
 //Instead of delete Archive the user
+// Instead of deleting, archive the user
 if (isset($_GET['archive_id'])) {
     $id = $_GET['archive_id'];
-    $sql = "UPDATE admin SET is_archived = 1 WHERE id=?";
-    executeQuery($conn, $sql, 'i', [$id]);
-    header("Location: ./superadmin"); // Redirect to avoid duplicate submissions
-    exit;
+    
+    // Ensure the ID exists
+    $checkQuery = "SELECT id FROM admin WHERE id = ?";
+    $stmtCheck = mysqli_prepare($conn, $checkQuery);
+    mysqli_stmt_bind_param($stmtCheck, 'i', $id);
+    mysqli_stmt_execute($stmtCheck);
+    mysqli_stmt_store_result($stmtCheck);
+    
+    if (mysqli_stmt_num_rows($stmtCheck) > 0) {
+        $sql = "UPDATE admin SET is_archived = 1 WHERE id=?";
+        executeQuery($conn, $sql, 'i', [$id]);
+        header("Location: superadmin"); // Redirect properly
+        exit();
+    } else {
+        echo "<script>alert('Admin not found!'); window.history.back();</script>";
+        exit();
+    }
 }
+
 
 
 ?>

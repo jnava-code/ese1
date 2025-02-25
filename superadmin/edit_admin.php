@@ -31,24 +31,39 @@
         mysqli_stmt_close($stmt);
     }
 
-   // Update Admin
+// Update Admin
 if (isset($_POST['update_admin'])) {
-    $id = $_GET['id'];
-    $username = $_POST['username'];
-    $user_type = $_POST['user_type'];
-    $status = $_POST['status'];
-    $first_name = $_POST['first_name']; 
-    $last_name = $_POST['last_name'];
-    $email = $_POST['email'];
-    $contact_number = $_POST['contact_number'];
+    if (isset($_GET['id']) && !empty($_GET['id'])) {
+        $id = $_GET['id'];
+        $username = trim($_POST['username']);
+        $user_type = trim($_POST['user_type']);
+        $status = trim($_POST['status']);
+        $first_name = trim($_POST['first_name']);
+        $last_name = trim($_POST['last_name']);
+        $email = trim($_POST['email']);
+        $contact_number = trim($_POST['contact_number']);
 
+        // Validate required fields
+        if (empty($username) || empty($user_type) || empty($status) || empty($first_name) || empty($last_name) || empty($email) || empty($contact_number)) {
+            header("Location: edit_admin.php?id=$id&error=All fields are required");
+            exit();
+        }
 
+        // Update query
         $sql = "UPDATE admin SET username=?, user_type=?, status=?, first_name=?, last_name=?, email=?, contact_number=? WHERE id=?";
         executeQuery($conn, $sql, 'sisssssi', [
             $username, $user_type, $status, $first_name, $last_name, $email, $contact_number, $id
         ]);
-    
+
+        // Redirect back to edit page after update
+        header("Location: edit_admin?id=$id");
+        exit();
+    } else {
+        header("Location: admin_list.php?error=Invalid ID");
+        exit();
+    }
 }
+
 ?>
 
 
