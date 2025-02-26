@@ -66,9 +66,9 @@ if (isset($_POST['search'])) {
     }
 }
 
-// Function to convert 24-hour time to 12-hour format with AM/PM
+// Function to convert 24-hour time to 12-hour format without AM/PM
 function convertTo12HourFormat($time) {
-    $formatted_time = date("g:i:s a", strtotime($time));
+    $formatted_time = date("g:i:s", strtotime($time));
     return $formatted_time;
 }
 ?>
@@ -338,9 +338,6 @@ function convertTo12HourFormat($time) {
                         ?>
                     </select>
                 </div>
-                <?php if (!empty($month)) echo $month; ?>
-<?php if (!empty($year)) echo $year; ?>
-
                 <div class="button">
                     <label for=""></label>
                     <button class="searchBtn" name="search" type="submit">Search</button>
@@ -398,7 +395,7 @@ if (!empty($month) && !empty($year)) {
             if ($attendance_for_day) {
                 $clock_in_time = $attendance_for_day['clock_in_time'];
                 $clock_out_time = $attendance_for_day['clock_out_time'];
-                $total_hours = $attendance_for_day['total_hours'];
+                $total_hours = round($attendance_for_day['total_hours']);
                 $status = $attendance_for_day['status'];
 
                 // Convert times to 12-hour format
