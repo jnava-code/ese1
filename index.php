@@ -66,17 +66,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Calculate total worked time in seconds
                         $total_seconds = $clock_out_time - $clock_in_time;
 
-                        // Calculate hours worked by dividing total seconds by 3600 (seconds in an hour)
+                        // Convert clock-in time and clock-out time to hours and minutes
+                        $clock_in_hour = date('H', $clock_in_time);
+                        $clock_out_hour = date('H', $clock_out_time);
+
+                        // Check if the clock-in and clock-out times cross over the 12:00 PM to 1:00 PM break
+                        if (($clock_in_hour <= 12 && $clock_out_hour >= 13) || ($clock_in_hour >= 13 && $clock_out_hour <= 17)) {
+                            // Subtract 1 hour (3600 seconds) if the work time crosses the lunch break
+                            $total_seconds -= 3600; // Subtract 1 hour for lunch break
+                        }
+
+                        // Calculate total hours worked by dividing total seconds by 3600 (seconds in an hour)
                         $total_hours = round($total_seconds / 3600, 2); // Round to 2 decimal places
 
                         // Determine status based on total hours worked
-                        if ($total_hours < 8.99) {
+                        if ($total_hours < 7.99) {
                             $status = "Under Time";
-                        } elseif ($total_hours >= 9) {
+                        } elseif ($total_hours >= 8) {
                             $status = "Over Time";
                         } else {
                             $status = "Present"; // Default status
                         }
+
 
                         // Update attendance record with clock-out time, total hours worked, and status
                         $update_sql = "UPDATE attendance 
