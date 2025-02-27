@@ -246,124 +246,132 @@ table tr:hover {
         </form>
 
         <div class="attendance-table">
-            <table id="attendance-table" class="table table-striped">
-                <thead>
-                    <tr>    
-                        <th></th>
-                        <th>Employee</th>
-                        <th>Sunday</th>
-                        <th>Monday</th>
-                        <th>Tuesday</th>
-                        <th>Wednesday</th>
-                        <th>Thursday</th>
-                        <th>Friday</th>
-                        <th>Saturday</th>
-                    </tr>
-                </thead>
-                <tbody>
-                        <?php if (isset($attendanceData) && !empty($attendanceData)): ?>
-                            <?php $count = 1; ?>    
-                            <?php foreach ($attendanceData as $employee_id => $attendance): ?>
-                                <tr>
-                                    <td><?php echo $count++; ?></td>
-                                    <?php 
-                                    // Get the employee's full name and hire date
-                                    $full_name = '';
-                                    $hire_date = '';
-                                    if (!empty($attendance)) {
-                                        $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
-                                        $hire_date = $attendance[0]['hire_date'];
-                                    }
+        <table id="attendance-table" class="table table-striped">
+    <thead>
+        <tr>    
+            <th></th>
+            <th>Employee</th>
+            <th>Sunday</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+            <th>Saturday</th>
+            <th>Total Hours</th> <!-- Added Total Hours column -->
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (isset($attendanceData) && !empty($attendanceData)): ?>
+            <?php $count = 1; ?>    
+            <?php foreach ($attendanceData as $employee_id => $attendance): ?>
+                <tr>
+                    <td><?php echo $count++; ?></td>
+                    <?php 
+                    // Get the employee's full name and hire date
+                    $full_name = '';
+                    $hire_date = '';
+                    if (!empty($attendance)) {
+                        $full_name = htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8');
+                        $hire_date = $attendance[0]['hire_date'];
+                    }
 
-                                    // Convert hire_date to a comparable format
-                                    $hire_date = date('Y-m-d', strtotime($hire_date));
-                                    ?>
-                                    <td><?php echo $full_name; ?></td>
+                    // Convert hire_date to a comparable format
+                    $hire_date = date('Y-m-d', strtotime($hire_date));
+                    ?>
+                    <td><?php echo $full_name; ?></td>
 
-                                    <?php 
-                                    // Loop through the days of the week (Sunday to Saturday)
-                                    for ($day = 0; $day < 7; $day++) {
-                                        $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
-                                        $today = date('Y-m-d'); // Get today's date
-                                    
-                                        // If the date is in the future, leave the cell empty
-                                        if ($currentDate > $today) {
-                                            echo "<td></td>";
-                                            continue;
-                                        }
-                                    
-                                        $status = 'A'; // Default status is Absent
-                                        $clock_in_time = '-';
-                                        $clock_out_time = '-';
-                                        $total_hours = '-';
-                                    
-                                        $status_display = '';
-                                        $status_color = '#f8f9fa'; // Default status color (light gray)
-                                    
-                                        // Skip Saturday and Sunday
-                                        if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
-                                            echo "<td></td>"; // Empty cell for Saturday and Sunday
-                                            continue;
-                                        }
-                                    
-                                        // Skip dates before the hire date for that employee
-                                        if ($currentDate < $hire_date) {
-                                            // Leave the cell empty if the date is before the hire date
-                                            echo "<td></td>";
-                                            continue;
-                                        }
+                    <?php 
+                    $total_hours = 0; // Variable to accumulate total hours for the employee
                     
-                                        // Check if attendance data exists for this day
-                                        foreach ($attendance as $record) {
-                                            if (isset($record['date']) && $record['date'] == $currentDate) {
-                                                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                                                $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                                $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
-                                                $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
-                                                $rstatus = htmlspecialchars($record['status']);
-                                                break; // Exit the inner loop once the record is found
-                                            }
-                                        }
-                                    
-                                        // Check if employee is on approved leave
-                                        $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
-                                        $stmt = $conn->prepare($leave_query);
-                                        $stmt->bind_param("ss", $employee_id, $currentDate);
-                                        $stmt->execute();
-                                        $leave_result = $stmt->get_result();
-                                    
-                                        if ($leave = $leave_result->fetch_assoc()) {
-                                            $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                                            $status_color = "#74c0fc";  // Blue for leave
-                                        } elseif ($status == "A") {
-                                            $status_display = "Absent";
-                                            $status_color = "#ff8787";  // Red for absence
-                                        } elseif ($status == "P") {
-                                            $status_display = "Present" . ' '  . '(' . $rstatus . ')';
-                                            $status_color = "#69db7c";  // Green for present
-                                        }  else {
-                                            $status_display = "N/A";
-                                        }
-                                    
-                                        // Output the table cell for the current day with color-coded status
-                                        echo "<td>";
-                                        echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
-                                        if ($clock_in_time != '-') {
-                                            echo "<strong>In:</strong> $clock_in_time<br>";
-                                            echo "<strong>Out:</strong> $clock_out_time<br>";
-                                            echo "<strong>Total hours:</strong> $total_hours<br>";
-                                        }
-                                        echo "</td>";
-    }
+                    // Loop through the days of the week (Sunday to Saturday)
+                    for ($day = 0; $day < 7; $day++) {
+                        $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
+                        $today = date('Y-m-d'); // Get today's date
+                    
+                        // If the date is in the future, leave the cell empty
+                        if ($currentDate > $today) {
+                            echo "<td></td>";
+                            continue;
+                        }
+                    
+                        $status = 'A'; // Default status is Absent
+                        $clock_in_time = '-';
+                        $clock_out_time = '-';
+                        $daily_hours = 0; // Variable to store the hours worked on this day
+                        $status_display = '';
+                        $status_color = '#f8f9fa'; // Default status color (light gray)
+                    
+                        // Skip Saturday and Sunday
+                        if ($day == 0 || $day == 6) { // 0 for Sunday, 6 for Saturday
+                            echo "<td></td>"; // Empty cell for Saturday and Sunday
+                            continue;
+                        }
+                    
+                        // Skip dates before the hire date for that employee
+                        if ($currentDate < $hire_date) {
+                            // Leave the cell empty if the date is before the hire date
+                            echo "<td></td>";
+                            continue;
+                        }
+        
+                        // Check if attendance data exists for this day
+                        foreach ($attendance as $record) {
+                            if (isset($record['date']) && $record['date'] == $currentDate) {
+                                $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
+                                $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                                $daily_hours = $record['total_hours'] ? floatval($record['total_hours']) : 0; // Accumulate daily hours
+                                $rstatus = htmlspecialchars($record['status']);
+                                break; // Exit the inner loop once the record is found
+                            }
+                        }
+                    
+                        // Check if employee is on approved leave
+                        $leave_query = "SELECT leave_type, reason FROM leave_applications WHERE employee_id = ? AND status = 'Approved' AND ? BETWEEN start_date AND end_date";
+                        $stmt = $conn->prepare($leave_query);
+                        $stmt->bind_param("ss", $employee_id, $currentDate);
+                        $stmt->execute();
+                        $leave_result = $stmt->get_result();
+                    
+                        if ($leave = $leave_result->fetch_assoc()) {
+                            $status_display = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                            $status_color = "#74c0fc";  // Blue for leave
+                        } elseif ($status == "A") {
+                            $status_display = "Absent";
+                            $status_color = "#ff8787";  // Red for absence
+                        } elseif ($status == "P") {
+                            $status_display = "Present" . ' '  . '(' . $rstatus . ')';
+                            $status_color = "#69db7c";  // Green for present
+                        }  else {
+                            $status_display = "N/A";
+                        }
+                    
+                        // Output the table cell for the current day with color-coded status
+                        echo "<td>";
+                        echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
+                        if ($clock_in_time != '-') {
+                            echo "<strong>In:</strong> $clock_in_time<br>";
+                            echo "<strong>Out:</strong> $clock_out_time<br>";
+                            echo "<strong>Total hours:</strong> $daily_hours<br>";
+                        }
+                        echo "</td>";
 
-                                    ?>
-                                </tr>
-                            <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr><td colspan="8">No attendance records found for the selected week.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        // Add the daily hours to the total hours for the employee
+                        $total_hours += $daily_hours;
+                    }
+
+                    ?>
+                    <!-- Output the total hours for the employee in the last column -->
+                    <td><strong><?php echo number_format($total_hours, 2); ?> hrs</strong></td> 
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr><td colspan="9">No attendance records found for the selected week.</td></tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
         </div>
     </section>
 </main>

@@ -39,7 +39,8 @@ if (isset($_POST['submit'])) {
     if (mysqli_num_rows($check_result) > 0) {
         // Insert the leave request into the database
         $sql = "INSERT INTO leave_applications (employee_id, leave_type, file_date, start_date, end_date, number_of_days, reason) 
-                VALUES ('$employee_id', '$leave_type', '$file_date', '$start_date', '$end_date', $noOfDays, '$reason')";
+        VALUES ('$employee_id', '$leave_type', '$file_date', '$start_date', '$end_date', $noOfDays, '$reason')";
+
 
         if (mysqli_query($conn, $sql)) {
             $message = "Leave application submitted successfully!";
@@ -216,6 +217,7 @@ if (isset($_POST['submit'])) {
                             }     
                         ?>              
                     </select>
+
                 </div>
 
                 <div>
@@ -251,36 +253,36 @@ if (isset($_POST['submit'])) {
 
     // Function to ensure end date cannot be earlier than start date
     function validateEndDate() {
-    const sick_leave = document.getElementById("sick_leave");
-    const vacation_leave = document.getElementById("vacation_leave");
-    const maternity_leave = document.getElementById("maternity_leave");
-    const paternity_leave = document.getElementById("paternity_leave");
-    const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const numberOfDays =document.getElementById("no_of_days");
-    const leaveType =document.getElementById("leave_type");
+        const sick_leave = document.getElementById("sick_leave");
+        const vacation_leave = document.getElementById("vacation_leave");
+        const maternity_leave = document.getElementById("maternity_leave");
+        const paternity_leave = document.getElementById("paternity_leave");
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const numberOfDays =document.getElementById("no_of_days");
+        const leaveType =document.getElementById("leave_type");
 
-    const startDate = new Date(startDateInput.value);
-    
-    if (leaveType) {
-    this.selectedLeaveType = "Sick"; // Default leave type
-    leaveType.addEventListener("change", e => {
-        this.selectedLeaveType = e.target.value;
-
-        // Match selected leave type and remove " days" if present
-        if (this.selectedLeaveType === "Sick") {
-            this.leaveType = sick_leave.value.replace(" days", "").trim();
-        } else if (this.selectedLeaveType === "Vacation") {
-            this.leaveType = vacation_leave.value.replace(" days", "").trim();
-        } else if (this.selectedLeaveType === "Maternity") { // Corrected typo "Meternity"
-            this.leaveType = maternity_leave.value.replace(" days", "").trim();
-        } else if (this.selectedLeaveType === "Paternity") {
-            this.leaveType = paternity_leave.value.replace(" days", "").trim();
-        } else {
-            this.leaveType = ""; // Default empty value if no match
-        }
-    });
-}
+        const startDate = new Date(startDateInput.value);
+        
+        if (leaveType) {
+        this.selectedLeaveType = "Sick"; // Default leave type
+        leaveType.addEventListener("change", e => {
+            this.selectedLeaveType = e.target.value;
+            
+            // Match selected leave type and remove " days" if present
+            if (this.selectedLeaveType === "Sick") {
+                this.leaveType = sick_leave.value.replace(" days", "").trim();
+            } else if (this.selectedLeaveType === "Vacation") {
+                this.leaveType = vacation_leave.value.replace(" days", "").trim();
+            } else if (this.selectedLeaveType === "Maternity") { // Corrected typo "Meternity"
+                this.leaveType = maternity_leave.value.replace(" days", "").trim();
+            } else if (this.selectedLeaveType === "Paternity") {
+                this.leaveType = paternity_leave.value.replace(" days", "").trim();
+            } else {
+                this.leaveType = ""; // Default empty value if no match
+            }
+        });
+    }
     
     if (startDateInput.value) {
         endDateInput.setAttribute('min', startDateInput.value);

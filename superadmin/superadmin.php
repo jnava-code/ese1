@@ -7,6 +7,14 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+require '../vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/Exception.php';
+require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/PHPMailer.php';
+require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/SMTP.php';
+
 // Function to execute queries with error handling
 function executeQuery($conn, $sql, $types = null, $params = []) {
     $stmt = mysqli_prepare($conn, $sql);
@@ -22,7 +30,8 @@ function executeQuery($conn, $sql, $types = null, $params = []) {
 // Add Admin
 if (isset($_POST['add_admin'])) {
     $username = $_POST['username'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Secure password hashing
+    $password = $_POST['password']; 
+    $password_hashed = password_hash($password, PASSWORD_DEFAULT);
     $user_type = $_POST['user_type'];
     $status = $_POST['status'];
     $first_name = $_POST['first_name'];
@@ -45,8 +54,43 @@ if (isset($_POST['add_admin'])) {
         $sql = "INSERT INTO admin (username, password, user_type, status, first_name, last_name, email, contact_number) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         executeQuery($conn, $sql, 'ssisssss', [
-            $username, $password, $user_type, $status, $first_name, $last_name, $email, $contact_number
+            $username, $password_hashed, $user_type, $status, $first_name, $last_name, $email, $contact_number
         ]);
+
+        // Send email using PHPMailer
+        $mail = new PHPMailer(true);
+
+        try {
+            // SMTP Settings
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+            $mail->SMTPAuth = true;
+            $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
+            $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+                           
+            // Email Headers
+            $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
+            $mail->addAddress($email); // The recipient's email
+            $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+
+            // Prepare the email message
+            $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
+
+            // Set email format to plain text
+            $mail->isHTML(true);
+            $mail->Body = $message;
+
+            // Send the email
+            if ($mail->send()) {
+               $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+            } else {
+               $errmsg = "An error occurred: " . $stmt->error;
+            }
+        } catch (Exception $e) {
+            $errmsg = "Mailer Error: " . $mail->ErrorInfo;
+        }
     }
 }
 

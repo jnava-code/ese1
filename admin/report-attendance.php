@@ -65,6 +65,12 @@ if (isset($_POST['search'])) {
         mysqli_stmt_close($stmt_attendance);
     }
 }
+
+// Function to convert 24-hour time to 12-hour format with AM/PM
+function convertTo12HourFormat($time) {
+    $formatted_time = date("g:i:s a", strtotime($time));
+    return $formatted_time;
+}
 ?>
 
 <!DOCTYPE html>
@@ -229,44 +235,43 @@ if (isset($_POST['search'])) {
                     <input type="text" value="<?php echo !empty($position) ? $position : ''; ?>" disabled>
                 </div>
                 <div class="month-and-year">
-    <label for="month-year">Month and Year:</label>
-    <select name="month-year" id="month-year">
-        <?php
-        // Get current year and month
-        $currentYear = date("Y");
-        $currentMonth = date("m");
+                    <label for="month-year">Month and Year:</label>
+                    <select name="month-year" id="month-year">
+                        <?php
+                        // Get current year and month
+                        $currentYear = date("Y");
+                        $currentMonth = date("m");
 
-        // Start year from 2024
-        $startYear = 2024;
+                        // Start year from 2024
+                        $startYear = 2024;
 
-        // Loop through years from 2024 to current year
-        for ($year = $startYear; $year <= $currentYear; $year++) {
-            // Loop through months
-            for ($month = 1; $month <= 12; $month++) {
-                // Skip months that are ahead of the current month if it's the current year
-                if ($year == $currentYear && $month > $currentMonth) {
-                    break;
-                }
+                        // Loop through years from 2024 to current year
+                        for ($year = $startYear; $year <= $currentYear; $year++) {
+                            // Loop through months
+                            for ($month = 1; $month <= 12; $month++) {
+                                // Skip months that are ahead of the current month if it's the current year
+                                if ($year == $currentYear && $month > $currentMonth) {
+                                    break;
+                                }
 
-                // Get month name (e.g., January, February)
-                $monthName = date("F", strtotime("$year-$month-01"));
+                                // Get month name (e.g., January, February)
+                                $monthName = date("F", strtotime("$year-$month-01"));
 
-                // Format the month to two digits
-                $monthNumber = str_pad($month, 2, "0", STR_PAD_LEFT);
+                                // Format the month to two digits
+                                $monthNumber = str_pad($month, 2, "0", STR_PAD_LEFT);
 
-                // Format the month-year as "Month YYYY"
-                $monthYear = $monthNumber . "-" . $year;
+                                // Format the month-year as "Month YYYY"
+                                $monthYear = $monthNumber . "-" . $year;
 
-                // Check if this month-year should be selected
-                $selectedMonthYear = (isset($_POST['month-year']) && $_POST['month-year'] == $monthYear) ? 'selected' : '';
+                                // Check if this month-year should be selected
+                                $selectedMonthYear = (isset($_POST['month-year']) && $_POST['month-year'] == $monthYear) ? 'selected' : '';
 
-                echo "<option value='$monthYear' $selectedMonthYear>$monthName $year</option>";
-            }
-        }
-        ?>
-    </select>
-</div>
-
+                                echo "<option value='$monthYear' $selectedMonthYear>$monthName $year</option>";
+                            }
+                        }
+                        ?>
+                    </select>
+                </div>
 
                 <div class="button">
                     <label for=""></label>
@@ -284,6 +289,8 @@ if (isset($_POST['search'])) {
                     <th>Arrival</th>
                     <th>Departure</th>
                     <th>Hours</th>
+                    <th>Total Regular Hours</th>
+                    <th>Total Hours</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -293,7 +300,7 @@ if (isset($_POST['search'])) {
                 for ($day = 1; $day <= $days_in_month; $day++) {
                     // Check if there's attendance for the current day
                     $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
-                    
+
                     if ($attendance_for_day) {
                         // If attendance exists for the day, display the attendance data
                         $attendance_date = $attendance_for_day['date'];
@@ -301,20 +308,38 @@ if (isset($_POST['search'])) {
                         $clock_out_time = $attendance_for_day['clock_out_time'];
                         $total_hours = $attendance_for_day['total_hours'];
                         $status = $attendance_for_day['status'];
+
+                        // Convert times to 12-hour format with AM/PM
+                        $clock_in_time_12hr = convertTo12HourFormat($clock_in_time);
+                        $clock_out_time_12hr = convertTo12HourFormat($clock_out_time);
+
+                        // Calculate overtime hours (if any)
+                        $regular_hours = 8; // Regular working hours
+                        $overtime_hours = 0;
+
+                        if ($total_hours > $regular_hours) {
+                            $overtime_hours = $total_hours - $regular_hours;
+                            $overtime_hours = floor($overtime_hours); // No decimals
+                        }
                     } else {
                         // If no attendance, set values to empty
                         $attendance_date = '';
-                        $clock_in_time = '';
-                        $clock_out_time = '';
+                        $clock_in_time_12hr = '';
+                        $clock_out_time_12hr = '';
                         $total_hours = '';
-                        $status = '';
+                        $status = 'Absent';
+                        $overtime_hours = '';
+                        $regular_hours = ''; // Empty for no attendance
                     }
+
                     // Display the row for the current day
                     echo "<tr>";
                     echo "<td>$day</td>";
-                    echo "<td>$clock_in_time</td>";
-                    echo "<td>$clock_out_time</td>";
+                    echo "<td>$clock_in_time_12hr</td>";
+                    echo "<td>$clock_out_time_12hr</td>";
                     echo "<td>$total_hours</td>";
+                    echo "<td>" . ($regular_hours ? $regular_hours : '') . "</td>";
+                    echo "<td>$overtime_hours</td>"; 
                     echo "<td>$status</td>";
                     echo "</tr>";
                 }
@@ -323,14 +348,6 @@ if (isset($_POST['search'])) {
         </table>
     </div>
 
-    <script>
-        const printBtn = document.querySelector(".printBtn");
-        if(printBtn) {
-            printBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                window.print();
-            });
-        }
-    </script>
+    <?php include('footer.php'); ?>
 </body>
 </html>

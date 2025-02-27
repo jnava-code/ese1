@@ -61,8 +61,8 @@
         $username = $_POST['username'] ?? '';
         $sick_leave = $_POST['sick_leave'] ?? 0;
         $vacation_leave = $_POST['vacation_leave'] ?? 0;
-        $maternity_leave = $_POST['maternity_leave'] ?? 0;
-        $paternity_leave = $_POST['paternity_leave'] ?? 0;
+        $maternity_leave = $gender == 'Female' ? $_POST['maternity_leave'] : 0;
+        $paternity_leave = $gender == 'Male' ? $_POST['paternity_leave'] : 0;
     
         // File uploads
         function getFileContent($fieldName) {
@@ -451,6 +451,7 @@ function generatePasswordFromBday($date_of_birth) {
                         <option value="Male" <?php echo (!empty($errmsg) && htmlspecialchars($gender) == "Male") ? 'selected' : ''; ?>>Male</option>
                         <option value="Female" <?php echo (!empty($errmsg) && htmlspecialchars($gender) == "Female") ? 'selected' : ''; ?>>Female</option>
                     </select>
+
                 </div>
                 <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
@@ -479,11 +480,25 @@ function generatePasswordFromBday($date_of_birth) {
                     <!-- <input type="text" class="form-control" name="educational_background" placeholder="Education Background" required> -->
                     <select name="educational_background" class="form-control" required>
                         <option value="">Select Education Background</option>
-                        <option value="Technical-Vocational Program graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Technical-Vocational Program graduate") ? 'selected' : ''; ?>>Technical-Vocational Program Graduate</option>
-                        <option value="College graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "College graduate") ? 'selected' : ''; ?>>College Graduate</option>
-                        <option value="Master's degree graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Master's degree graduate") ? 'selected' : ''; ?>>Master's degree Graduate</option>
-                        <option value="Doctorate degree graduate" <?php echo (!empty($errmsg) && htmlspecialchars($educational_background) == "Doctorate degree graduate") ? 'selected' : ''; ?>>Doctorate degree Graduate</option>
+                        <?php 
+                            // Ensure $educational_background is set and sanitized
+                            $educational_background = isset($educational_background) ? htmlspecialchars($educational_background) : ''; 
+
+                            $options = [
+                                "Technical-Vocational Program graduate" => "Technical-Vocational Program Graduate",
+                                "College graduate" => "College Graduate",
+                                "Master's degree graduate" => "Master's degree Graduate",
+                                "Doctorate degree graduate" => "Doctorate degree Graduate"
+                            ];
+
+                            // Loop through options and generate the select options
+                            foreach ($options as $value => $label) {
+                                $selected = ($educational_background == $value) ? 'selected' : '';
+                                echo "<option value='" . htmlspecialchars($value) . "' $selected>$label</option>";
+                            }
+                        ?>
                     </select>
+
                 </div>
                 <div class="col-md-6">
                     <label for="date_of_birth">Date of Birth</label>
@@ -525,11 +540,14 @@ function generatePasswordFromBday($date_of_birth) {
                             $deptResult = mysqli_query($conn, $deptSelect);
 
                             if ($deptResult) {
+                                // Ensure $department is set and sanitized
+                                $department = isset($department) ? htmlspecialchars($department) : ''; 
+
                                 while ($row = mysqli_fetch_assoc($deptResult)) {
                                     // Exclude the department named "Admin"
                                     if ($row['dept_name'] != "Admin") {
                                         // Check if the department matches the selected value (for pre-selection)
-                                        $selected = (!empty($errmsg) && htmlspecialchars($department) == $row['dept_name']) ? 'selected' : '';
+                                        $selected = ($department == htmlspecialchars($row['dept_name'])) ? 'selected' : '';
                                         ?>
                                         <option value="<?php echo htmlspecialchars($row['dept_name']); ?>" <?php echo $selected; ?>>
                                             <?php echo htmlspecialchars($row['dept_name']); ?>
@@ -537,9 +555,10 @@ function generatePasswordFromBday($date_of_birth) {
                                         <?php
                                     }
                                 }
-                            }
+                            } 
                         ?>
                     </select>
+
 
                 </div>
 
@@ -587,7 +606,7 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Employee ID</label>
-                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php echo !empty($errmsg) ? htmlspecialchars($employee_id) : ''; ?>" readonly>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" value="<?php echo !empty($errmsg) && isset($employee_id) ? htmlspecialchars($employee_id) : ''; ?>" readonly>
                 </div>
             </div>
 
@@ -618,22 +637,22 @@ function generatePasswordFromBday($date_of_birth) {
                 <div class="form-row">
                     <div id="sick_leave_container" class="col-md-6">
                         <label for="sick_leave">Sick Leave</label>
-                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" readonly>
+                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="12" readonly>
                     </div>
 
                     <div id="vacation_leave_container" class="col-md-6">
                         <label for="vacation_leave">Vacation Credit</label>
-                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" readonly>
+                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="12" readonly>
                     </div>
 
                     <div id="maternity_leave_container" class="col-md-6">
                         <label for="maternity_leave">Maternity Credit</label>
-                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" readonly>
+                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="105" readonly>
                     </div>
 
                     <div id="paternity_leave_container" class="col-md-6">
                         <label for="paternity_leave">Paternity Credit</label>
-                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" readonly>
+                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="7" readonly>
                     </div>
                 </div>
 
@@ -770,93 +789,112 @@ function generatePasswordFromBday($date_of_birth) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 
 <script>
-    const employeeId = document.getElementById("employee_id");
-    const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
-    const sickContainer = document.getElementById("sick_leave_container");
-    const vacationContainer = document.getElementById("vacation_leave_container");
-    const maternityContainer = document.getElementById("maternity_leave_container");
-    const paternityContainer = document.getElementById("paternity_leave_container");
-    const employmentStatus = document.getElementById("employment_status");
-    const genderInput = document.getElementById("gender");
-    const hireDate = document.getElementById("hire_date");
-                   
-if (hireDate) { 
-    hireDate.addEventListener("change", async (e) => {
-        const value = e.target.value;
+        const employeeId = document.getElementById("employee_id");
+        const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
+   const sickContainer = document.getElementById("sick_leave_container");
+        const vacationContainer = document.getElementById("vacation_leave_container");
+        const maternityContainer = document.getElementById("maternity_leave_container");
+        const paternityContainer = document.getElementById("paternity_leave_container");
+        const employmentStatus = document.getElementById("employment_status");
+        const genderInput = document.getElementById("gender");
+        const hireDate = document.getElementById("hire_date");
 
-        let highestValue;
-        const employees = document.querySelectorAll('.employee_js');
-        if (employees.length > 0) {
-            // Extract the last 3 digits, convert them to numbers, and find the highest value
-            const lastThreeDigits = Array.from(employees).map(emp => {
-                return parseInt(emp.value.toString().slice(-3), 10); // Extract and convert to a number
+        function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
+            sickContainer.style.display = sickDisplay;
+            vacationContainer.style.display = vacationDisplay;
+            maternityContainer.style.display = maternityDisplay;
+            paternityContainer.style.display = paternityDisplay;
+        }
+
+        function updateLeaveBasedOnEmploymentStatus() {
+            const genderValue = genderInput.value;
+            const employmentValue = employmentStatus.value;
+
+            if (employmentValue === "Regular") {
+                leaveContainers("block", "block", genderValue === "Female" ? "block" : "none", genderValue === "Male" ? "block" : "none");
+            } else {
+                leaveContainers("none", "none", "none", "none");
+            }
+        }
+
+        if (hireDate) {
+            hireDate.addEventListener("change", (e) => {
+                const value = e.target.value;
+
+                let highestValue;
+                const employees = document.querySelectorAll('.employee_js');              
+                if (employees.length > 0) {
+                    // Extract the last 3 digits, convert them to numbers, and find the highest value
+                    const lastThreeDigits = Array.from(employees).map(emp => {                     
+                        return parseInt(emp.value.toString().slice(-3), 10); // Extract and convert to a number
+                    });
+
+                    // Get the highest number from the last 3 digits
+                    highestValue = Math.max(...lastThreeDigits);
+                } else {
+                    highestValue = 0; // Default if no employees exist
+                }
+
+                let employeeLatest;
+                // Convert highestValue to a string and check padding requirements
+                let highestStr = highestValue.toString().padStart(3, '0');
+
+                if (highestStr.startsWith("00")) {
+                    employeeLatest = (highestValue + 1).toString().padStart(3, '0');
+                } else if (highestStr.startsWith("0")) {
+                    employeeLatest = (highestValue + 1).toString().padStart(2, '0');
+                } else {
+                    employeeLatest = (highestValue + 1).toString();
+                }
+
+                const hireDateObj = new Date(value);
+                const hiredYear = hireDateObj.getFullYear();
+                const currentDate = new Date();
+                
+                const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
+                const monthDiff = currentDate.getMonth() - hireDateObj.getMonth();
+                
+                let totalMonths = yearDiff * 12 + monthDiff;
+                if (monthDiff < 0) {
+                    totalMonths--;
+                }
+
+                employmentStatus.innerHTML = ''; 
+
+                if (totalMonths >= 6) {
+                    employmentStatus.insertAdjacentHTML("beforeend", `
+                        <option value="Regular" selected>Regular</option>
+                        <option value="Probationary">Probationary</option>
+                        <option value="Terminated">Terminated</option>
+                        <option value="Resigned">Resigned</option>
+                    `);
+                } else {
+                    employmentStatus.insertAdjacentHTML("beforeend", `
+                        <option value="Probationary" selected>Probationary</option>
+                        <option value="Terminated">Terminated</option>
+                        <option value="Resigned">Resigned</option>
+                    `);
+                }
+
+                // Update the Employee ID if hire date is not empty
+                if (employeeId) {
+                    employeeId.value = hiredYear % 100 + '-' + employeeLatest;
+                }
+
+                employmentStatus.disabled = false;
+                updateLeaveBasedOnEmploymentStatus();
             });
 
-            // Get the highest number from the last 3 digits
-            highestValue = Math.max(...lastThreeDigits);
-        } else {
-            highestValue = 0; // Default if no employees exist
+            if (hireDate.value) {
+                hireDate.dispatchEvent(new Event("change"));
+            }
         }
 
-        let employeeLatest;
-        // Convert highestValue to a string and check padding requirements
-        let highestStr = highestValue.toString().padStart(3, '0');
-
-        if (highestStr.startsWith("00")) {
-            employeeLatest = (highestValue + 1).toString().padStart(3, '0');
-        } else if (highestStr.startsWith("0")) {
-            employeeLatest = (highestValue + 1).toString().padStart(2, '0');
-        } else {
-            employeeLatest = (highestValue + 1).toString();
-        }
-
-        const notregular = `<option value="Probationary" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Probationary") ? 'selected' : ''; ?>>Probationary</option>
-            <option value="Terminated" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Terminated") ? 'selected' : ''; ?>>Terminated</option>
-            <option value="Resigned" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Resigned") ? 'selected' : ''; ?>>Resigned</option>`;
-
-        const regular = `<option value="Regular" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Regular") ? 'selected' : ''; ?>>Regular</option>
-            <option value="Probationary" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Probationary") ? 'selected' : ''; ?>>Probationary</option>
-            <option value="Terminated" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Terminated") ? 'selected' : ''; ?>>Terminated</option>
-            <option value="Resigned" <?php echo (!empty($errmsg) && htmlspecialchars($employment_status) == "Resigned") ? 'selected' : ''; ?>>Resigned</option>`;
-
-        const hireDateObj = new Date(value);
-        const hiredYear = hireDateObj.getFullYear();
-        const hiredMonth = hireDateObj.getMonth();
-        
-        const currentDate = new Date();
-        const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
-        const monthDiff = currentDate.getMonth() - hiredMonth;
-        
-        let totalMonths = yearDiff * 12 + monthDiff;
-
-        if (monthDiff < 0) {
-            totalMonths--;
-        }
-
-        // Enable Employment Status and set the value based on the hire date
-        employmentStatus.innerHTML = ''; // Clear the options first
-        if (totalMonths >= 6) {
-            employmentStatus.insertAdjacentHTML("beforeend", regular);
-            employmentStatus.disabled = false;
-        } else {
-            employmentStatus.insertAdjacentHTML("beforeend", notregular);
-            employmentStatus.disabled = false;
-        }
-
-        // Update the Employee ID if hire date is not empty
-        if (employeeId) {
-            employeeId.value = hiredYear % 100 + '-' + employeeLatest;
-        }
-    });
-
-    // Trigger the change event immediately if the hire_date is already set
-    if (hireDate.value) {
-        hireDate.dispatchEvent(new Event("change"));
-    }
-}
-
-
-    if(employeeIdDisplay) {
+        genderInput.addEventListener("change", updateLeaveBasedOnEmploymentStatus);
+        employmentStatus.addEventListener("change", updateLeaveBasedOnEmploymentStatus);
+        updateLeaveBasedOnEmploymentStatus();
+          
+        if(employeeIdDisplay) {
         employeeIdDisplay.forEach(display => {
             let validDisplayValue = display.textContent.replace(/[^0-9]/g, '');
             // Apply format: 00-000
@@ -865,76 +903,7 @@ if (hireDate) {
             }
         })
     }
-    
-    // Initially hide all leave containers
-    leaveContainers("none", "none", "none", "none");
 
-    // Function to set leave credits based on the values
-    function leaveCredits(sickValue, vacationValue, maternityValue, paternityValue) {
-        document.getElementById("sick_leave").value = sickValue;
-        document.getElementById("vacation_leave").value = vacationValue;
-        document.getElementById("maternity_leave").value = maternityValue;
-        document.getElementById("paternity_leave").value = paternityValue;
-    }
-
-    // Function to show/hide leave containers
-    function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
-        sickContainer.style.display = sickDisplay;
-        vacationContainer.style.display = vacationDisplay;
-        maternityContainer.style.display = maternityDisplay;
-        paternityContainer.style.display = paternityDisplay;
-    }
-
-    // Event listener for gender change
-    genderInput.addEventListener("change", e => {
-        const genderValue = e.target.value;
-        
-        // Update leave credits and containers based on gender
-        if (genderValue == "Male") {
-            leaveCredits(12, 12, 0, 7);
-            leaveContainers("block", "block", "none", "block");      
-        } else if (genderValue == "Female") {
-            leaveCredits(12, 12, 135, 0);
-            leaveContainers("block", "block", "block", "none");  
-        } else {
-            leaveCredits(0, 0, 0, 0);
-            leaveContainers("none", "none", "none", "none");  
-        }
-
-        // Update leave credits when gender is changed
-        updateLeaveBasedOnEmploymentStatus();  
-    });
-
-    // Event listener for employment status change
-    employmentStatus.addEventListener("change", e => {
-        // Trigger leave credits update based on both employment status and gender
-        updateLeaveBasedOnEmploymentStatus();
-    });
-
-    // Function to update leave credits based on employment status and gender
-    function updateLeaveBasedOnEmploymentStatus() {
-        const genderValue = genderInput.value;
-        const employmentValue = employmentStatus.value;
-
-        // Determine leave credits based on employment status and gender
-        if (employmentValue == "Regular") {
-            if (genderValue == "Male") {
-                leaveCredits(12, 12, 0, 7);
-                leaveContainers("block", "block", "none", "block");      
-            } else if (genderValue == "Female") {
-                leaveCredits(12, 12, 135, 0);
-                leaveContainers("block", "block", "block", "none");  
-            }
-        } else {
-            // If employment is not regular, set all leave credits to 0
-            leaveCredits(0, 0, 0, 0);
-            leaveContainers("none", "none", "none", "none");
-        }
-    }
-
-    // Initial update based on the current values of gender and employment status
-    updateLeaveBasedOnEmploymentStatus();
-           
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
         toggle.addEventListener('click', function (event) {
             const parent = this.parentElement;

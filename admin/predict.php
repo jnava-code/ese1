@@ -142,9 +142,9 @@
                             <th>Attendance Score</th>
                             <th>Satisfaction Score</th>
                             <th>Attrition Risk</th>
-                            <th>Risk Level</th>
-                            <th>Justification</th>
+                            <th>Risk Level</th>                         
                             <th>Recommendations</th>
+                            <th>Justification</th>
                             <th>Action</th>
                         </tr>
                     </thead>
