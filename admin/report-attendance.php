@@ -142,7 +142,7 @@ function convertTo12HourFormat($time) {
         
         @media print {
             body * {
-                font-size: 12px;
+                font-size: 10px;
             }
 
             table thead th,
@@ -431,10 +431,98 @@ if (!empty($month) && !empty($year)) {
 ?>
 
 </tbody>
-
-
 </table>
 
+<?php
+if (!empty($month) && !empty($year)) {
+    // Initialize counters
+    $total_overall_hours = 0;
+    $total_regular_hours = 0;
+    $total_overtime_hours = 0;
+    $days_present = 0;
+    $days_absent = 0;
+    $days_late = 0;
+
+    // Calculate totals
+    for ($day = 1; $day <= $days_in_month; $day++) {
+        $current_date = date_create(sprintf("%04d-%02d-%02d", intval($year), intval($month), $day));
+        $day_name = date_format($current_date, 'l');
+        $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
+
+        if (!$is_weekend) {
+            $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
+
+            if ($attendance_for_day) {
+                $days_present++;
+                $total_overall_hours += round($attendance_for_day['total_hours']);
+                $regular_hours = min(8, round($attendance_for_day['total_hours']));
+                $total_regular_hours += $regular_hours;
+                $total_overtime_hours += max(0, round($attendance_for_day['total_hours']) - 8);
+                
+                // Check if late
+                if ($attendance_for_day['status'] === 'Late') {
+                    $days_late++;
+                }
+            } else {
+                $days_absent++;
+            }
+        }
+    }
+?>
+
+<div style="margin-top: 20px;">
+    <table style="width: 50%; border-collapse: collapse; float: left;">
+        <tr>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Total of Overall Hours
+            </td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Regular Hours 
+            </td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Total Hours of Over Time
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_overall_hours; ?>
+            </td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_regular_hours; ?>
+            </td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_overtime_hours; ?>
+            </td>
+        </tr>
+    </table>
+
+    <div style="float: right;">
+        <table style="border-collapse: collapse;">
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Days Present:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_present; ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Days Absent:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_absent; ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Late:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_late; ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!-- Clear the floats -->
+    <div style="clear: both;"></div>
+</div>
+
+<?php } ?>
 
     </div>
 
