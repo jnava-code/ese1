@@ -21,8 +21,8 @@
         executeQuery($conn, $sql, 'i', [$id]);
     }
 
-    $sql = "SELECT * FROM employees WHERE is_archived = 1 OR employment_status = 'resigned' ORDER BY id ASC";
-    $result = mysqli_query($conn, $sql);
+    $sql_archived = "SELECT * FROM employees WHERE is_archived = 1 OR employment_status = 'resigned' ORDER BY id ASC";
+    $result_archived = mysqli_query($conn, $sql_archived);
 
     include('header.php');
 ?>
@@ -54,7 +54,7 @@
                     <tbody>
                         <?php 
                             $counter = 1;
-                            while ($employee = mysqli_fetch_assoc($result)): 
+                            while ($employee = mysqli_fetch_assoc($result_archived)): 
                         ?>
                             <tr>
                                 <td><?php echo $counter++; ?></td>

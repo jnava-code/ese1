@@ -24,32 +24,32 @@ $result = mysqli_query($conn, $sql);
 
 $query_string = $_SERVER['QUERY_STRING'];
 
-if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $gender = $_POST['gender'];
-    $sick_leave = $_POST['sick_leave'];
-    $vacation_leave = $_POST['vacation_leave'];
+// if (isset($_POST['update'])) {
+//     $id = $_POST['id'];
+//     $gender = $_POST['gender'];
+//     $sick_leave = $_POST['sick_leave'];
+//     $vacation_leave = $_POST['vacation_leave'];
     
-    // Ensure only male employees have paternity leave and only female employees have maternity leave
-    $paternity_leave = ($gender == 'Male') ? $_POST['paternity_leave'] : 0;
-    $maternity_leave = ($gender == 'Female') ? $_POST['maternity_leave'] : 0;
+//     // Ensure only male employees have paternity leave and only female employees have maternity leave
+//     $paternity_leave = ($gender == 'Male') ? $_POST['paternity_leave'] : 0;
+//     $maternity_leave = ($gender == 'Female') ? $_POST['maternity_leave'] : 0;
 
-    // Update the database
-    $sql_update = "UPDATE `employees` 
-                   SET `sick_leave`='$sick_leave', 
-                       `vacation_leave`='$vacation_leave', 
-                       `paternity_leave`='$paternity_leave', 
-                       `maternity_leave`='$maternity_leave' 
-                   WHERE id='$id'";
+//     // Update the database
+//     $sql_update = "UPDATE `employees` 
+//                    SET `sick_leave`='$sick_leave', 
+//                        `vacation_leave`='$vacation_leave', 
+//                        `paternity_leave`='$paternity_leave', 
+//                        `maternity_leave`='$maternity_leave' 
+//                    WHERE id='$id'";
 
-    $update_result = mysqli_query($conn, $sql_update);
+//     $update_result = mysqli_query($conn, $sql_update);
 
-    if ($update_result) {
-        echo "<script>alert('Leave updated successfully!'); window.location.href='remaining_leave';</script>"; // Success message
-    } else {
-        echo "<script>alert('Error updating leave! Please try again.');</script>"; // Error message
-    }
-}
+//     if ($update_result) {
+//         echo "<script>alert('Leave updated successfully!'); window.location.href='remaining_leave';</script>"; // Success message
+//     } else {
+//         echo "<script>alert('Error updating leave! Please try again.');</script>"; // Error message
+//     }
+// }
 
 ?>
 
@@ -248,7 +248,6 @@ button:disabled {
             <th>Maternity Leave</th>           
             <th>Paternity Leave</th>           
             <th>Total Days of Leave</th>
-            <th>Action</th>
         </tr>
     </thead>
 
@@ -262,53 +261,9 @@ button:disabled {
             <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></td>
             <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></td>
             <td><?php echo htmlspecialchars($total); ?></td>
-            <td>
-                <button class="add_leave" type="button" id="add_leave_<?php echo $row['id']?>">Add Leave</button>
-                <form id="leave_modal_<?php echo $row['id']?>" class="leave_modal" method="post">
-                    <input type="hidden" name="id" id="employee_id_<?php echo $row['id']?>" value="<?php echo $row['id']?>">
-                    <input type="hidden" name="gender" value="<?php echo $row['gender']?>">
-                    <div class="title-and-x">
-                        <h2>Update Leave</h2>
-                        <span class="close_modal" id="close_modal_<?php echo $row['id']?>">&#215;</span>
-                    </div>
-                    <div class="leave_content">
-                        <label for="">Sick Leave</label>
-                        <input type="number" name="sick_leave" id="sick_leave_<?php echo $row['id']?>" value="<?php echo $row['sick_leave']?>" placeholder="Sick Leave">
-                        <label for="">Vacation Leave</label>
-                        <input type="number" name="vacation_leave" id="vacation_leave_<?php echo $row['id']?>" value="<?php echo $row['vacation_leave']?>" placeholder="Vacation Leave">
-                        <?php if(strtolower($row['gender']) == 'male'): ?>
-                            <label for="">Paternity Leave</label>
-                            <input type="number" name="paternity_leave" id="paternity_leave_<?php echo $row['id']?>" value="<?php echo $row['paternity_leave']?>" placeholder="Paternity Leave">
-                        <?php else: ?>                            
-                            <label for="">Maternity Leave</label>
-                            <input type="number" name="maternity_leave" id="maternity_leave_<?php echo $row['id']?>" value="<?php echo $row['maternity_leave']?>" placeholder="Maternity Leave">
-                        <?php endif ?>
-                    </div>
-                    <input type="submit" name="update" value="Update Leave">
-                </form>
-            </td>
         </tr>
 
-        <script>
-            // Unique variable names for each modal
-            const addLeaveButton_<?php echo $row['id']?> = document.getElementById('add_leave_<?php echo $row['id']?>');
-            const leaveModal_<?php echo $row['id']?> = document.getElementById('leave_modal_<?php echo $row['id']?>');
-            const closeModal_<?php echo $row['id']?> = document.getElementById('close_modal_<?php echo $row['id']?>');
-
-            // Add event listener to show modal
-            if(addLeaveButton_<?php echo $row['id']?>) {
-                addLeaveButton_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.add('show'); // Show the modal
-                });
-            }
-
-            // Add event listener to close modal
-            if(closeModal_<?php echo $row['id']?>) {
-                closeModal_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.remove('show'); // Hide the modal
-                });         
-            }
-        </script>
+       
     <?php } ?>
 </tbody>
 
@@ -333,3 +288,47 @@ include('footer.php'); // Admin footer file
   });
 
 </script>
+
+<!-- <script>
+            // Unique variable names for each modal
+            const addLeaveButton_<?php echo $row['id']?> = document.getElementById('add_leave_<?php echo $row['id']?>');
+            const leaveModal_<?php echo $row['id']?> = document.getElementById('leave_modal_<?php echo $row['id']?>');
+            const closeModal_<?php echo $row['id']?> = document.getElementById('close_modal_<?php echo $row['id']?>');
+
+            // Add event listener to show modal
+            if(addLeaveButton_<?php echo $row['id']?>) {
+                addLeaveButton_<?php echo $row['id']?>.addEventListener('click', function () {
+                    leaveModal_<?php echo $row['id']?>.classList.add('show'); // Show the modal
+                });
+            }
+
+            // Add event listener to close modal
+            if(closeModal_<?php echo $row['id']?>) {
+                closeModal_<?php echo $row['id']?>.addEventListener('click', function () {
+                    leaveModal_<?php echo $row['id']?>.classList.remove('show'); // Hide the modal
+                });         
+            }
+        </script> -->
+
+        <!-- <form id="leave_modal_<?php echo $row['id']?>" class="leave_modal" method="post">
+                    <input type="hidden" name="id" id="employee_id_<?php echo $row['id']?>" value="<?php echo $row['id']?>">
+                    <input type="hidden" name="gender" value="<?php echo $row['gender']?>">
+                    <div class="title-and-x">
+                        <h2>Update Leave</h2>
+                        <span class="close_modal" id="close_modal_<?php echo $row['id']?>">&#215;</span>
+                    </div>
+                    <div class="leave_content">
+                        <label for="">Sick Leave</label>
+                        <input type="number" name="sick_leave" id="sick_leave_<?php echo $row['id']?>" value="<?php echo $row['sick_leave']?>" placeholder="Sick Leave">
+                        <label for="">Vacation Leave</label>
+                        <input type="number" name="vacation_leave" id="vacation_leave_<?php echo $row['id']?>" value="<?php echo $row['vacation_leave']?>" placeholder="Vacation Leave">
+                        <?php if(strtolower($row['gender']) == 'male'): ?>
+                            <label for="">Paternity Leave</label>
+                            <input type="number" name="paternity_leave" id="paternity_leave_<?php echo $row['id']?>" value="<?php echo $row['paternity_leave']?>" placeholder="Paternity Leave">
+                        <?php else: ?>                            
+                            <label for="">Maternity Leave</label>
+                            <input type="number" name="maternity_leave" id="maternity_leave_<?php echo $row['id']?>" value="<?php echo $row['maternity_leave']?>" placeholder="Maternity Leave">
+                        <?php endif ?>
+                    </div>
+                    <input type="submit" name="update" value="Update Leave">
+                </form> -->

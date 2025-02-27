@@ -108,7 +108,6 @@ if (isset($_POST['update_criteria'])) {
     <section id="dashboard">
         <div class="performance-and-button">
             <h2>EDIT PERFORMANCE CRITERIA</h2>
-
             <div>
                 <a href="#" id="add_performance_criteria_btn" class="btn btn-danger">ADD PERFORMANCE CRITERIA</a>
                 <a href="performance-evaluation" class="btn btn-danger">BACK</a>
@@ -129,7 +128,6 @@ if (isset($_POST['update_criteria'])) {
 
         <div class="card">
             <h3>Performance Criteria</h3>
-            <?php if (!empty($message)) echo $message; ?>
             
             <!-- Performance Criteria Table -->
             <table>
@@ -252,65 +250,6 @@ if (isset($_POST['update_criteria'])) {
             editCriteriaBack.classList.remove("show");
         });
     });
-
-    
-// Function to toggle the edit form and populate it with the current criteria data
-// function editCriteria(criteriaId, criteriaName) {
-//     const editForm = document.querySelector('.edit-criteria-content');
-
-//     if (editForm.style.display === 'block') {
-//         editForm.style.display = 'none';
-//     } else {
-//         // Populate the input with the current data
-//         document.getElementById('criteria_name').value = criteriaName;
-
-//         // Add the criteria ID as a hidden input for submission
-//         const form = document.getElementById('edit-criteria-form');
-        
-//         // Remove any existing criteria_id input before appending a new one (important for toggle behavior)
-//         const existingCriteriaIdInput = form.querySelector('input[name="criteria_id"]');
-//         if (existingCriteriaIdInput) {
-//             existingCriteriaIdInput.remove();
-//         }
-
-//         // Create a new hidden input for the criteria ID
-//         let criteriaIdInput = document.createElement("input");
-//         criteriaIdInput.type = "hidden";
-//         criteriaIdInput.name = "criteria_id";  // Make sure this is named "criteria_id"
-//         criteriaIdInput.value = criteriaId;
-//         form.appendChild(criteriaIdInput);
-
-//         // Show the edit form
-//         editForm.style.display = 'block';
-//     }
-// }
-
-// Handle the form submission (update logic)
-document.getElementById('edit-criteria-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const criteriaName = document.getElementById('criteria_name').value;
-    const criteriaId = document.querySelector('input[name="criteria_id"]').value;
-
-    // Send the updated data to the server (AJAX or form submission)
-    const formData = new FormData();
-    formData.append("criteria_id", criteriaId);
-    formData.append("criteria_name", criteriaName);
-    formData.append("update_criteria", true);
-
-    fetch(window.location.href, {
-        method: "POST",
-        body: formData,
-    })
-    .then(response => response.text())
-    .then(data => {
-        console.log(data);
-        // Optionally, close the form and update the table
-        document.querySelector('.edit-criteria-content').style.display = 'none';
-        location.reload();
-    })
-    .catch(error => console.error('Error:', error));
-});
 
 </script>
 <?php

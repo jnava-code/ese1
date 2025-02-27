@@ -108,7 +108,6 @@ if (isset($_POST['update_criteria'])) {
     <section id="dashboard">
         <div class="performance-and-button">
             <h2>EDIT PERFORMANCE CRITERIA</h2>
-
             <div>
                 <a href="#" id="add_performance_criteria_btn" class="btn btn-danger">ADD PERFORMANCE CRITERIA</a>
                 <a href="performance-evaluation" class="btn btn-danger">BACK</a>
@@ -129,7 +128,6 @@ if (isset($_POST['update_criteria'])) {
 
         <div class="card">
             <h3>Performance Criteria</h3>
-            <?php if (!empty($message)) echo $message; ?>
             
             <!-- Performance Criteria Table -->
             <table>
