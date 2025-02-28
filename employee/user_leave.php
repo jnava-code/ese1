@@ -24,41 +24,45 @@ if($result) {
 // Check if the form is submitted
 if (isset($_POST['submit'])) {
     // Get form input values
-    $employee_id = $_SESSION['employee_id']; // Assume employee_id is stored in session
+    $employee_id = $_SESSION['employee_id'];
     $file_date = $_POST['file_date'];
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
-    $leave_type = $_POST['leave_type']; // Get the selected leave type
+    $leave_type = $_POST['leave_type'];
     $noOfDays = $_POST['no_of_days'];
-    $reason = mysqli_real_escape_string($conn, $_POST['reason']); // Escape special characters
+    $reason = mysqli_real_escape_string($conn, $_POST['reason']);
 
     // Ensure that the employee_id exists in the employees table
     $check_employee_sql = "SELECT employee_id FROM employees WHERE employee_id = '$employee_id'";
     $check_result = mysqli_query($conn, $check_employee_sql);
 
     if (mysqli_num_rows($check_result) > 0) {
-        // Insert the leave request into the database
         $sql = "INSERT INTO leave_applications (employee_id, leave_type, file_date, start_date, end_date, number_of_days, reason) 
         VALUES ('$employee_id', '$leave_type', '$file_date', '$start_date', '$end_date', $noOfDays, '$reason')";
 
-
         if (mysqli_query($conn, $sql)) {
-            $message = "Leave application submitted successfully!";
-            $message_type = "success";
+            $_SESSION['success_message'] = "Leave application submitted successfully!";
+            // Redirect to prevent form resubmission
+            header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
+            exit();
         } else {
-            $message = "Error submitting leave application: " . mysqli_error($conn);
-            $message_type = "error";
+            $_SESSION['error_message'] = "Error submitting leave application: " . mysqli_error($conn);
         }
     } else {
-        $message = "Error: Employee ID not found in the database.";
-        $message_type = "error";
+        $_SESSION['error_message'] = "Error: Employee ID not found in the database.";
     }
-
-    // Close the connection
-    mysqli_close($conn);
 }
 
-
+// Display messages if they exist
+if (isset($_SESSION['success_message'])) {
+    $message = $_SESSION['success_message'];
+    $message_type = "success";
+    unset($_SESSION['success_message']);
+} elseif (isset($_SESSION['error_message'])) {
+    $message = $_SESSION['error_message'];
+    $message_type = "error";
+    unset($_SESSION['error_message']);
+}
 
 ?>
 
@@ -314,6 +318,27 @@ if (isset($_POST['submit'])) {
 
     // Initial call to set min end date on page load
     validateEndDate();
+
+// Function to reset form
+function resetForm() {
+    document.querySelector('form').reset();
+}
+
+// Prevent form resubmission on page refresh
+if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+}
+
+// Reset form on page load if it was a redirect
+if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+    resetForm();
+}
+
+// Add to your existing form submit handler
+document.querySelector('form').addEventListener('submit', function(e) {
+    // If form is valid
+    setTimeout(resetForm, 1000);
+});
 </script>
 
 <?php include('user_footer.php'); ?>
