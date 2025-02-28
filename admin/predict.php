@@ -43,21 +43,25 @@
             <?php endif; ?>
         <?php
         // Function to calculate attrition risk score using linear regression
-        function calculateAttritionRisk($attendance_score, $satisfaction_score, $years_of_service) {
-            // Weights for each factor (can be adjusted based on importance)
-            $attendance_weight = 0.3;
-            $satisfaction_weight = 0.4;
-            $years_weight = 0.3;
+        function calculateAttritionRisk($attendance_score, $satisfaction_score, $performance_score, $years_of_service) {
+            // Weights for each factor (total should be 1)
+            $attendance_weight = 0.25;    // 25% weight
+            $satisfaction_weight = 0.25;  // 25% weight
+            $performance_weight = 0.25;   // 25% weight
+            $years_weight = 0.25;        // 25% weight
 
             // Normalize years of service (assuming max 30 years)
             $normalized_years = min($years_of_service / 30, 1);
             
-            // Calculate weighted score (inverse for years as longer tenure typically means lower risk)
-            $risk_score = ($attendance_weight * (1 - $attendance_score)) + 
-                         ($satisfaction_weight * (1 - $satisfaction_score)) + 
-                         ($years_weight * (1 - $normalized_years));
+            // Calculate risk score (inverse relationship - higher scores mean lower risk)
+            $risk_score = 1 - (
+                ($attendance_score * $attendance_weight) +
+                ($satisfaction_score * $satisfaction_weight) +
+                ($performance_score * $performance_weight) +
+                ($normalized_years * $years_weight)
+            );
 
-            return $risk_score;
+            return max(0, min(1, $risk_score)); // Ensure score is between 0 and 1
         }
 
         // Fetch employee data and calculate attrition risk
@@ -75,10 +79,12 @@
                 ELSE 0 
             END), 0) as attendance_score,
             COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
+            COALESCE(AVG(pe.overall_score) / 100, 0) as performance_score,
             DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
             FROM employees e
             LEFT JOIN attendance a ON e.employee_id = a.employee_id
             LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+            LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
             LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
             WHERE e.is_archived = 0
             GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
@@ -100,11 +106,13 @@
                 
                 $attendance_score = floatval($row['attendance_score']);
                 $satisfaction_score = floatval($row['satisfaction_score']);
+                $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
                     $satisfaction_score,
+                    $performance_score,
                     $years_of_service
                 );
 
@@ -141,6 +149,7 @@
                             <th>Years of Service</th>
                             <th>Attendance Score</th>
                             <th>Satisfaction Score</th>
+                            <th>Performance Score</th>
                             <th>Attrition Risk</th>
                             <th>Risk Level</th>                         
                             <th>Recommendations</th>
@@ -154,11 +163,13 @@
             foreach ($allRows as $row) {
                 $attendance_score = floatval($row['attendance_score']);
                 $satisfaction_score = floatval($row['satisfaction_score']);
+                $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
                     $satisfaction_score,
+                    $performance_score,
                     $years_of_service
                 );
 
@@ -215,6 +226,7 @@
                     '" . json_encode([
                         'attendance_score' => $attendance_score,
                         'satisfaction_score' => $satisfaction_score,
+                        'performance_score' => $performance_score,
                         'years_of_service' => $years_of_service
                     ]) . "'
                 ) ON DUPLICATE KEY UPDATE 
@@ -222,6 +234,7 @@
                     factors = '" . json_encode([
                         'attendance_score' => $attendance_score,
                         'satisfaction_score' => $satisfaction_score,
+                        'performance_score' => $performance_score,
                         'years_of_service' => $years_of_service
                     ]) . "'";
 
@@ -253,6 +266,7 @@
                         <td>" . number_format($years_of_service, 1) . "</td>
                         <td>" . number_format($attendance_score * 100, 1) . "%</td>
                         <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
+                        <td>" . number_format($performance_score * 100, 1) . "%</td>
                         <td>" . number_format($risk_score * 100, 1) . "%</td>
                         <td>$risk_level</td>
                         <td>$recommendation</td>
