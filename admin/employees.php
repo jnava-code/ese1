@@ -166,19 +166,34 @@
  
                      // Send the email
                      if ($mail->send()) {
-                        $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                        $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
+                        // Redirect to prevent form resubmission
+                        header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
+                        exit();
                      } else {
-                        $errmsg = "An error occurred: " . $stmt->error;
+                        $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
                      }
                  } catch (Exception $e) {
-                     $errmsg = "Mailer Error: " . $mail->ErrorInfo;
+                     $_SESSION['error_message'] = "Mailer Error: " . $mail->ErrorInfo;
                  }
             } else {
-                $errmsg = "An error occurred: " . $stmt->error;
+                $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
             }
         }
     }
     
+    // Display messages if they exist (add this after the POST handling)
+    if (isset($_SESSION['success_message'])) {
+        echo "<div class='alert alert-success' role='alert'>";
+        echo $_SESSION['success_message'];
+        echo "</div>";
+        unset($_SESSION['success_message']);
+    } elseif (isset($_SESSION['error_message'])) {
+        echo "<div class='alert alert-danger' role='alert'>";
+        echo $_SESSION['error_message'];
+        echo "</div>";
+        unset($_SESSION['error_message']);
+    }
 
     // Archive Employee (instead of delete)
     if (isset($_GET['delete_id'])) {
@@ -391,6 +406,28 @@ function generatePasswordFromBday($date_of_birth) {
         table.dataTable thead>tr>th.sorting {
             padding-right: 0px;
         }
+    }
+
+    .alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px;
+        border-radius: 4px;
+        opacity: 1;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
     }
 </style>
 
@@ -1088,6 +1125,48 @@ $(document).ready( function () {
     }
 });
 
+// Function to reset form
+function resetForm() {
+    document.querySelector('form').reset();
+}
+
+// Reset form on page load if it was a redirect
+if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+    resetForm();
+}
+
+// Prevent form resubmission on page refresh
+if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+}
+
+// Add to your existing form submit handler
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Your existing validation code...
+    
+    // If validation passes
+    if (!hasErrors) {
+        // Submit form and reset
+        setTimeout(resetForm, 1000);
+    }
+});
+
+// Fade out messages after 5 seconds
+setTimeout(() => {
+    const successMsg = document.querySelector('.alert-success');
+    const errorMsg = document.querySelector('.alert-danger');
+    
+    if (successMsg) {
+        successMsg.style.transition = 'opacity 1s';
+        successMsg.style.opacity = '0';
+        setTimeout(() => successMsg.style.display = 'none', 1000);
+    }
+    if (errorMsg) {
+        errorMsg.style.transition = 'opacity 1s';
+        errorMsg.style.opacity = '0';
+        setTimeout(() => errorMsg.style.display = 'none', 1000);
+    }
+}, 5000);
 </script>
 
 <?php include('footer.php'); ?>
