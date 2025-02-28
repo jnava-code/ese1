@@ -27,70 +27,146 @@ function executeQuery($conn, $sql, $types = null, $params = []) {
     mysqli_stmt_close($stmt);
 }
 
+// Add these validation functions at the top of the file, after the database connection
+function validateUsername($username) {
+    // Only allow letters, numbers, and no special characters
+    return preg_match('/^[a-zA-Z0-9]+$/', $username);
+}
+
+function validateName($name) {
+    // Only allow letters and spaces
+    return preg_match('/^[a-zA-Z\s]+$/', $name);
+}
+
+function validateEmail($email) {
+    // Check if email ends with @gmail.com
+    return preg_match('/^[a-zA-Z0-9._%+-]+@gmail\.com$/', $email);
+}
+
+function validateContactNumber($number) {
+    // Check if number is exactly 11 digits
+    return preg_match('/^[0-9]{11}$/', $number);
+}
+
 // Add Admin
 if (isset($_POST['add_admin'])) {
+    $errors = array();
+    
+    // Validate username
     $username = $_POST['username'];
-    $password = $_POST['password']; 
-    $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-    $user_type = $_POST['user_type'];
-    $status = $_POST['status'];
+    if (!validateUsername($username)) {
+        $errors[] = "Username can only contain letters and numbers.";
+    }
+    
+    // Validate names
     $first_name = $_POST['first_name'];
+    $middle_name = $_POST['middle_name'];
     $last_name = $_POST['last_name'];
+    
+    if (!validateName($first_name)) {
+        $errors[] = "First name can only contain letters.";
+    }
+    if (!empty($middle_name) && !validateName($middle_name)) {
+        $errors[] = "Middle name can only contain letters.";
+    }
+    if (!validateName($last_name)) {
+        $errors[] = "Last name can only contain letters.";
+    }
+    
+    // Validate email
     $email = $_POST['email'];
+    if (!validateEmail($email)) {
+        $errors[] = "Email must be a valid Gmail address (@gmail.com).";
+    }
+    
+    // Validate contact number
     $contact_number = $_POST['contact_number'];
+    if (!validateContactNumber($contact_number)) {
+        $errors[] = "Contact number must be exactly 11 digits.";
+    }
 
-    // Check if the username already exists
-    $sql_check = "SELECT COUNT(*) FROM admin WHERE username = ?";
-    $stmt_check = mysqli_prepare($conn, $sql_check);
-    mysqli_stmt_bind_param($stmt_check, 's', $username);
-    mysqli_stmt_execute($stmt_check);
-    mysqli_stmt_bind_result($stmt_check, $username_count);
-    mysqli_stmt_fetch($stmt_check);
-    mysqli_stmt_close($stmt_check);
+    if (empty($errors)) {
+        // Existing username check
+        $sql_check = "SELECT COUNT(*) FROM admin WHERE username = ?";
+        $stmt_check = mysqli_prepare($conn, $sql_check);
+        mysqli_stmt_bind_param($stmt_check, 's', $username);
+        mysqli_stmt_execute($stmt_check);
+        mysqli_stmt_bind_result($stmt_check, $username_count);
+        mysqli_stmt_fetch($stmt_check);
+        mysqli_stmt_close($stmt_check);
 
-    if ($username_count > 0) {
-        echo "<script>alert('Username already exists!');</script>";
-    } else {
-        $sql = "INSERT INTO admin (username, password, user_type, status, first_name, last_name, email, contact_number) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        executeQuery($conn, $sql, 'ssisssss', [
-            $username, $password_hashed, $user_type, $status, $first_name, $last_name, $email, $contact_number
-        ]);
+        if ($username_count > 0) {
+            echo "<script>alert('Username already exists!');</script>";
+        } else {
+            $password = $_POST['password'];
+            $password_hashed = password_hash($password, PASSWORD_DEFAULT);
+            $user_type = $_POST['user_type'];
+            $status = $_POST['status'];
+            $suffix = $_POST['suffix'];
+            $birthday = $_POST['birthday'];
+            $position = $_POST['position'];
 
-        // Send email using PHPMailer
-        $mail = new PHPMailer(true);
+            $sql = "INSERT INTO admin (username, password, user_type, status, first_name, middle_name, last_name, suffix, email, contact_number, birthday, position) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, 'ssisssssssss', 
+                    $username, 
+                    $password_hashed, 
+                    $user_type, 
+                    $status, 
+                    $first_name, 
+                    $middle_name, 
+                    $last_name, 
+                    $suffix, 
+                    $email, 
+                    $contact_number, 
+                    $birthday, 
+                    $position
+                );
+                
+                if (mysqli_stmt_execute($stmt)) {
+                    // Send email using PHPMailer 
+                    $mail = new PHPMailer(true);
 
-        try {
-            // SMTP Settings
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
-            $mail->SMTPAuth = true;
-            $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
-            $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-                           
-            // Email Headers
-            $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
-            $mail->addAddress($email); // The recipient's email
-            $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+                    try {
+                        // SMTP Settings
+                        $mail->isSMTP();
+                        $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+                        $mail->SMTPAuth = true;
+                        $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
+                        $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
+                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->Port = 587;
+                               
+                        // Email Headers
+                        $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
+                        $mail->addAddress($email); // The recipient's email
+                        $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
 
-            // Prepare the email message
-            $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
+                        // Prepare the email message
+                        $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
 
-            // Set email format to plain text
-            $mail->isHTML(true);
-            $mail->Body = $message;
+                        // Set email format to plain text
+                        $mail->isHTML(true);
+                        $mail->Body = $message;
 
-            // Send the email
-            if ($mail->send()) {
-               $successmsg = "The employee, $first_name $last_name, has been successfully added.";
-            } else {
-               $errmsg = "An error occurred: " . $stmt->error;
+                        // Send the email
+                        if ($mail->send()) {
+                           $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                        } else {
+                           $errmsg = "An error occurred: " . $stmt->error;
+                        }
+                    } catch (Exception $e) {
+                        $errmsg = "Mailer Error: " . $mail->ErrorInfo;
+                    }
+                }
+                mysqli_stmt_close($stmt);
             }
-        } catch (Exception $e) {
-            $errmsg = "Mailer Error: " . $mail->ErrorInfo;
         }
+    } else {
+        // Display all validation errors
+        echo "<script>alert('" . implode("\\n", $errors) . "');</script>";
     }
 }
 
@@ -220,10 +296,11 @@ if (isset($_GET['archive_id'])) {
 
                         <div class="col-md-4">
                             <label for="user_type">User Type</label>
-                            <select name="user_type" required>
+                            <input type="text" class="form-control" name="user_type" id="user_type" value="Admin" required>
+                            <!-- <select name="user_type" required>
                                 <option value="1">Admin</option>
                                 <option value="2">User</option>
-                            </select>
+                            </select> -->
                         </div>
 
                         <div class="col-md-4">
@@ -242,10 +319,34 @@ if (isset($_GET['archive_id'])) {
                         </div>
 
                         <div class="col-md-6">
+                            <label for="middle_name">Middle Name</label>
+                            <input type="text" class="form-control" name="middle_name" placeholder="Middle Name" required>
+                        </div>
+
+                        <div class="col-md-6">
                             <label for="last_name">Last Name</label>
                             <input type="text" class="form-control" name="last_name" placeholder="Last Name" required>
                         </div>
 
+                        <div class="col-md-4">
+                            <label for="suffix">Suffix</label>
+                            <input type="text" class="form-control" name="suffix" id="suffix" placeholder="e.g., Sr., Jr., III" list="suffixes">
+                            <datalist id="suffixes">
+                                <option value="Sr.">
+                                <option value="Jr.">
+                                <option value="III">
+                                <option value="II">
+                                <option value="IV">
+                                <option value="V">
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label for="birthday">Date Of Birth</label>
+                            <input type="date" class="form-control" name="birthday" placeholder="Date Of Birth" required>
+                        </div>
                         <div class="col-md-6">
                             <label for="email">Email</label>
                             <input type="email" class="form-control" name="email" placeholder="Email" required>
@@ -254,6 +355,11 @@ if (isset($_GET['archive_id'])) {
                         <div class="col-md-6">
                             <label for="contact_number">Contact Number</label>
                             <input type="text" class="form-control" name="contact_number" placeholder="Contact Number" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="position">Position</label>
+                            <input type="text" class="form-control" name="position" placeholder="Position" required>
                         </div>
                     </div>
 
@@ -340,3 +446,47 @@ $(document).ready(function () {
 
 </body>
 </html>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    let errors = [];
+    
+    // Username validation
+    const username = document.querySelector('input[name="username"]').value;
+    if (!/^[a-zA-Z0-9]+$/.test(username)) {
+        errors.push("Username can only contain letters and numbers.");
+    }
+    
+    // Name validations
+    const firstName = document.querySelector('input[name="first_name"]').value;
+    const middleName = document.querySelector('input[name="middle_name"]').value;
+    const lastName = document.querySelector('input[name="last_name"]').value;
+    
+    if (!/^[a-zA-Z\s]+$/.test(firstName)) {
+        errors.push("First name can only contain letters.");
+    }
+    if (middleName && !/^[a-zA-Z\s]+$/.test(middleName)) {
+        errors.push("Middle name can only contain letters.");
+    }
+    if (!/^[a-zA-Z\s]+$/.test(lastName)) {
+        errors.push("Last name can only contain letters.");
+    }
+    
+    // Email validation
+    const email = document.querySelector('input[name="email"]').value;
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)) {
+        errors.push("Email must be a valid Gmail address (@gmail.com).");
+    }
+    
+    // Contact number validation
+    const contactNumber = document.querySelector('input[name="contact_number"]').value;
+    if (!/^[0-9]{11}$/.test(contactNumber)) {
+        errors.push("Contact number must be exactly 11 digits.");
+    }
+    
+    if (errors.length > 0) {
+        e.preventDefault();
+        alert(errors.join("\n"));
+    }
+});
+</script>
