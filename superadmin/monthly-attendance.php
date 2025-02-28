@@ -296,30 +296,37 @@ table tr:hover {
                     <div class="col-md-6">
                         <label for="month">Month</label>
                         <select name="month" required>
-                            <option value="0">January</option>
-                            <option value="1">February</option>
-                            <option value="2">March</option>
-                            <option value="3">April</option>
-                            <option value="4">May</option>
-                            <option value="5">June</option>
-                            <option value="6">July</option>
-                            <option value="7">August</option>
-                            <option value="8">September</option>
-                            <option value="9">October</option>
-                            <option value="10">November</option>
-                            <option value="11">December</option>
+                            <?php
+                                $currentMonth = date('n') - 1; // Get the current month (0-11)
+                            ?>
+                            <option value="0" <?php echo ($currentMonth == 0) ? 'selected' : ''; ?>>January</option>
+                            <option value="1" <?php echo ($currentMonth == 1) ? 'selected' : ''; ?>>February</option>
+                            <option value="2" <?php echo ($currentMonth == 2) ? 'selected' : ''; ?>>March</option>
+                            <option value="3" <?php echo ($currentMonth == 3) ? 'selected' : ''; ?>>April</option>
+                            <option value="4" <?php echo ($currentMonth == 4) ? 'selected' : ''; ?>>May</option>
+                            <option value="5" <?php echo ($currentMonth == 5) ? 'selected' : ''; ?>>June</option>
+                            <option value="6" <?php echo ($currentMonth == 6) ? 'selected' : ''; ?>>July</option>
+                            <option value="7" <?php echo ($currentMonth == 7) ? 'selected' : ''; ?>>August</option>
+                            <option value="8" <?php echo ($currentMonth == 8) ? 'selected' : ''; ?>>September</option>
+                            <option value="9" <?php echo ($currentMonth == 9) ? 'selected' : ''; ?>>October</option>
+                            <option value="10" <?php echo ($currentMonth == 10) ? 'selected' : ''; ?>>November</option>
+                            <option value="11" <?php echo ($currentMonth == 11) ? 'selected' : ''; ?>>December</option>
                         </select>
                     </div>
+
                     <div class="col-md-6">
                         <label for="year">Year</label>
                         <select name="year" required>
                             <?php
                                 $currentYear = date('Y');
                                 for ($i = 2020; $i <= $currentYear + 10; $i++) {
-                                    echo "<option value='$i'>$i</option>";
+                                    // Check if the current year is equal to $i
+                                    $selected = ($i == $currentYear) ? 'selected' : '';
+                                    echo "<option value='$i' $selected>$i</option>";
                                 }
                             ?>
                         </select>
+
                     </div>
                     <input type="submit" name="search" class="btn" value="Search">
                 </form>
@@ -378,14 +385,24 @@ foreach ($attendanceData as $employee_id => $attendance):
     $hire_date = $attendance[0]['hire_date']; 
     $hire_date_timestamp = strtotime($hire_date);
 
+    // Get selected month and year from POST, default to current if not set
+    $selectedMonth = isset($_POST['month']) ? $_POST['month'] + 1 : date('m');
+    $selectedYear = isset($_POST['year']) ? $_POST['year'] : date('Y');
+    
     // Get today's date
     $today_date = date('Y-m-d');
 
-    // Get the employee's leave data for the month
-    $leave_query = "SELECT leave_type, reason, start_date, end_date FROM leave_applications 
-                    WHERE employee_id = ? AND status = 'Approved'";
+    // Get the employee's leave data for the selected month
+    $leave_query = "SELECT leave_type, reason, start_date, end_date 
+                    FROM leave_applications 
+                    WHERE employee_id = ? 
+                    AND status = 'Approved'
+                    AND (
+                        (YEAR(start_date) = ? AND MONTH(start_date) = ?) 
+                        OR (YEAR(end_date) = ? AND MONTH(end_date) = ?)
+                    )";
     $stmt = $conn->prepare($leave_query);
-    $stmt->bind_param("s", $employee_id);
+    $stmt->bind_param("siiii", $employee_id, $selectedYear, $selectedMonth, $selectedYear, $selectedMonth);
     $stmt->execute();
     $leave_result = $stmt->get_result();
     $leave_data = [];
@@ -393,14 +410,17 @@ foreach ($attendanceData as $employee_id => $attendance):
         $leave_data[] = $leave;
     }
 
-    // Get first day of the month and total days
-    $first_day_timestamp = strtotime("$currentYear-$currentMonth-01");
+    // Format month and year for display
+    $monthName = date('F', mktime(0, 0, 0, $selectedMonth, 1, $selectedYear));
+    
+    // Get first day of the selected month and total days
+    $first_day_timestamp = strtotime("$selectedYear-$selectedMonth-01");
     $days_in_month = date('t', $first_day_timestamp);
     $first_day_of_week = date('w', $first_day_timestamp); // 0 = Sunday, 6 = Saturday
 
     echo "<table class='table_content' border='1'>";
     echo "<tr><th colspan='7' class='employee-header'>" . htmlspecialchars($attendance[0]['full_name'], ENT_QUOTES, 'UTF-8') . " 
-            ( <span class='employee_id_display'>" . htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8') . "</span> )</th></tr>";
+            ( <span class='employee_id_display'>" . htmlspecialchars($employee_id, ENT_QUOTES, 'UTF-8') . "</span> ) - $monthName $selectedYear</th></tr>";
     echo "<tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>";
     echo "<tr>";
 
@@ -409,9 +429,9 @@ foreach ($attendanceData as $employee_id => $attendance):
         echo "<td class='prev-month'></td>";
     }
 
-    // Loop through the days of the current month
+    // Loop through the days of the selected month
     for ($day = 1; $day <= $days_in_month; $day++) {
-        $date = "$currentYear-$currentMonth-" . str_pad($day, 2, '0', STR_PAD_LEFT);
+        $date = sprintf("%04d-%02d-%02d", $selectedYear, $selectedMonth, $day);
         $date_timestamp = strtotime($date);
         $dayOfWeek = date('w', $date_timestamp); // 0 = Sunday, 6 = Saturday
 
@@ -450,13 +470,15 @@ foreach ($attendanceData as $employee_id => $attendance):
 
             // Check leave status
             $leave_status = '';
-            foreach ($leave_data as $leave) {
-                if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
-                    $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> 
-                                     <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
-                    $status_color = "#74c0fc"; // Blue for leave
-                    $leave_count++;
-                    break;
+            if (!empty($leave_data)) {
+                foreach ($leave_data as $leave) {
+                    if ($date >= $leave['start_date'] && $date <= $leave['end_date']) {
+                        $leave_status = "On Leave <br> <strong>Type:</strong> " . htmlspecialchars($leave['leave_type'], ENT_QUOTES, 'UTF-8') . "<br> 
+                                    <strong>Reason:</strong> " . htmlspecialchars($leave['reason'], ENT_QUOTES, 'UTF-8');
+                        $status_color = "#74c0fc"; // Blue for leave
+                        $leave_count++;
+                        break;
+                    }
                 }
             }
 
@@ -496,10 +518,12 @@ foreach ($attendanceData as $employee_id => $attendance):
         }
     }
 
-    // Fill next month's first few days to complete the last row
+    // Fill remaining cells in the last row
     $remaining_cells = (7 - (($days_in_month + $first_day_of_week) % 7)) % 7;
-    for ($i = 1; $i <= $remaining_cells; $i++) {
-        echo "<td class='next-month'></td>";
+    if ($remaining_cells > 0) {
+        for ($i = 0; $i < $remaining_cells; $i++) {
+            echo "<td class='next-month'></td>";
+        }
     }
 
     echo "</tr>";
