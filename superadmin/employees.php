@@ -167,6 +167,7 @@
                      // Send the email
                      if ($mail->send()) {
                         $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                        unset($_POST);
                      } else {
                         $errmsg = "An error occurred: " . $stmt->error;
                      }

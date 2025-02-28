@@ -49,7 +49,27 @@ if (isset($_POST['search'])) {
 
     // Fetch attendance for the specified month-year
     $attendance_data = [];
-    $sql_attendance = "SELECT * FROM attendance WHERE employee_id = ? AND YEAR(date) = ? AND MONTH(date) = ?";
+    $sql_attendance = "
+            SELECT 
+                a.employee_id, 
+                a.date, 
+                a.clock_in_time, 
+                a.clock_out_time, 
+                a.total_hours, 
+                a.status,
+                COALESCE(la.leave_type, '') as leave_type,
+                la.start_date,
+                la.end_date,
+                la.status as leave_status
+            FROM attendance a
+            LEFT JOIN leave_applications la 
+                ON la.employee_id = a.employee_id 
+                AND a.date BETWEEN la.start_date AND la.end_date
+                AND la.status = 'Approved'
+            WHERE a.employee_id = ? 
+            AND YEAR(a.date) = ? 
+            AND MONTH(a.date) = ?";
+
     if ($stmt_attendance = mysqli_prepare($conn, $sql_attendance)) {
         // Bind parameters for the SQL statement
         mysqli_stmt_bind_param($stmt_attendance, "iii", $official_employee_id, $year, $month);
@@ -66,9 +86,9 @@ if (isset($_POST['search'])) {
     }
 }
 
-// Function to convert 24-hour time to 12-hour format with AM/PM
+// Function to convert 24-hour time to 12-hour format without AM/PM
 function convertTo12HourFormat($time) {
-    $formatted_time = date("g:i:s a", strtotime($time));
+    $formatted_time = date("g:i:s", strtotime($time));
     return $formatted_time;
 }
 ?>
@@ -142,7 +162,7 @@ function convertTo12HourFormat($time) {
         
         @media print {
             body * {
-                font-size: 12px;
+                font-size: 10px;
             }
 
             table thead th,
@@ -187,6 +207,68 @@ function convertTo12HourFormat($time) {
 
             input {
                 color: #000;
+            }
+
+            /* Hide elements not needed in print */
+            .searchBtn,
+            .printBtn,
+            header,
+            footer {
+                display: none !important;
+            }
+
+            /* Ensure table fits on page */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
+
+            /* Add page break settings */
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            /* Enhance table visibility for print */
+            table thead th {
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            /* Add title for print */
+            .attendance-report-content::before {
+                content: 'Attendance Report';
+                display: block;
+                text-align: center;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+
+            /* Format employee info for print */
+            .employees-and-date {
+                margin-bottom: 20px;
+            }
+
+            /* Remove input styling in print */
+            input, select {
+                border: none;
+                background: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            /* Ensure text is black in print */
+            * {
+                color: black !important;
+                text-align: left;
             }
         }
     </style>
@@ -234,6 +316,7 @@ function convertTo12HourFormat($time) {
                     <label for="">Position:</label>
                     <input type="text" value="<?php echo !empty($position) ? $position : ''; ?>" disabled>
                 </div>
+
                 <div class="month-and-year">
                     <label for="month-year">Month and Year:</label>
                     <select name="month-year" id="month-year">
@@ -242,112 +325,341 @@ function convertTo12HourFormat($time) {
                         $currentYear = date("Y");
                         $currentMonth = date("m");
 
-                        // Start year from 2024
-                        $startYear = 2024;
+                        // Start year from 2025
+                        $startYear = 2025;
 
-                        // Loop through years from 2024 to current year
-                        for ($year = $startYear; $year <= $currentYear; $year++) {
+                        // Loop through years from 2025 to current year
+                        for ($y = $startYear; $y <= $currentYear; $y++) {
                             // Loop through months
-                            for ($month = 1; $month <= 12; $month++) {
-                                // Skip months that are ahead of the current month if it's the current year
-                                if ($year == $currentYear && $month > $currentMonth) {
-                                    break;
+                            for ($m = 1; $m <= 12; $m++) {
+                                // Skip future dates
+                                if (($y == $currentYear && $m > $currentMonth) || $y > $currentYear) {
+                                    continue;
                                 }
 
-                                // Get month name (e.g., January, February)
-                                $monthName = date("F", strtotime("$year-$month-01"));
-
                                 // Format the month to two digits
-                                $monthNumber = str_pad($month, 2, "0", STR_PAD_LEFT);
-
-                                // Format the month-year as "Month YYYY"
-                                $monthYear = $monthNumber . "-" . $year;
-
+                                $monthNumber = str_pad($m, 2, "0", STR_PAD_LEFT);
+                                
+                                // Format the month-year value
+                                $monthYear = $monthNumber . "-" . $y;
+                                
+                                // Get month name for display
+                                $monthName = date("F", mktime(0, 0, 0, $m, 1, $y));
+                                
                                 // Check if this month-year should be selected
-                                $selectedMonthYear = (isset($_POST['month-year']) && $_POST['month-year'] == $monthYear) ? 'selected' : '';
+                                $selected = '';
+                                if (isset($_POST['month-year']) && $_POST['month-year'] == $monthYear) {
+                                    $selected = 'selected';
+                                }
 
-                                echo "<option value='$monthYear' $selectedMonthYear>$monthName $year</option>";
+                                echo "<option value='$monthYear' $selected>$monthName $y</option>";
                             }
                         }
                         ?>
                     </select>
                 </div>
-
                 <div class="button">
                     <label for=""></label>
                     <button class="searchBtn" name="search" type="submit">Search</button>
-                    <button class="printBtn" type="submit">Print</button>
+                    <button class="printBtn" type="button" onclick="printReport()">Print</button>
                 </div>
             </div>
         </form>
 
-        <!-- Attendance Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Arrival</th>
-                    <th>Departure</th>
-                    <th>Hours</th>
-                    <th>Total Regular Hours</th>
-                    <th>Total Hours</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                // Loop through all days in the month
-                for ($day = 1; $day <= $days_in_month; $day++) {
-                    // Check if there's attendance for the current day
-                    $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
+<!-- Attendance Table -->
+<table>
+    <thead>
+        <tr>
+            <th>Day</th>
+            <th>Arrival</th>
+            <th>Departure</th>
+            <th>Hours</th>
+            <th>Total Regular Hours</th>
+            <th>Total Hours</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php
+    if (!empty($month) && !empty($year)) {
+        for ($day = 1; $day <= $days_in_month; $day++) {
+            // Generate the correct date for the current month and year
+            $date_string = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
+            $current_date = date_create($date_string);
+            
+            if ($current_date === false) {
+                continue; // Skip if invalid date
+            }
+            
+            // Get the day name using date_format to ensure accuracy
+            $day_name = date_format($current_date, 'l');
+            
+            // Check if it's a weekend (Saturday or Sunday)
+            $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
 
-                    if ($attendance_for_day) {
-                        // If attendance exists for the day, display the attendance data
-                        $attendance_date = $attendance_for_day['date'];
+            if ($is_weekend) {
+                // Display weekends with debug info
+                echo "<tr>";
+                echo "<td>$day</td>";
+                echo "<td></td>";
+                echo "<td></td>";
+                echo "<td></td>";
+                echo "<td></td>";
+                echo "<td></td>";
+                echo "<td>Day Off</td>";
+                echo "</tr>";
+            } else {
+                // Process attendance for weekdays
+                $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
+
+                if ($attendance_for_day) {
+                    // Check if there's an approved leave for this day
+                    if ($attendance_for_day['leave_type'] && $attendance_for_day['leave_status'] === 'Approved') {
+                        $leave_type = $attendance_for_day['leave_type'];
+                        $leave_start_date = $attendance_for_day['start_date'];
+                        $leave_end_date = $attendance_for_day['end_date'];
+
+                        // Display the leave status and additional information
+                        echo "<tr>";
+                        echo "<td>$day</td>";
+                        echo "<td></td>"; // No clock-in time
+                        echo "<td></td>"; // No clock-out time
+                        echo "<td></td>"; // No total hours
+                        echo "<td></td>"; // No regular hours
+                        echo "<td></td>"; // No overtime
+                        echo "<td>On Leave ($leave_type)</td>";
+                        echo "</tr>";
+                    } else {
+                        // Regular attendance display (unchanged)
                         $clock_in_time = $attendance_for_day['clock_in_time'];
                         $clock_out_time = $attendance_for_day['clock_out_time'];
-                        $total_hours = $attendance_for_day['total_hours'];
+                        $total_hours = round($attendance_for_day['total_hours']);
+                        $regular_hours = 8;
+                        $overtime_hours = max(0, $total_hours - $regular_hours);
                         $status = $attendance_for_day['status'];
 
-                        // Convert times to 12-hour format with AM/PM
+                        // Convert times to 12-hour format
                         $clock_in_time_12hr = convertTo12HourFormat($clock_in_time);
                         $clock_out_time_12hr = convertTo12HourFormat($clock_out_time);
 
-                        // Calculate overtime hours (if any)
-                        $regular_hours = 8; // Regular working hours
-                        $overtime_hours = 0;
-
-                        if ($total_hours > $regular_hours) {
-                            $overtime_hours = $total_hours - $regular_hours;
-                            $overtime_hours = floor($overtime_hours); // No decimals
-                        }
-                    } else {
-                        // If no attendance, set values to empty
-                        $attendance_date = '';
-                        $clock_in_time_12hr = '';
-                        $clock_out_time_12hr = '';
-                        $total_hours = '';
-                        $status = 'Absent';
-                        $overtime_hours = '';
-                        $regular_hours = ''; // Empty for no attendance
+                        echo "<tr>";
+                        echo "<td>$day</td>";
+                        echo "<td>$clock_in_time_12hr</td>";
+                        echo "<td>$clock_out_time_12hr</td>";
+                        echo "<td>$total_hours</td>";
+                        echo "<td>$regular_hours</td>";
+                        echo "<td>$overtime_hours</td>"; 
+                        echo "<td>$status</td>";
+                        echo "</tr>";
                     }
-
-                    // Display the row for the current day
-                    echo "<tr>";
-                    echo "<td>$day</td>";
-                    echo "<td>$clock_in_time_12hr</td>";
-                    echo "<td>$clock_out_time_12hr</td>";
-                    echo "<td>$total_hours</td>";
-                    echo "<td>" . ($regular_hours ? $regular_hours : '') . "</td>";
-                    echo "<td>$overtime_hours</td>"; 
-                    echo "<td>$status</td>";
-                    echo "</tr>";
+                } else {
+                    // Also check for approved leaves even when there's no attendance record
+                    $leave_sql = "SELECT leave_type, start_date, end_date 
+                                  FROM leave_applications 
+                                  WHERE employee_id = ? 
+                                  AND ? BETWEEN start_date AND end_date 
+                                  AND status = 'Approved'
+                                  LIMIT 1";
+                    
+                    $current_date = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
+                    
+                    if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
+                        mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $current_date);
+                        mysqli_stmt_execute($stmt_leave);
+                        $result_leave = mysqli_stmt_get_result($stmt_leave);
+                        
+                        if ($leave_row = mysqli_fetch_assoc($result_leave)) {
+                            echo "<tr>";
+                            echo "<td>$day</td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td>On Leave</td>";
+                            echo "</tr>";
+                        } else {
+                            // No leave application found - show as absent
+                            echo "<tr>";
+                            echo "<td>$day</td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td></td>";
+                            echo "<td>Absent</td>";
+                            echo "</tr>";
+                        }
+                        mysqli_stmt_close($stmt_leave);
+                    }
                 }
-                ?>
-            </tbody>
+            }
+        }
+    }
+    ?>
+</tbody>
+
+</table>
+
+<?php
+if (!empty($month) && !empty($year)) {
+    // Initialize counters
+    $total_overall_hours = 0;
+    $total_regular_hours = 0;
+    $total_overtime_hours = 0;
+    $days_present = 0;
+    $days_absent = 0;
+    $days_late = 0;
+    $days_on_leave = 0;  // Add this counter
+
+    // Calculate totals
+    for ($day = 1; $day <= $days_in_month; $day++) {
+        $current_date = date_create(sprintf("%04d-%02d-%02d", intval($year), intval($month), $day));
+        $day_name = date_format($current_date, 'l');
+        $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
+
+        if (!$is_weekend) {
+            $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
+            
+            // First check for approved leaves
+            $current_date_str = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
+            $leave_sql = "SELECT 1 FROM leave_applications 
+                         WHERE employee_id = ? 
+                         AND ? BETWEEN start_date AND end_date 
+                         AND status = 'Approved'
+                         LIMIT 1";
+            
+            $is_on_leave = false;
+            if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
+                mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $current_date_str);
+                mysqli_stmt_execute($stmt_leave);
+                $result_leave = mysqli_stmt_get_result($stmt_leave);
+                if (mysqli_fetch_row($result_leave)) {
+                    $days_on_leave++;
+                    $is_on_leave = true;
+                }
+                mysqli_stmt_close($stmt_leave);
+            }
+
+            if ($attendance_for_day) {
+                $days_present++;
+                $total_overall_hours += round($attendance_for_day['total_hours']);
+                
+                // Set regular hours to 8 for each attended day
+                $regular_hours = 8;
+                $total_regular_hours += $regular_hours;
+                
+                // Calculate overtime (if any)
+                $total_overtime_hours += max(0, round($attendance_for_day['total_hours']) - $regular_hours);
+                
+                // Check if late
+                if ($attendance_for_day['status'] === 'Late') {
+                    $days_late++;
+                }
+            } elseif (!$is_on_leave) {
+                // Only count as absent if not on leave
+                $days_absent++;
+            }
+        }
+    }
+?>
+
+<div style="margin-top: 20px;">
+    <table style="width: 50%; border-collapse: collapse; float: left;">
+        <tr>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Total of Overall Hours
+            </td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Regular Hours 
+            </td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
+                Total Hours of Over Time
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_overall_hours; ?>
+            </td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_regular_hours; ?>
+            </td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;">
+                <?php echo $total_overtime_hours; ?>
+            </td>
+        </tr>
+    </table>
+
+    <div style="float: right;">
+        <table style="border-collapse: collapse;">
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Days Present:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_present; ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Days Absent:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_absent; ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Days on Leave:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_on_leave; ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 5px; text-align: right;">Number of Late:</td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
+                    <?php echo $days_late; ?>
+                </td>
+            </tr>
         </table>
+    </div>
+    <!-- Clear the floats -->
+    <div style="clear: both;"></div>
+</div>
+
+<?php } ?>
+
     </div>
 
     <?php include('footer.php'); ?>
+
+    <script>
+    function printReport() {
+        // Hide the buttons before printing
+        const buttons = document.querySelectorAll('.button');
+        buttons.forEach(button => button.style.display = 'none');
+
+        // Remove the header and footer for printing
+        const header = document.querySelector('header');
+        const footer = document.querySelector('footer');
+        if (header) header.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+
+        // Print the document
+        window.print();
+
+        // Restore the elements after printing
+        buttons.forEach(button => button.style.display = 'block');
+        if (header) header.style.display = 'block';
+        if (footer) footer.style.display = 'block';
+    }
+
+    // Add event listener for when user cancels print
+    window.onafterprint = function() {
+        // Restore the elements if print is cancelled
+        const buttons = document.querySelectorAll('.button');
+        const header = document.querySelector('header');
+        const footer = document.querySelector('footer');
+        
+        buttons.forEach(button => button.style.display = 'block');
+        if (header) header.style.display = 'block';
+        if (footer) footer.style.display = 'block';
+    };
+    </script>
 </body>
 </html>
