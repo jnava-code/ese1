@@ -129,10 +129,6 @@ if (isset($_POST['search_week'])) {
     gap: 5px;
 }
 
-.attendance-table {
-    padding: 0px 2rem ;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -178,10 +174,16 @@ table tr:hover {
             padding: 0px;
         }
 
-        table th,
-        table tr {
+        table > thead > tr > th,
+        table > tbody > tr > td {
+            border-bottom: none !important;
+            border: 1px solid #000 !important;
             font-size: 12px;
         }
+
+        .main-content {
+            padding: 0px !important;
+        }   
     }
 </style>
 

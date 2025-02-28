@@ -147,15 +147,13 @@
 
     // Fetch Employees
     $sql = "SELECT * FROM employees WHERE is_archived = 0";
-    $result = mysqli_query($conn, $sql);
+    $resultEmployees = mysqli_query($conn, $sql);
+
     // Capture search input if available
 $searchQuery = '';
 if (isset($_GET['search'])) {
     $searchQuery = $_GET['search'];
 }
-
-// Modify the SQL query to exclude archived employees
-$sql = "SELECT * FROM employees WHERE is_archived = 0";
 
 if (!empty($searchQuery)) {
     // Modify the query to include sorting by `id` in descending order
@@ -254,7 +252,7 @@ function generatePasswordFromBday($date_of_birth) {
 
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
- 
+
 <style>
         /* Dropdown styling */
         .dropdown {
@@ -521,12 +519,9 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="form-row">
                 <div class="col-md-6">
                 <label for="hire_date">Employment Status </label>
-                    <select id="employment_status" name="employment_status" class="form-control" required>
+                    <select id="employment_status" name="employment_status" class="form-control" required disabled>
                         <option value="" selected hidden>Employment Status</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Probationary">Probationary</option>
-                        <option value="Terminated">Terminated</option>
-                        <option value="Resigned">Resigned</option>
+                        
                     </select>
                 </div>
             </div>
@@ -542,7 +537,7 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Employee ID</label>
-                    <input type="text" class="form-control" name="employee_id" placeholder="Employee ID" required>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" readonly>
                 </div>
             </div>
 
@@ -674,11 +669,13 @@ function generatePasswordFromBday($date_of_birth) {
                 </tr>
             </thead>
             <tbody>
+
                 <?php 
                     $counter = 1; // Initialize the counter
-                    while ($employee = mysqli_fetch_assoc($result)): 
+                    while ($employee = mysqli_fetch_assoc($resultEmployees)): 
                 ?>
                     <tr>
+                        <input type="hidden" class="employee_js" value="<?php echo $employee['employee_id']; ?>">
                         <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
                         <td class="employee_id_display"><?php echo $employee['employee_id']; ?></td>
                         <td>
@@ -725,14 +722,79 @@ function generatePasswordFromBday($date_of_birth) {
 <script>
     const employeeId = document.getElementById("employee_id");
     const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
-    // const employeeIdDataset = document.getElementById("employee_id_display");
     const sickContainer = document.getElementById("sick_leave_container");
     const vacationContainer = document.getElementById("vacation_leave_container");
     const maternityContainer = document.getElementById("maternity_leave_container");
     const paternityContainer = document.getElementById("paternity_leave_container");
     const employmentStatus = document.getElementById("employment_status");
     const genderInput = document.getElementById("gender");
+    const hireDate = document.getElementById("hire_date");
     
+    
+    if (hireDate) { 
+        hireDate.addEventListener("change", async (e) => {
+            const value = e.target.value;
+            let highestValue;
+            const employees = document.querySelectorAll('.employee_js');
+            if (employees.length > 0) {
+    // Extract the last 3 digits, convert them to numbers, and find the highest value
+    const lastThreeDigits = Array.from(employees).map(emp => {
+        return parseInt(emp.value.toString().slice(-3), 10); // Extract and convert to a number
+    });
+
+    // Get the highest number from the last 3 digits
+    highestValue = Math.max(...lastThreeDigits);
+        } else {
+            highestValue = 0; // Default if no employees exist
+        }
+
+        let employeeLatest;
+
+        // Convert highestValue to a string and check padding requirements
+        let highestStr = highestValue.toString().padStart(3, '0');
+
+        if (highestStr.startsWith("00")) {
+            employeeLatest = (highestValue + 1).toString().padStart(3, '0');
+        } else if (highestStr.startsWith("0")) {
+            employeeLatest = (highestValue + 1).toString().padStart(2, '0');
+        } else {
+            employeeLatest = (highestValue + 1).toString();
+        }
+
+            const notregular = '<option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
+            const regular = '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
+
+            const hireDateObj = new Date(value);
+            const hiredYear = hireDateObj.getFullYear();
+            const hiredMonth = hireDateObj.getMonth();
+            
+            const currentDate = new Date();
+
+            const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
+            const monthDiff = currentDate.getMonth() - hiredMonth;
+            
+            let totalMonths = yearDiff * 12 + monthDiff;
+
+            if (monthDiff < 0) {
+                totalMonths--;
+            }
+
+            employmentStatus.innerHTML = '';
+            if(totalMonths >= 6) {
+                employmentStatus.insertAdjacentHTML("beforeend", regular);
+                employmentStatus.disabled = false;
+            } else {
+                employmentStatus.insertAdjacentHTML("beforeend", notregular);
+                employmentStatus.disabled = false;
+            }
+            
+            if(employeeId) {
+                employeeId.value = hiredYear % 100 + '-' + employeeLatest;
+            }
+            
+        });
+    }
+
     if(employeeIdDisplay) {
         employeeIdDisplay.forEach(display => {
             let validDisplayValue = display.textContent.replace(/[^0-9]/g, '');

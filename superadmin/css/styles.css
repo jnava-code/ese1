@@ -472,25 +472,22 @@ textarea.form-control {
   color: #9c1111;
 } /* ito yung dulo ng css na galing sa dashboard.php */
 
-
 /* dept-filter */
 .card-header {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: start;
-
 }
 
 .card-header .card-body {
   width: 100%;
-  
 }
 #myTable_length {
   display: flex;
 }
 
-#myTable_length label{
+#myTable_length label {
   display: flex;
   gap: 5px;
   align-items: center;
@@ -507,7 +504,7 @@ textarea.form-control {
 .add-criteria-background,
 .edit-criteria-background,
 .add-dept-content,
-.dept-background{
+.dept-background {
   display: none;
 }
 
@@ -530,7 +527,8 @@ textarea.form-control {
 
 .edit-criteria-background.show,
 .add-criteria-background.show,
-.dept-background.show, #edit-dept-form label {
+.dept-background.show,
+#edit-dept-form label {
   display: block;
 }
 
@@ -547,7 +545,8 @@ textarea.form-control {
 }
 
 .add-criteria-content .label-and-input #criteria_name,
-.add-dept-content .label-and-input #dept_name, #d_name {
+.add-dept-content .label-and-input #dept_name,
+#d_name {
   padding: 5px;
   border-radius: 5px;
   border: 1px solid #ddd;
@@ -569,9 +568,9 @@ textarea.form-control {
   right: 0;
 
   background-color: white;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); 
-    opacity: 0.2;  
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0.2;
   z-index: 25;
 }
 
@@ -588,7 +587,6 @@ textarea.form-control {
   border: 1px solid #ddd;
   margin-bottom: 10px;
 }
-
 
 .performance-and-button,
 .department-and-button {
@@ -631,7 +629,7 @@ textarea.form-control {
 
 /* Flexbox layout for input fields and labels */
 .add-dept-content .label-and-input,
-.edit-dept-content .label-and-input, 
+.edit-dept-content .label-and-input,
 .edit-criteria-content .label-and-input {
   display: flex;
   gap: 10px;
@@ -640,7 +638,7 @@ textarea.form-control {
 
 /* Input fields styling */
 .add-dept-content .label-and-input input,
-.edit-dept-content .label-and-input input, 
+.edit-dept-content .label-and-input input,
 .edit-criteria-content .label-and-input input {
   padding: 5px;
   border-radius: 5px;
@@ -664,8 +662,8 @@ textarea.form-control {
   right: 0;
   background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); 
-  opacity: 0.5;  
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0.5;
   z-index: 25;
 }
 
@@ -682,7 +680,6 @@ textarea.form-control {
 .btn:hover {
   background-color: #0056b3;
 }
-
 
 /* .edit-criteria-content {
   display: none;

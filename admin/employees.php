@@ -147,15 +147,13 @@
 
     // Fetch Employees
     $sql = "SELECT * FROM employees WHERE is_archived = 0";
-    $result = mysqli_query($conn, $sql);
+    $resultEmployees = mysqli_query($conn, $sql);
+
     // Capture search input if available
 $searchQuery = '';
 if (isset($_GET['search'])) {
     $searchQuery = $_GET['search'];
 }
-
-// Modify the SQL query to exclude archived employees
-$sql = "SELECT * FROM employees WHERE is_archived = 0";
 
 if (!empty($searchQuery)) {
     // Modify the query to include sorting by `id` in descending order
@@ -254,7 +252,7 @@ function generatePasswordFromBday($date_of_birth) {
 
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
 <?php include('includes/sideBar.php'); ?>
- 
+
 <style>
         /* Dropdown styling */
         .dropdown {
@@ -521,12 +519,9 @@ function generatePasswordFromBday($date_of_birth) {
             <div class="form-row">
                 <div class="col-md-6">
                 <label for="hire_date">Employment Status </label>
-                    <select id="employment_status" name="employment_status" class="form-control" required>
+                    <select id="employment_status" name="employment_status" class="form-control" required disabled>
                         <option value="" selected hidden>Employment Status</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Probationary">Probationary</option>
-                        <option value="Terminated">Terminated</option>
-                        <option value="Resigned">Resigned</option>
+                        
                     </select>
                 </div>
             </div>
@@ -542,7 +537,7 @@ function generatePasswordFromBday($date_of_birth) {
 
                 <div class="col-md-4">
                     <label for="date_of_birth">Employee ID</label>
-                    <input type="text" class="form-control" name="employee_id" placeholder="Employee ID" required>
+                    <input id="employee_id" type="text" class="form-control" name="employee_id" placeholder="Employee ID" readonly>
                 </div>
             </div>
 
@@ -674,11 +669,13 @@ function generatePasswordFromBday($date_of_birth) {
                 </tr>
             </thead>
             <tbody>
+
                 <?php 
                     $counter = 1; // Initialize the counter
-                    while ($employee = mysqli_fetch_assoc($result)): 
+                    while ($employee = mysqli_fetch_assoc($resultEmployees)): 
                 ?>
                     <tr>
+                        <input type="hidden" class="employee_js" value="<?php echo $employee['employee_id']; ?>">
                         <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
                         <td class="employee_id_display"><?php echo $employee['employee_id']; ?></td>
                         <td>
@@ -723,29 +720,70 @@ function generatePasswordFromBday($date_of_birth) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 
 <script>
-//For the hire date
-document.addEventListener("DOMContentLoaded", function() {
-        const hireDateInput = document.getElementById("hire_date");
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const minDate = `${currentYear}-01-01`;
-        const maxDate = `${currentYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-        hireDateInput.setAttribute("min", minDate);
-        hireDateInput.setAttribute("max", maxDate);
-    });
-
-
     const employeeId = document.getElementById("employee_id");
     const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
-    // const employeeIdDataset = document.getElementById("employee_id_display");
     const sickContainer = document.getElementById("sick_leave_container");
     const vacationContainer = document.getElementById("vacation_leave_container");
     const maternityContainer = document.getElementById("maternity_leave_container");
     const paternityContainer = document.getElementById("paternity_leave_container");
     const employmentStatus = document.getElementById("employment_status");
     const genderInput = document.getElementById("gender");
+    const hireDate = document.getElementById("hire_date");
     
+    
+    if (hireDate) { 
+        hireDate.addEventListener("change", async (e) => {
+            const value = e.target.value;
+            let highestValue;
+            const employees = document.querySelectorAll('.employee_js');
+            if (employees.length > 0) {
+                // Extract the last 3 digits and convert them to numbers
+                const lastThreeDigits = Array.from(employees).map(emp => {
+                    // Extract the last 3 digits from the emp.value (string)
+                    const last3 = emp.value.slice(-3);  // Take the last 3 characters
+                    return Number(last3); // Convert to a number
+                });
+
+                // Get the highest number from the last 3 digits
+                highestValue = Math.max(...lastThreeDigits);
+            }
+
+            const employeeLatest = highestValue ? highestValue + 1 : (001).toString().padStart(3, '0');
+            
+            const notregular = '<option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
+            const regular = '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Terminated">Terminated</option><option value="Resigned">Resigned</option>';
+
+            const hireDateObj = new Date(value);
+            const hiredYear = hireDateObj.getFullYear();
+            const hiredMonth = hireDateObj.getMonth();
+            
+            const currentDate = new Date();
+
+            const yearDiff = currentDate.getFullYear() - hireDateObj.getFullYear();
+            const monthDiff = currentDate.getMonth() - hiredMonth;
+            
+            let totalMonths = yearDiff * 12 + monthDiff;
+
+            if (monthDiff < 0) {
+                totalMonths--;
+            }
+
+            employmentStatus.innerHTML = '';
+            if(totalMonths >= 6) {
+                employmentStatus.insertAdjacentHTML("beforeend", regular);
+                employmentStatus.disabled = false;
+            } else {
+                employmentStatus.insertAdjacentHTML("beforeend", notregular);
+                employmentStatus.disabled = false;
+            }
+            
+            if(employeeId) {
+                employeeId.value = hiredYear % 100 + '-' + employeeLatest;
+            }
+            
+        });
+    }
+
     if(employeeIdDisplay) {
         employeeIdDisplay.forEach(display => {
             let validDisplayValue = display.textContent.replace(/[^0-9]/g, '');
