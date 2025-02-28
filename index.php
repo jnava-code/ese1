@@ -1,116 +1,12 @@
-<?php include('server.php'); ?>
-<?php
-$conn = mysqli_connect('localhost', 'root', '', 'esetech');
-date_default_timezone_set('Asia/Manila'); // Adjust as per your timezone
-$success = "";
-$error = "";
-
-// Current date and time (defined globally)
-$current_day = date('l'); // Day of the week (e.g., Sunday)
-$cdate = date('F j, Y'); // Full date (e.g., November 24, 2024)
-$current_date = date('Y-m-d'); // YYYY-MM-DD format
-
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $employee_id = $_POST['employee_id'];
-    $inorout = $_POST['in-or-out'];
+<?php 
+    date_default_timezone_set('Asia/Manila'); // Adjust as per your timezone
+    // Current date and time (defined globally)
+    $current_day = date('l'); // Day of the week (e.g., Sunday)
+    $cdate = date('F j, Y'); // Full date (e.g., November 24, 2024)
+    $current_date = date('Y-m-d'); // YYYY-MM-DD format
     
-    // Prevent SQL injection
-    $employee_id = mysqli_real_escape_string($conn, $employee_id);
-
-    // Define work hours
-    $work_start = strtotime("08:00:00"); // 8:00 AM
-    $work_end = strtotime("17:00:00"); // 5:00 PM
-
-    // Current date and time
-    $current_date = date('Y-m-d'); 
-    $current_time = date('g:i:s A'); // 12-hour format with AM/PM
-    $current_time_unix = strtotime($current_time); // Convert to UNIX timestamp
-
-    // Check if employee exists
-    $sql = "SELECT * FROM employees WHERE employee_id = '$employee_id' AND is_archived = 0";
-    $result = mysqli_query($conn, $sql);
-
-    if (mysqli_num_rows($result) == 1) {
-        // Check attendance record for today
-        $attendance_sql = "SELECT * FROM attendance WHERE employee_id = '$employee_id' AND date = '$current_date'";
-        $attendance_result = mysqli_query($conn, $attendance_sql);
-
-        if (mysqli_num_rows($attendance_result) == 0) {
-            // No attendance record for today
-            if ($inorout == "IN") {
-                $status = $current_time_unix > $work_start ? 'Late' : 'On Time';
-                $insert_sql = "INSERT INTO attendance (employee_id, date, clock_in_time, status) VALUES ('$employee_id', '$current_date', '$current_time', '$status')";
-                if (mysqli_query($conn, $insert_sql)) {
-                    $success = $status === "Late" ? "You are late today." : "Time In recorded successfully!";
-                } else {
-                    $error = "Error recording Time In. Please try again.";
-                }
-            } else {
-                $error = "You must Time In first before clocking out.";
-            }
-        } else {
-            // Attendance record exists
-            $attendance_row = mysqli_fetch_assoc($attendance_result);
-
-            if ($inorout == "OUT") {
-                if (!is_null($attendance_row['clock_out_time'])) {
-                    $error = "You have already timed out for today.";
-                } else {
-                    // Convert clock-in time and current time to UNIX timestamps
-                    $clock_in_time = strtotime($attendance_row['clock_in_time']); // Convert clock-in time to UNIX timestamp
-                    $clock_out_time = strtotime($current_time); // Convert clock-out time to UNIX timestamp
-
-                    // Check if both times are valid
-                    if ($clock_in_time !== false && $clock_out_time !== false) {
-                        // Calculate total worked time in seconds
-                        $total_seconds = $clock_out_time - $clock_in_time;
-
-                        // Convert clock-in time and clock-out time to hours and minutes
-                        $clock_in_hour = date('H', $clock_in_time);
-                        $clock_out_hour = date('H', $clock_out_time);
-
-                        // Check if the clock-in and clock-out times cross over the 12:00 PM to 1:00 PM break
-                        if (($clock_in_hour <= 12 && $clock_out_hour >= 13) || ($clock_in_hour >= 13 && $clock_out_hour <= 17)) {
-                            // Subtract 1 hour (3600 seconds) if the work time crosses the lunch break
-                            $total_seconds -= 3600; // Subtract 1 hour for lunch break
-                        }
-
-                        // Calculate total hours worked by dividing total seconds by 3600 (seconds in an hour)
-                        $total_hours = round($total_seconds / 3600, 2); // Round to 2 decimal places
-
-                        // Determine status based on total hours worked
-                        if ($total_hours < 7.99) {
-                            $status = "Under Time";
-                        } elseif ($total_hours >= 8) {
-                            $status = "Over Time";
-                        } else {
-                            $status = "Present"; // Default status
-                        }
-
-
-                        // Update attendance record with clock-out time, total hours worked, and status
-                        $update_sql = "UPDATE attendance 
-                                       SET clock_out_time = '$current_time', total_hours = '$total_hours', status = '$status'
-                                       WHERE attendance_id = '{$attendance_row['attendance_id']}'";
-
-                        if (mysqli_query($conn, $update_sql)) {
-                            $success = "Time Out recorded successfully! Status: $status";
-                        } else {
-                            $error = "Error recording Time Out. Please try again.";
-                        }
-                    } else {
-                        $error = "Invalid time format.";
-                    }
-                }
-            }
-        }
-    } else {
-        $error = "Invalid Employee ID.";
-    }
-}
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -153,13 +49,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
             margin-bottom: 20px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
+
         .form-group input {
             width: calc(100% - 20px); /* Ensures input doesn't overflow */
             padding: 10px;
@@ -234,6 +129,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     width: 100%;
     text-align: center;
 }
+
+.input-and-msg {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    align-items: center;
+}
+
+#message {
+    color: green;
+}
     </style>
      <script>
         function updateClock() {
@@ -268,9 +174,10 @@ window.onload = updateClock; // Initialize clock on page load
     <h1>Employee Time Tracker</h1>
     <form method="POST">
         <input id="in-or-out" name="in-or-out" value="IN" readonly>
-        <div class="form-group">
+        <div class="form-group input-and-msg">
             <!-- <label for="employee_id">Employee ID</label> -->
             <input type="text" id="employee_id" name="employee_id" placeholder="Enter your Employee ID" required>
+            <span id="message"></span>
         </div>
   
         <?php if (!empty($error)) echo "<div class='error'>$error</div>"; ?>
@@ -283,6 +190,7 @@ window.onload = updateClock; // Initialize clock on page load
 <script>
     const inOrOut = document.getElementById("in-or-out");
     const employeeId = document.getElementById("employee_id");
+    const message = document.getElementById("message");
     
     employeeId.addEventListener("input", e => {
     const id = e.target.value;
@@ -295,17 +203,57 @@ window.onload = updateClock; // Initialize clock on page load
     }
 });
 
-// Trigger form submission when "Enter" is pressed
+employeeId.addEventListener("input", e => {
+    const id = e.target.value;
+    if (id === "+") {
+        // Toggle between IN and OUT
+        inOrOut.value = inOrOut.value === "IN" ? "OUT" : "IN";
+        
+        // Clear the employee ID input
+        employeeId.value = "";
+    }
+});
+
 employeeId.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
-            // Get the current action (IN or OUT)
-            const currentAction = inOrOut.value;
-            
-            // Submit the form programmatically
-            const form = employeeId.closest("form");
-            form.submit(); // Trigger the form submission
-        }
-    });
+    if (e.key === "Enter") {
+        // Get the current action (IN or OUT)
+        const currentAction = inOrOut.value;
+
+        // Get the form element
+        const form = employeeId.closest("form");
+        
+        // Create a FormData object from the form
+        const formData = new FormData(form);
+
+        // Send the form data using fetch
+        fetch('employee_time', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                message.innerHTML = data.success;
+                employeeId.value = '';
+                setTimeout(() => {
+                    message.innerHTML = '';
+                }, 1000);
+            } else if (data.error) {
+                message.innerHTML = data.error;
+                employeeId.value = '';
+                setTimeout(() => {
+                    message.innerHTML = '';
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+});
+
+
+
 </script>
 </body>
 </html>
