@@ -1,4 +1,6 @@
 <?php
+
+
 include('header.php');
 
 // Database connection
@@ -100,7 +102,7 @@ if (isset($_POST['add_admin'])) {
         } else {
             $password = $_POST['password'];
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-            $user_type = $_POST['user_type'];
+            $user_type = 1;
             $status = $_POST['status'];
             $suffix = $_POST['suffix'];
             $birthday = $_POST['birthday'];
@@ -153,9 +155,11 @@ if (isset($_POST['add_admin'])) {
 
                         // Send the email
                         if ($mail->send()) {
-                           $successmsg = "The employee, $first_name $last_name, has been successfully added.";
+                            $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
+                            header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
+                            exit();
                         } else {
-                           $errmsg = "An error occurred: " . $stmt->error;
+                            $errmsg = "An error occurred: " . $stmt->error;
                         }
                     } catch (Exception $e) {
                         $errmsg = "Mailer Error: " . $mail->ErrorInfo;
@@ -241,7 +245,11 @@ if (isset($_GET['archive_id'])) {
     }
 }
 
-
+// Add success message display
+if (isset($_SESSION['success_message'])) {
+    echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
+    unset($_SESSION['success_message']);
+}
 
 ?>
 
@@ -487,6 +495,41 @@ document.querySelector('form').addEventListener('submit', function(e) {
     if (errors.length > 0) {
         e.preventDefault();
         alert(errors.join("\n"));
+    } else {
+        // If form is valid, submit it and reset
+        setTimeout(resetForm, 1000);
+    }
+});
+</script>
+
+<script>
+// Function to reset form
+function resetForm() {
+    document.querySelector('form').reset();
+}
+
+// Reset form on page load if it was a redirect
+if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+    resetForm();
+}
+
+// Prevent form resubmission on page refresh
+if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+}
+
+// Modified form submit event listener
+document.querySelector('form').addEventListener('submit', function(e) {
+    let errors = [];
+    
+    // Your existing validation code...
+    
+    if (errors.length > 0) {
+        e.preventDefault();
+        alert(errors.join("\n"));
+    } else {
+        // If form is valid, submit it and reset
+        setTimeout(resetForm, 1000);
     }
 });
 </script>
