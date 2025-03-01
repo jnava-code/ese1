@@ -856,32 +856,41 @@ function generatePasswordFromBday($date_of_birth) {
 
         if (hireDate) {
             hireDate.addEventListener("change", (e) => {
+                employmentStatus.innerHTML = '';
+                employmentStatus.value = ''; 
+                employmentStatus.disabled = false;
+                
                 const value = e.target.value;
-                // Compute months of service
                 const hireDateObj = new Date(value);
                 const currentDate = new Date();
 
                 const hiredYear = hireDateObj.getFullYear();
-                const hiredMonth = hireDateObj.getMonth(); // 0-indexed (Jan = 0)
-
+                const hiredMonth = hireDateObj.getMonth();
                 const currentYear = currentDate.getFullYear();
-                const currentMonth = currentDate.getMonth(); // 0-indexed
+                const currentMonth = currentDate.getMonth();
 
-                // Calculate the difference in months
                 let monthsOfService = (currentYear - hiredYear) * 12 + (currentMonth - hiredMonth);
                 if (monthsOfService < 0) monthsOfService = 0; 
                 
-                if(monthsOfService >= 6) {
-                    employmentStatus.insertAdjacentHTML('beforeend', '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option>');
+                // Append new options based on service months
+                if (monthsOfService >= 6) {
+                    employmentStatus.insertAdjacentHTML('beforeend', `
+                        <option value="Regular">Regular</option>
+                        <option value="Probationary">Probationary</option>
+                        <option value="Resigned">Resigned</option>
+                        <option value="Terminated">Terminated</option>
+                    `);
                 } else {
-                    employmentStatus.insertAdjacentHTML('beforeend', '<option value="Probationary">Probationary</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option>');
+                    employmentStatus.insertAdjacentHTML('beforeend', `
+                        <option value="Probationary">Probationary</option>
+                        <option value="Resigned">Resigned</option>
+                        <option value="Terminated">Terminated</option>
+                    `);
                 }
 
-                // Probationary, Regular, Resigned, Terminated 
                 let highestValue;
                 const employees = document.querySelectorAll('.employee_js');
                 if (employees.length > 0) {
-                    // Get all employee IDs including archived ones using PHP
                     <?php
                     $all_employees_sql = "SELECT employee_id FROM employees"; 
                     $all_employees_result = mysqli_query($conn, $all_employees_sql);
@@ -894,31 +903,21 @@ function generatePasswordFromBday($date_of_birth) {
                     echo "const allEmployeeIds = " . json_encode($all_employee_ids) . ";";
                     ?>
 
-                    // Extract only the last 3 digits from all employee IDs
                     const lastThreeDigits = allEmployeeIds.map(id => {
-                        // Get only the last 3 digits regardless of ID length
-                        const last3 = id.slice(-3);
-                        return parseInt(last3, 10);
+                        return parseInt(id.slice(-3), 10);
                     });
 
-                    // Get the highest number from the last 3 digits
                     highestValue = Math.max(...lastThreeDigits);
                 } else {
                     highestValue = 0;
                 }
 
-                let employeeLatest;
-                // Always pad to 3 digits
-                employeeLatest = (highestValue + 1).toString().padStart(3, '0');
+                let employeeLatest = (highestValue + 1).toString().padStart(3, '0');
+                const hireYear = value.substring(2, 4);
+                const hireMonth = value.substring(5, 7);
 
-                // Get the year and month from hire date
-                const hireYear = value.substring(2, 4); // Get last 2 digits of year
-                const hireMonth = value.substring(5, 7); // Get month
-
-                // Combine to create employee ID: YYMM + sequential number
                 document.getElementById("employee_id").value = `${hireYear}-${employeeLatest}`;
 
-                employmentStatus.disabled = false;
                 updateLeaveBasedOnEmploymentStatus();
             });
 
