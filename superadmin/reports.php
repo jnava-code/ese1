@@ -278,11 +278,158 @@
             display: none;
         }
     }
+
+    .filter-section {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .filter-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-select, .form-control {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-width: 150px;
+    }
+
+    .filter-option {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .search-btn {
+        background-color: #4dabf7;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .search-btn:hover {
+        background-color: #3793dd;
+    }
+
+    .attendance-chart-container {
+        margin-top: 20px;
+        height: 400px;
+        position: relative;
+    }
+
+    #chartTitle {
+        color: #333;
+        font-size: 1.5em;
+        margin-bottom: 20px;
+    }
+
+    /* Match your existing color scheme */
+    .chart-colors {
+        --on-time: #69db7c;
+        --late: #ff8787;
+        --absent: #fa5252;
+        --under-time: #ffcc00;
+        --over-time: #8e44ad;
+        --on-leave: #4dabf7;
+    }
 </style>
 <body>   
     <!-- Main Content Area -->
     <main class="main-content">
         <section id="dashboard">
+            <!-- Add this before your charts section -->
+            <div class="filter-section">
+                <div class="filter-controls">
+                    <select id="reportType" class="form-select">
+                        <option value="">Select Report Type</option>
+                        <option value="daily">Daily Report</option>
+                        <option value="weekly">Weekly Report</option>
+                        <option value="monthly">Monthly Report</option>
+                    </select>
+
+                    <!-- Daily Filter -->
+                    <div id="dailyFilter" class="filter-option" style="display: none;">
+                        <input type="date" id="dailyDate" class="form-control">
+                        <button class="btn btn-primary search-btn" onclick="fetchDailyReport()">Search</button>
+                    </div>
+
+                    <!-- Weekly Filter -->
+                    <div id="weeklyFilter" class="filter-option" style="display: none;">
+                        <select id="weeklyMonth" class="form-select">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <select id="weeklyYear" class="form-select">
+                            <?php 
+                            $currentYear = date('Y');
+                            for($year = $currentYear; $year >= $currentYear - 5; $year--) {
+                                echo "<option value='$year'>$year</option>";
+                            }
+                            ?>
+                        </select>
+                        <select id="weekNumber" class="form-select">
+                            <!-- Will be populated dynamically -->
+                        </select>
+                        <button class="btn btn-primary search-btn" onclick="fetchWeeklyReport()">Search</button>
+                    </div>
+
+                    <!-- Monthly Filter -->
+                    <div id="monthlyFilter" class="filter-option" style="display: none;">
+                        <select id="monthlyMonth" class="form-select">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <select id="monthlyYear" class="form-select">
+                            <?php 
+                            $currentYear = date('Y');
+                            for($year = $currentYear; $year >= $currentYear - 5; $year--) {
+                                echo "<option value='$year'>$year</option>";
+                            }
+                            ?>
+                        </select>
+                        <button class="btn btn-primary search-btn" onclick="fetchMonthlyReport()">Search</button>
+                    </div>
+                </div>
+
+                <!-- Add a title for the chart -->
+                <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
+                
+                <!-- Chart container -->
+                <div class="attendance-chart-container" style="display: none;">
+                    <canvas id="filteredAttendanceChart"></canvas>
+                </div>
+            </div>
+
             <!-- Charts Section -->
             <div class="reports">
                 <!-- Attendance Report -->
@@ -595,6 +742,201 @@
                 }
             }
         });
+
+        document.getElementById('reportType').addEventListener('change', function() {
+            // Hide all filters and chart
+            document.querySelectorAll('.filter-option').forEach(el => el.style.display = 'none');
+            document.getElementById('chartTitle').style.display = 'none';
+            document.querySelector('.attendance-chart-container').style.display = 'none';
+            
+            // Show selected filter
+            const selectedFilter = document.getElementById(this.value + 'Filter');
+            if (selectedFilter) {
+                selectedFilter.style.display = 'flex';
+            }
+
+            // Update weeks if weekly is selected
+            if (this.value === 'weekly') {
+                updateWeeks();
+            }
+        });
+
+        // Update weeks based on selected month
+        function updateWeeks() {
+            const month = document.getElementById('weeklyMonth').value;
+            const year = document.getElementById('weeklyYear').value;
+            const weekSelect = document.getElementById('weekNumber');
+            
+            // Calculate number of weeks in the month
+            const date = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0).getDate();
+            const numWeeks = Math.ceil((lastDay + date.getDay()) / 7);
+            
+            // Update week options
+            weekSelect.innerHTML = '';
+            for (let i = 1; i <= numWeeks; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Week ${i}`;
+                weekSelect.appendChild(option);
+            }
+        }
+
+        // Add event listeners for month/year changes in weekly filter
+        document.getElementById('weeklyMonth').addEventListener('change', updateWeeks);
+        document.getElementById('weeklyYear').addEventListener('change', updateWeeks);
+
+        let attendanceChart = null;
+
+        function createOrUpdateChart(data) {
+            const ctx = document.getElementById('filteredAttendanceChart').getContext('2d');
+            
+            if (attendanceChart) {
+                attendanceChart.destroy();
+            }
+
+            // Calculate total for percentage
+            const total = Object.values(data).reduce((a, b) => Number(a) + Number(b), 0);
+
+            // Filter out zero values and prepare data
+            const labels = ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'];
+            const colors = ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'];
+            const values = [
+                data.ontime || 0,
+                data.late || 0,
+                data.absent || 0,
+                data.undertime || 0,
+                data.overtime || 0,
+                data.leave || 0
+            ];
+
+            // Filter out items with zero values
+            const filteredData = labels.map((label, i) => ({
+                label,
+                value: values[i],
+                color: colors[i]
+            })).filter(item => item.value > 0);
+
+            attendanceChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: filteredData.map(item => item.label),
+                    datasets: [{
+                        data: filteredData.map(item => item.value),
+                        backgroundColor: filteredData.map(item => item.color)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, i) {
+                                            const value = data.datasets[0].data[i];
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return {
+                                                text: `${label}: ${value} (${percentage}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        datalabels: {
+                            formatter: (value) => {
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${value}\n(${percentage}%)`;
+                            },
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        function fetchDailyReport() {
+            const date = document.getElementById('dailyDate').value;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+            document.getElementById('chartTitle').textContent = `Attendance Report for ${new Date(date).toLocaleDateString()}`;
+            document.getElementById('chartTitle').style.display = 'block';
+            document.querySelector('.attendance-chart-container').style.display = 'block';
+            fetchAttendanceData('daily', { date });
+        }
+
+        function fetchWeeklyReport() {
+            const month = document.getElementById('weeklyMonth').value;
+            const year = document.getElementById('weeklyYear').value;
+            const week = document.getElementById('weekNumber').value;
+            if (!month || !year || !week) {
+                alert('Please select all fields');
+                return;
+            }
+            const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+            document.getElementById('chartTitle').textContent = `Attendance Report for Week ${week} of ${monthName} ${year}`;
+            document.getElementById('chartTitle').style.display = 'block';
+            document.querySelector('.attendance-chart-container').style.display = 'block';
+            fetchAttendanceData('weekly', { month, year, week });
+        }
+
+        function fetchMonthlyReport() {
+            const month = document.getElementById('monthlyMonth').value;
+            const year = document.getElementById('monthlyYear').value;
+            if (!month || !year) {
+                alert('Please select month and year');
+                return;
+            }
+            const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+            document.getElementById('chartTitle').textContent = `Attendance Report for ${monthName} ${year}`;
+            document.getElementById('chartTitle').style.display = 'block';
+            document.querySelector('.attendance-chart-container').style.display = 'block';
+            fetchAttendanceData('monthly', { month, year });
+        }
+
+        function fetchAttendanceData(type, params) {
+            // Create URL with parameters
+            const queryString = new URLSearchParams(params).toString();
+            console.log(params);
+            
+            fetch(`get_attendance_data?type=${type}&${queryString}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        alert('Error fetching data');
+                        return;
+                    }
+                    createOrUpdateChart(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching data');
+                });
+        }
     </script>
 </body>
 </html>
