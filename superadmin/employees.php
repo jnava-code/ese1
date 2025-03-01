@@ -70,13 +70,31 @@
                 ? file_get_contents($_FILES[$fieldName]['tmp_name'])
                 : null;
         }
-    
-        $file_medical = getFileContent('file_medical');
-        $file_tor = getFileContent('file_tor');
-        $file_police = getFileContent('file_police');
-        $file_resume = getFileContent('file_resume');
-        $file_prc = getFileContent('file_prc');
-        $file_201 = getFileContent('file_201');
+        
+        function uploadFile($fieldName, $first_name, $last_name) {
+            $file_path = '../files/';
+        
+            if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
+                return null;
+            }
+        
+            $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
+            $unique_filename = $first_name . '_' . $last_name . '_' . uniqid() . '.' . $ext;
+        
+            if (move_uploaded_file($_FILES[$fieldName]['tmp_name'], $file_path . $unique_filename)) {
+                return $unique_filename;
+            } else {
+                die("File upload failed for $fieldName.");
+            }
+        }
+
+        // Upload files
+        $file_medical = uploadFile('file_medical', $first_name, $last_name);
+        $file_tor = uploadFile('file_tor', $first_name, $last_name);
+        $file_police = uploadFile('file_police', $first_name, $last_name);
+        $file_resume = uploadFile('file_resume', $first_name, $last_name);
+        $file_prc = uploadFile('file_prc', $first_name, $last_name);
+        $file_201 = uploadFile('file_201', $first_name, $last_name);
         
         // Check if any file upload failed
         foreach ($_FILES as $key => $file) {

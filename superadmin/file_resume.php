@@ -61,31 +61,24 @@
                 <div class="file_content">
                         <?php
                         // Assuming $employee['file'] contains the binary data of the file (either image or PDF)
-                        $file = $employee['resume'];
+                        $file_path = "../files/" . $employee['resume'];
+                        $file_type = $employee['resume_type'];
 
-                        // Check if the file is not empty
-                        if (!empty($file)) {
-                            // Determine the MIME type dynamically
-                            $finfo = finfo_open(FILEINFO_MIME_TYPE); // Open file info
-                            $mimeType = finfo_buffer($finfo, $file); // Get MIME type from binary data
-                            finfo_close($finfo); // Close file info
-
-                            // Encode the file to base64
-                            $base64File = base64_encode($file);
-
-                            // Check the MIME type and output accordingly
-                            if (strpos($mimeType, 'image/') === 0) {
-                                // It's an image
-                                echo '<img src="data:' . $mimeType . ';base64,' . $base64File . '" alt="Employee Image" />';
-                            } elseif ($mimeType === 'application/pdf') {
-                                // It's a PDF
-                                echo '<iframe class="file" src="data:' . $mimeType . ';base64,' . $base64File . '" width="600" height="500" frameborder="0">This browser does not support PDFs. <a href="data:' . $mimeType . ';base64,' . $base64File . '">Download the PDF</a>.</iframe>';
+                        if (!empty($employee['resume']) && file_exists($file_path)) {
+                            // Check file type
+                            if (strpos($file_type, 'image/') === 0) {
+                                echo '<img src="' . $file_path . '" alt="Employee Resume File" />';
+                            } elseif ($file_type === 'application/pdf') {
+                                echo '<iframe class="file" src="' . $file_path . '" width="600" height="500" frameborder="0">
+                                        This browser does not support PDFs. <a href="' . $file_path . '">Download the PDF</a>.
+                                      </iframe>';
                             } else {
-                                echo 'Unsupported file type: ' . htmlspecialchars($mimeType);
+                                echo 'Unsupported file type: ' . htmlspecialchars($file_type);
                             }
                         } else {
-                            echo 'No file data available.<br>';
+                            echo 'No file data available or file not found.<br>';
                         }
+                        
                     ?>
                     <?php else: ?>
                         <p class="text-danger">Employee not found.</p>
