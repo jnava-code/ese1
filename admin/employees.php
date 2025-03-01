@@ -870,8 +870,6 @@ function generatePasswordFromBday($date_of_birth) {
                 // Calculate the difference in months
                 let monthsOfService = (currentYear - hiredYear) * 12 + (currentMonth - hiredMonth);
                 if (monthsOfService < 0) monthsOfService = 0; 
-
-                console.log("Months of Service:", monthsOfService);
                 
                 if(monthsOfService >= 6) {
                     employmentStatus.insertAdjacentHTML('beforeend', '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option>');
