@@ -65,48 +65,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } else {
                     $clock_in_datetime = strtotime($attendance_row['date'] . ' ' . $attendance_row['clock_in_time']);
                     $clock_out_datetime = strtotime($current_datetime);
-
+            
                     if ($clock_in_datetime !== false && $clock_out_datetime !== false) {
-                        $total_seconds = $clock_out_datetime - $clock_in_datetime;
-
-                        // Calculate morning hours
+                        // Ensure the time-out is after time-in
+                        if ($clock_out_datetime <= $clock_in_datetime) {
+                            $response['error'] = "Time Out must be after Time In.";
+                            echo json_encode($response);
+                            exit;
+                        }
+            
                         $morning_hours = 0;
-                        if ($clock_in_datetime <= $morning_end && $clock_out_datetime >= $morning_start) {
+                        $afternoon_hours = 0;
+                        $overtime_hours = 0;
+            
+                        // Morning Hours (8:00 AM - 12:00 PM)
+                        if ($clock_in_datetime < $morning_end && $clock_out_datetime > $morning_start) {
                             $morning_start_time = max($clock_in_datetime, $morning_start);
                             $morning_end_time = min($clock_out_datetime, $morning_end);
-                            $morning_hours = ($morning_end_time - $morning_start_time) / 3600;
+                            $morning_hours = max(($morning_end_time - $morning_start_time) / 3600, 0);
                         }
-
-                        // Calculate afternoon hours
-                        $afternoon_hours = 0;
-                        if ($clock_out_datetime >= $afternoon_start && $clock_in_datetime <= $afternoon_end) {
+            
+                        // Afternoon Hours (1:00 PM - 5:00 PM)
+                        if ($clock_out_datetime > $afternoon_start && $clock_in_datetime < $afternoon_end) {
                             $afternoon_start_time = max($clock_in_datetime, $afternoon_start);
                             $afternoon_end_time = min($clock_out_datetime, $afternoon_end);
-                            $afternoon_hours = ($afternoon_end_time - $afternoon_start_time) / 3600;
+                            $afternoon_hours = max(($afternoon_end_time - $afternoon_start_time) / 3600, 0);
                         }
-
-                        // Calculate total working hours
-                        $total_hours = round($morning_hours + $afternoon_hours, 2);
-
-                        // Determine status based on total hours worked
+            
+                        // Overtime Hours (5:30 PM onwards)
                         if ($clock_out_datetime >= $overtime_start) {
-                            $overtime_hours = ($clock_out_datetime - $overtime_start) / 3600;
-                            $total_hours += round($overtime_hours, 2);
-                            $status = "Over Time";
-                        } else if ($total_hours < 8) {
+                            $overtime_hours = max(($clock_out_datetime - $overtime_start) / 3600, 0);
+                        }
+            
+                        // Compute Total Hours
+                        $total_hours = round($morning_hours + $afternoon_hours + $overtime_hours, 2);
+            
+                        // Determine status based on hours worked
+                        if ($total_hours >= 8) {
+                            $status = "Present";
+                        } elseif ($total_hours > 0 && $total_hours < 8) {
                             $status = "Under Time";
                         } else {
-                            $status = "Present";
+                            $status = "Invalid";
                         }
-
+            
                         // Convert clock-out time to 12-hour format
                         $clock_out_time_12hr = date('h:i:s A', strtotime($current_datetime));
-
-                        // Update attendance record with clock-out time
+            
+                        // Update attendance record
                         $update_sql = "UPDATE attendance 
                                        SET clock_out_time = '$clock_out_time_12hr', total_hours = '$total_hours', status = '$status'
                                        WHERE attendance_id = '{$attendance_row['attendance_id']}'";
-
+            
                         if (mysqli_query($conn, $update_sql)) {
                             $response['success'] = "Time Out recorded successfully! Status: $status";
                         } else {
@@ -117,6 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
+            
         }
     } else {
         $response['error'] = "Invalid Employee ID.";
