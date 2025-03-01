@@ -12,10 +12,44 @@ if (!$conn) {
 
 $type = $_GET['type'];
 $response = [];
+$today = date('Y-m-d');
 
 switch($type) {
     case 'daily':
         $date = $_GET['date'];
+        
+        // If date is in future, only show approved leaves
+        if ($date > $today) {
+            $sql = "SELECT 
+                0 as ontime,
+                0 as late,
+                0 as undertime,
+                0 as overtime,
+                (SELECT COUNT(*) 
+                 FROM leave_applications 
+                 WHERE status = 'Approved' 
+                 AND '$date' BETWEEN start_date AND end_date) as leave_count";
+            
+            $result = mysqli_query($conn, $sql);
+            $data = mysqli_fetch_assoc($result);
+            
+            // Get total employees
+            $empSQL = "SELECT COUNT(*) as total FROM employees WHERE is_archived = 0";
+            $empResult = mysqli_query($conn, $empSQL);
+            $empData = mysqli_fetch_assoc($empResult);
+            
+            echo json_encode([
+                'ontime' => 0,
+                'late' => 0,
+                'undertime' => 0,
+                'overtime' => 0,
+                'leave' => $data['leave_count'],
+                'absent' => $data['leave_count'] > 0 ? $empData['total'] - $data['leave_count'] : 0
+            ]);
+            exit;
+        }
+        
+        // For past or current dates, use existing logic
         $sql = "SELECT 
             COUNT(CASE WHEN status = 'On Time' THEN 1 END) as ontime,
             COUNT(CASE WHEN status = 'Late' THEN 1 END) as late,
@@ -35,6 +69,38 @@ switch($type) {
         $weekStart = date('Y-m-d', strtotime($firstDay . " +".($week-1)." weeks"));
         $weekEnd = date('Y-m-d', strtotime($weekStart . " +6 days"));
         
+        // If week is in future, only show approved leaves
+        if ($weekStart > $today) {
+            $sql = "SELECT 
+                0 as ontime,
+                0 as late,
+                0 as undertime,
+                0 as overtime,
+                (SELECT COUNT(*) 
+                 FROM leave_applications 
+                 WHERE status = 'Approved' 
+                 AND start_date <= '$weekEnd' 
+                 AND end_date >= '$weekStart') as leave_count";
+            
+            $result = mysqli_query($conn, $sql);
+            $data = mysqli_fetch_assoc($result);
+            
+            // Get total employees
+            $empSQL = "SELECT COUNT(*) as total FROM employees WHERE is_archived = 0";
+            $empResult = mysqli_query($conn, $empSQL);
+            $empData = mysqli_fetch_assoc($empResult);
+            
+            echo json_encode([
+                'ontime' => 0,
+                'late' => 0,
+                'undertime' => 0,
+                'overtime' => 0,
+                'leave' => $data['leave_count'],
+                'absent' => $data['leave_count'] > 0 ? $empData['total'] - $data['leave_count'] : 0
+            ]);
+            exit;
+        }
+        
         $sql = "SELECT 
             COUNT(CASE WHEN status = 'On Time' THEN 1 END) as ontime,
             COUNT(CASE WHEN status = 'Late' THEN 1 END) as late,
@@ -47,6 +113,39 @@ switch($type) {
     case 'monthly':
         $month = $_GET['month'];
         $year = $_GET['year'];
+        
+        // If month is in future, only show approved leaves
+        if ("$year-$month-01" > $today) {
+            $sql = "SELECT 
+                0 as ontime,
+                0 as late,
+                0 as undertime,
+                0 as overtime,
+                (SELECT COUNT(*) 
+                 FROM leave_applications 
+                 WHERE status = 'Approved' 
+                 AND MONTH(start_date) = $month 
+                 AND YEAR(start_date) = $year) as leave_count";
+            
+            $result = mysqli_query($conn, $sql);
+            $data = mysqli_fetch_assoc($result);
+            
+            // Get total employees
+            $empSQL = "SELECT COUNT(*) as total FROM employees WHERE is_archived = 0";
+            $empResult = mysqli_query($conn, $empSQL);
+            $empData = mysqli_fetch_assoc($empResult);
+            
+            echo json_encode([
+                'ontime' => 0,
+                'late' => 0,
+                'undertime' => 0,
+                'overtime' => 0,
+                'leave' => $data['leave_count'],
+                'absent' => $data['leave_count'] > 0 ? $empData['total'] - $data['leave_count'] : 0
+            ]);
+            exit;
+        }
+        
         $sql = "SELECT 
             COUNT(CASE WHEN status = 'On Time' THEN 1 END) as ontime,
             COUNT(CASE WHEN status = 'Late' THEN 1 END) as late,

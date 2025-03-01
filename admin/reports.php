@@ -274,17 +274,102 @@
         text-align: center;
     }
     @media print {
-        header {
-            display: none;
+        .hover-area,
+        header, 
+        .sidebar,
+        .filter-controls,
+        footer {
+            display: none !important;
+        }
+
+        /* Set landscape mode and margins */
+        @page {
+            size: landscape;
+            margin: 1cm;
+        }
+
+        /* Main content adjustments */
+        .main-content {
+            margin: 0 !important;
+            padding: 10px !important;
+            width: 100% !important;
+        }
+
+        /* Grid layout for all charts */
+        #dashboard {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-gap: 20px !important;
+            padding: 15px !important;
+        }
+
+        /* Style the reports container */
+        .reports {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+            grid-gap: 20px !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Style individual chart containers */
+        .reports > div{
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            page-break-inside: avoid !important;
+            background: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Adjust chart sizes */
+        canvas {
+            height: 300px !important;
+            width: 100% !important;
+        }
+
+        /* Style chart titles */
+        #chartTitle,
+        .reports h1 {
+            font-size: 14pt !important;
+            margin: 0 0 10px 0 !important;
+            text-align: center !important;
+            color: black !important;
+        }
+
+        /* Remove any full-width settings */
+        .reports > div:last-child {
+            grid-column: auto !important;
         }
     }
 
-    .filter-section {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+    /* Non-print styles */
+    .reports {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: repeat(2, 1fr) !important;
+        grid-gap: 20px !important;
+        padding: 20px !important;
+    }
+
+    .reports > div {
+        width: 100% !important;
+        height: 350px !important;
+    }
+
+    .reports > div {
+        max-width: none !important;
+    }
+
+    .reports h1,
+    #chartTitle {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 18px;
+        color: #333;
     }
 
     .filter-controls {
@@ -292,6 +377,17 @@
         flex-wrap: wrap;
         gap: 15px;
         margin-bottom: 20px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        width: fit-content;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 18px;
     }
 
     .form-select, .form-control {
@@ -322,15 +418,15 @@
     }
 
     .attendance-chart-container {
-        margin-top: 20px;
-        height: 400px;
         position: relative;
+        margin-top: 10px;
     }
 
     #chartTitle {
         color: #333;
-        font-size: 1.5em;
-        margin-bottom: 20px;
+        font-size: 16px;
+        margin: 0 0 10px 0;
+        text-align: center;
     }
 
     /* Match your existing color scheme */
@@ -342,126 +438,125 @@
         --over-time: #8e44ad;
         --on-leave: #4dabf7;
     }
+
+    canvas {
+        max-height: 250px !important;
+        width: 100% !important;
+    }
+
+    /* Update print styles */
+    @media print {
+        .reports > div{
+            height: 300px !important;
+        }
+
+        canvas {
+            height: 200px !important;
+        }
+
+        .filter-controls {
+            display: none !important;
+        }
+    }
 </style>
 <body>   
     <!-- Main Content Area -->
     <main class="main-content">
         <section id="dashboard">
-            <!-- Add this before your charts section -->
-            <div class="filter-section">
-                <div class="filter-controls">
-                    <select id="reportType" class="form-select">
-                        <option value="">Select Report Type</option>
-                        <option value="daily">Daily Report</option>
-                        <option value="weekly">Weekly Report</option>
-                        <option value="monthly">Monthly Report</option>
-                    </select>
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="reportType" class="form-select">
+                    <option value="daily">Daily Report</option>
+                    <option value="weekly">Weekly Report</option>
+                    <option value="monthly">Monthly Report</option>
+                </select>
 
-                    <!-- Daily Filter -->
-                    <div id="dailyFilter" class="filter-option" style="display: none;">
-                        <input type="date" id="dailyDate" class="form-control">
-                        <button class="btn btn-primary search-btn" onclick="fetchDailyReport()">Search</button>
-                    </div>
-
-                    <!-- Weekly Filter -->
-                    <div id="weeklyFilter" class="filter-option" style="display: none;">
-                        <select id="weeklyMonth" class="form-select">
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                        <select id="weeklyYear" class="form-select">
-                            <?php 
-                            $currentYear = date('Y');
-                            for($year = $currentYear; $year >= $currentYear - 5; $year--) {
-                                echo "<option value='$year'>$year</option>";
-                            }
-                            ?>
-                        </select>
-                        <select id="weekNumber" class="form-select">
-                            <!-- Will be populated dynamically -->
-                        </select>
-                        <button class="btn btn-primary search-btn" onclick="fetchWeeklyReport()">Search</button>
-                    </div>
-
-                    <!-- Monthly Filter -->
-                    <div id="monthlyFilter" class="filter-option" style="display: none;">
-                        <select id="monthlyMonth" class="form-select">
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                        <select id="monthlyYear" class="form-select">
-                            <?php 
-                            $currentYear = date('Y');
-                            for($year = $currentYear; $year >= $currentYear - 5; $year--) {
-                                echo "<option value='$year'>$year</option>";
-                            }
-                            ?>
-                        </select>
-                        <button class="btn btn-primary search-btn" onclick="fetchMonthlyReport()">Search</button>
-                    </div>
+                <!-- Daily Filter -->
+                <div id="dailyFilter" class="filter-option" style="display: none;">
+                    <input type="date" id="dailyDate" class="form-control">
+                    <button class="btn btn-primary search-btn" onclick="fetchDailyReport()">Search</button>
                 </div>
 
-                <!-- Add a title for the chart -->
-                <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
-                
-                <!-- Chart container -->
-                <div class="attendance-chart-container" style="display: none;">
-                    <canvas id="filteredAttendanceChart"></canvas>
+                <!-- Weekly Filter -->
+                <div id="weeklyFilter" class="filter-option" style="display: none;">
+                    <select id="weeklyMonth" class="form-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <select id="weeklyYear" class="form-select">
+                        <?php 
+                        $currentYear = date('Y');
+                        for($year = $currentYear; $year >= $currentYear - 5; $year--) {
+                            echo "<option value='$year'>$year</option>";
+                        }
+                        ?>
+                    </select>
+                    <select id="weekNumber" class="form-select">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <button class="btn btn-primary search-btn" onclick="fetchWeeklyReport()">Search</button>
+                </div>
+
+                <!-- Monthly Filter -->
+                <div id="monthlyFilter" class="filter-option" style="display: none;">
+                    <select id="monthlyMonth" class="form-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <select id="monthlyYear" class="form-select">
+                        <?php 
+                        $currentYear = date('Y');
+                        for($year = $currentYear; $year >= $currentYear - 5; $year--) {
+                            echo "<option value='$year'>$year</option>";
+                        }
+                        ?>
+                    </select>
+                    <button class="btn btn-primary search-btn" onclick="fetchMonthlyReport()">Search</button>
                 </div>
             </div>
 
             <!-- Charts Section -->
             <div class="reports">
-                <!-- Attendance Report -->
-                <div style="width: 100%; max-width: 350px;">
-                    <h1>Daily Attendance Report</h1>
-                    <canvas id="dailyAttendancePieChart"></canvas>
+                <div>
+                    <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
+                    <div class="attendance-chart-container" style="display: none;">
+                        <canvas id="filteredAttendanceChart" width="400" height="400"></canvas>
+                    </div>
                 </div>
-
-                <div style="width: 100%; max-width: 350px;">
-                    <h1>Weekly Attendance Report</h1>
-                    <canvas id="weeklyAttendancePieChart"></canvas>
-                </div>
-
-                <div style="width: 100%; max-width: 350px;">
-                    <h1>Monthly Attendance Report</h1>
-                    <canvas id="monthlyAttendancePieChart"></canvas>
-                </div>
-
                 <!-- Employees Report -->
-                <div style="width: 100%; max-width: 350px;">
+                <div>
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
                 </div>
 
-                <div style="width: 100%; max-width: 350px;">
+                <div>
                     <h1>Attrition Risk Report</h1>
                     <canvas id="attritionChart" width="400" height="400"></canvas>
                 </div>
 
                 <!-- Employees by Age and Gender Report -->
-                <div style="width: 100%; max-width: 500px;">
+                <div>
                     <h1>Employees by Age and Gender Report</h1>
                     <canvas id="ageGenderChart" width="600" height="400"></canvas>
                 </div>
@@ -472,155 +567,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
     <script>
-       // DAILY ATTENDANCE REPORT
-        var daily_late = <?php echo $daily_late; ?>;
-        var daily_ontime = <?php echo $daily_ontime; ?>;
-        var daily_undertime = <?php echo $daily_undertime; ?>;
-        var daily_overtime = <?php echo $daily_overtime; ?>;
-        var daily_leave = <?php echo $daily_leave; ?>;
-        var daily_absent = <?php echo $daily_absent ?? 0; ?>;
-
-        var dailyctx = document.getElementById('dailyAttendancePieChart').getContext('2d');
-        var dailyAttendancePieChart = new Chart(dailyctx, {
-            type: 'pie',
-            data: {
-                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
-                datasets: [{
-                    data: [daily_ontime, daily_late, daily_absent, daily_undertime, daily_overtime, daily_leave],
-                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                plugins: {
-                    datalabels: {
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ""; // Hide labels when value is 0
-                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                            return percentage;
-                        },
-                        color: '#fff',
-                        font: {
-                            weight: 'bold',
-                            size: 14
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-
-        // WEEKLY ATTENDANCE REPORT
-        var weekly_late = <?php echo $weekly_late; ?>;
-        var weekly_ontime = <?php echo $weekly_ontime; ?>;
-        var weekly_undertime = <?php echo $weekly_undertime; ?>;
-        var weekly_overtime = <?php echo $weekly_overtime; ?>;
-        var weekly_leave = <?php echo $weekly_leave; ?>;
-        var weekly_absent = <?php echo $weekly_absent ?? 0; ?>;
-
-        var weeklyctx = document.getElementById('weeklyAttendancePieChart').getContext('2d');
-        var weeklyAttendancePieChart = new Chart(weeklyctx, {
-            type: 'pie',
-            data: {
-                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
-                datasets: [{
-                    data: [weekly_ontime, weekly_late, weekly_absent, weekly_undertime, weekly_overtime, weekly_leave],
-                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                plugins: {
-                    datalabels: {
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ""; // Hide labels when value is 0
-                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                            return percentage;
-                        },
-                        color: '#fff',
-                        font: {
-                            weight: 'bold',
-                            size: 14
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-       
-        // Monthly ATTENDANCE REPORT
-        var monthly_late = <?php echo $monthly_late; ?>;
-        var monthly_ontime = <?php echo $monthly_ontime; ?>;
-        var monthly_undertime = <?php echo $monthly_undertime; ?>;
-        var monthly_overtime = <?php echo $monthly_overtime; ?>;
-        var monthly_leave = <?php echo $monthly_leave; ?>;
-        var monthly_absent = <?php echo $monthly_absent ?? 0; ?>;
-
-        var monthlyctx = document.getElementById('monthlyAttendancePieChart').getContext('2d');
-        var monthlyAttendancePieChart = new Chart(monthlyctx, {
-            type: 'pie',
-            data: {
-                labels: ['On Time', 'Late', 'Absent', 'Under Time', 'Over Time', 'On Leave'],
-                datasets: [{
-                    data: [monthly_ontime, monthly_late, monthly_absent, monthly_undertime, monthly_overtime, monthly_leave],
-                    backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#ffcc00', '#8e44ad', '#4dabf7'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                plugins: {
-                    datalabels: {
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ""; // Hide labels when value is 0
-                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                            return percentage;
-                        },
-                        color: '#fff',
-                        font: {
-                            weight: 'bold',
-                            size: 14
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-
-
-// var ctx = document.getElementById('attendancePieChart').getContext('2d');
-// var attendancePieChart = new Chart(ctx, {
-//     type: 'pie',
-//     data: {
-//         labels: ['On Time (Present)', 'Late (Present)', 'Absent', 'On Leave'],
-//         datasets: [{
-//             data: [onTimeCount, lateCount, absentCount, onLeaveCount],
-//             backgroundColor: ['#69db7c', '#ff8787', '#fa5252', '#4dabf7'],
-//             borderWidth: 1
-//         }]
-//     },
-//     options: {
-//         plugins: {
-//             datalabels: {
-//                 formatter: (value, ctx) => {
-//                     let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-//                     let percentage = ((value / sum) * 100).toFixed(1) + "%";
-//                     return percentage;
-//                 },
-//                 color: '#fff',
-//                 font: {
-//                     weight: 'bold',
-//                     size: 14
-//                 }
-//             }
-//         }
-//     },
-//     plugins: [ChartDataLabels]
-// });
-
-
         // DEPARTMENT REPORT
         var departments = <?php echo $departmentsJson; ?>;
         var colors = <?php echo $colorsJson; ?>;
@@ -831,8 +777,11 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'top',
+                            align: 'center',
                             labels: {
+                                boxWidth: 15,
+                                padding: 10,
                                 generateLabels: function(chart) {
                                     const data = chart.data;
                                     if (data.labels.length && data.datasets.length) {
@@ -853,7 +802,7 @@
                         datalabels: {
                             formatter: (value) => {
                                 const percentage = ((value / total) * 100).toFixed(1);
-                                return `${value}\n(${percentage}%)`;
+                                return `${percentage}%`;
                             },
                             color: '#fff',
                             font: {
@@ -870,18 +819,14 @@
                                 }
                             }
                         }
-                    }
+                    },
                 },
                 plugins: [ChartDataLabels]
             });
         }
 
         function fetchDailyReport() {
-            const date = document.getElementById('dailyDate').value;
-            if (!date) {
-                alert('Please select a date');
-                return;
-            }
+            const date = document.getElementById('dailyDate').value || new Date().toISOString().split('T')[0];
             document.getElementById('chartTitle').textContent = `Attendance Report for ${new Date(date).toLocaleDateString()}`;
             document.getElementById('chartTitle').style.display = 'block';
             document.querySelector('.attendance-chart-container').style.display = 'block';
@@ -937,6 +882,19 @@
                     alert('Error fetching data');
                 });
         }
+
+        // Add this after your existing script
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dailyDate').value = today;
+            
+            // Show daily filter by default
+            document.getElementById('dailyFilter').style.display = 'flex';
+            
+            // Fetch daily report for today
+            fetchDailyReport();
+        });
     </script>
 </body>
 </html>

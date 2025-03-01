@@ -347,9 +347,7 @@
     <!-- Main Content Area -->
     <main class="main-content">
         <section id="dashboard">
-            <!-- Add this before your charts section -->
-            <div class="filter-section">
-                <div class="filter-controls">
+        <div class="filter-controls">
                     <select id="reportType" class="form-select">
                         <option value="">Select Report Type</option>
                         <option value="daily">Daily Report</option>
@@ -420,6 +418,9 @@
                         <button class="btn btn-primary search-btn" onclick="fetchMonthlyReport()">Search</button>
                     </div>
                 </div>
+            <!-- Add this before your charts section -->
+            <div class="filter-section">
+
 
                 <!-- Add a title for the chart -->
                 <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
