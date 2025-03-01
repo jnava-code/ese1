@@ -828,7 +828,7 @@ function generatePasswordFromBday($date_of_birth) {
 <script>
         const employeeId = document.getElementById("employee_id");
         const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
-   const sickContainer = document.getElementById("sick_leave_container");
+        const sickContainer = document.getElementById("sick_leave_container");
         const vacationContainer = document.getElementById("vacation_leave_container");
         const maternityContainer = document.getElementById("maternity_leave_container");
         const paternityContainer = document.getElementById("paternity_leave_container");
@@ -857,7 +857,29 @@ function generatePasswordFromBday($date_of_birth) {
         if (hireDate) {
             hireDate.addEventListener("change", (e) => {
                 const value = e.target.value;
+                // Compute months of service
+                const hireDateObj = new Date(value);
+                const currentDate = new Date();
 
+                const hiredYear = hireDateObj.getFullYear();
+                const hiredMonth = hireDateObj.getMonth(); // 0-indexed (Jan = 0)
+
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth(); // 0-indexed
+
+                // Calculate the difference in months
+                let monthsOfService = (currentYear - hiredYear) * 12 + (currentMonth - hiredMonth);
+                if (monthsOfService < 0) monthsOfService = 0; 
+
+                console.log("Months of Service:", monthsOfService);
+                
+                if(monthsOfService >= 6) {
+                    employmentStatus.insertAdjacentHTML('beforeend', '<option value="Regular">Regular</option><option value="Probationary">Probationary</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option>');
+                } else {
+                    employmentStatus.insertAdjacentHTML('beforeend', '<option value="Probationary">Probationary</option><option value="Resigned">Resigned</option><option value="Terminated">Terminated</option>');
+                }
+
+                // Probationary, Regular, Resigned, Terminated 
                 let highestValue;
                 const employees = document.querySelectorAll('.employee_js');
                 if (employees.length > 0) {
