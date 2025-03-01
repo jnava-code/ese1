@@ -91,7 +91,6 @@
     $monthly_overtime = getCount($conn, "SELECT COUNT(*) as overtime_count FROM attendance WHERE status = 'Over Time' AND $currentMonthCondition");
     $monthly_leave = getCount($conn, "SELECT COUNT(*) as count FROM leave_applications WHERE status = 'Approved' AND MONTH(file_date) = MONTH(NOW()) AND YEAR(file_date) = YEAR(NOW())");
 
-
     $notAbsent = $late_count + $ontime_count + $leave_count;
     $total_absent_days = $absent_days - $notAbsent;
 
@@ -151,6 +150,77 @@
     // Fetch job satisfaction and performance evaluation data
     $jobSatisfactionSummary = getCount($conn, "SELECT AVG(overall_rating) as avg_rating FROM job_satisfaction_surveys");
     $performanceEvaluationSummary = getCount($conn, "SELECT AVG(overall_score) as avg_score FROM performance_evaluations");
+
+    // Add this query near your other database queries at the top
+    $attrition_query = "SELECT 
+        e.employee_id,
+        COALESCE(AVG(CASE 
+            WHEN a.status = 'On Time' THEN 1
+            WHEN a.status = 'Late' THEN 0.5
+            ELSE 0 
+        END), 0) as attendance_score,
+        COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
+        COALESCE(AVG(pe.overall_score) / 100, 0) as performance_score,
+        DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
+    FROM employees e
+    LEFT JOIN attendance a ON e.employee_id = a.employee_id
+    LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+    LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
+    WHERE e.is_archived = 0
+    GROUP BY e.employee_id";
+
+    $result = mysqli_query($conn, $attrition_query);
+
+    $low_risk = 0;
+    $medium_risk = 0;
+    $high_risk = 0;
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            // Calculate risk score using the same formula from predict.php
+            $attendance_score = floatval($row['attendance_score']);
+            $satisfaction_score = floatval($row['satisfaction_score']);
+            $performance_score = floatval($row['performance_score']);
+            $years_of_service = floatval($row['years_of_service']);
+
+            // Weights for each factor
+            $attendance_weight = 0.25;
+            $satisfaction_weight = 0.25;
+            $performance_weight = 0.25;
+            $years_weight = 0.25;
+
+            // Normalize years of service
+            $normalized_years = min($years_of_service / 30, 1);
+            
+            // Calculate risk score
+            $risk_score = 1 - (
+                ($attendance_score * $attendance_weight) +
+                ($satisfaction_score * $satisfaction_weight) +
+                ($performance_score * $performance_weight) +
+                ($normalized_years * $years_weight)
+            );
+
+            $risk_score = max(0, min(1, $risk_score));
+
+            // Categorize risk
+            if ($risk_score <= 0.3) {
+                $low_risk++;
+            } elseif ($risk_score <= 0.6) {
+                $medium_risk++;
+            } else {
+                $high_risk++;
+            }
+        }
+    }
+
+    // Convert PHP variables to JavaScript
+    echo "<script>
+        const attritionData = {
+            labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+            counts: [$low_risk, $medium_risk, $high_risk],
+            colors: ['#28a745', '#ffc107', '#dc3545']
+        };
+    </script>";
 
     mysqli_close($conn);
 ?>
@@ -236,6 +306,11 @@
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
+                </div>
+
+                <div style="width: 100%; max-width: 350px;">
+                    <h1>Attrition Risk Report</h1>
+                    <canvas id="attritionChart" width="400" height="400"></canvas>
                 </div>
 
                 <!-- Employees by Age and Gender Report -->
@@ -430,6 +505,50 @@
             },
             plugins: [ChartDataLabels] // Make sure ChartDataLabels is included
         });
+
+        var attritionCtx = document.getElementById('attritionChart').getContext('2d');
+        var attritionChart = new Chart(attritionCtx, {
+            type: 'bar',
+            data: {
+                labels: attritionData.labels,
+                datasets: [{
+                    data: attritionData.counts,
+                    backgroundColor: attritionData.colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value) => {
+                            if (value === 0) return "";
+                            return value;
+                        },
+                        color: '#000',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Employees'
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
 
         // AGE AND GENDER REPORT
         var ageRanges = <?php echo $ageRangesJson; ?>;
