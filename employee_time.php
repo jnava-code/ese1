@@ -22,8 +22,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $employee_id = mysqli_real_escape_string($conn, $employee_id);
 
     // Define work hours
-    $work_start = strtotime("$current_date 08:00:00"); // 8:00 AM
-    $work_end = strtotime("$current_date 17:00:00"); // 5:00 PM
+    $morning_start = strtotime("$current_date 08:00:00"); // 8:00 AM
+    $morning_end = strtotime("$current_date 12:00:00"); // 12:00 PM
+    $afternoon_start = strtotime("$current_date 13:00:00"); // 1:00 PM
+    $afternoon_end = strtotime("$current_date 17:00:00"); // 5:00 PM
+    $overtime_start = strtotime("$current_date 17:30:00"); // 5:30 PM
 
     // Initialize response array
     $response = [];
@@ -40,8 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (mysqli_num_rows($attendance_result) == 0) {
             // No attendance record for today
             if ($inorout == "IN") {
-                $status = $current_time_unix > $work_start ? 'Late' : 'On Time';
-                $clock_in_time_12hr = date('h:i:s A', strtotime($current_datetime)); // Convert to 12-hour format
+                $status = $current_time_unix > $morning_start ? 'Late' : 'On Time';
+                $clock_in_time_12hr = date('h:i:s A', strtotime($current_datetime));
 
                 $insert_sql = "INSERT INTO attendance (employee_id, date, clock_in_time, status) VALUES ('$employee_id', '$current_date', '$clock_in_time_12hr', '$status')";
                 if (mysqli_query($conn, $insert_sql)) {
@@ -60,30 +63,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!is_null($attendance_row['clock_out_time'])) {
                     $response['error'] = "You have already timed out for today.";
                 } else {
-                    // Use full date-time values to prevent miscalculations
                     $clock_in_datetime = strtotime($attendance_row['date'] . ' ' . $attendance_row['clock_in_time']);
-                    $clock_out_datetime = strtotime($current_datetime); 
+                    $clock_out_datetime = strtotime($current_datetime);
 
                     if ($clock_in_datetime !== false && $clock_out_datetime !== false) {
                         $total_seconds = $clock_out_datetime - $clock_in_datetime;
 
-                        // Subtract 1 hour for lunch break if applicable
-                        $lunch_start = strtotime("$current_date 12:00:00");
-                        $lunch_end = strtotime("$current_date 13:00:00");
-
-                        // Check if the employee worked through the lunch break period
-                        if ($clock_in_datetime < $lunch_end && $clock_out_datetime > $lunch_start) {
-                            $total_seconds -= 3600; // Remove 1 hour for lunch
+                        // Calculate morning hours
+                        $morning_hours = 0;
+                        if ($clock_in_datetime <= $morning_end && $clock_out_datetime >= $morning_start) {
+                            $morning_start_time = max($clock_in_datetime, $morning_start);
+                            $morning_end_time = min($clock_out_datetime, $morning_end);
+                            $morning_hours = ($morning_end_time - $morning_start_time) / 3600;
                         }
 
-                        // Calculate total hours correctly
-                        $total_hours = round($total_seconds / 3600, 2); 
+                        // Calculate afternoon hours
+                        $afternoon_hours = 0;
+                        if ($clock_out_datetime >= $afternoon_start && $clock_in_datetime <= $afternoon_end) {
+                            $afternoon_start_time = max($clock_in_datetime, $afternoon_start);
+                            $afternoon_end_time = min($clock_out_datetime, $afternoon_end);
+                            $afternoon_hours = ($afternoon_end_time - $afternoon_start_time) / 3600;
+                        }
+
+                        // Calculate total working hours
+                        $total_hours = round($morning_hours + $afternoon_hours, 2);
 
                         // Determine status based on total hours worked
-                        if ($total_hours < 7.99) {
-                            $status = "Under Time";
-                        } elseif ($total_hours >= 8) {
+                        if ($clock_out_datetime >= $overtime_start) {
+                            $overtime_hours = ($clock_out_datetime - $overtime_start) / 3600;
+                            $total_hours += round($overtime_hours, 2);
                             $status = "Over Time";
+                        } else if ($total_hours < 8) {
+                            $status = "Under Time";
                         } else {
                             $status = "Present";
                         }

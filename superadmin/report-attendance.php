@@ -393,21 +393,35 @@ function convertTo12HourFormat($time) {
             
             // Get the day name using date_format to ensure accuracy
             $day_name = date_format($current_date, 'l');
-            
+            $is_future_date = $current_date > date_create('today');
+
             // Check if it's a weekend (Saturday or Sunday)
             $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
 
             if ($is_weekend) {
-                // Display weekends with debug info
-                echo "<tr>";
-                echo "<td>$day</td>";
-                echo "<td></td>";
-                echo "<td></td>";
-                echo "<td></td>";
-                echo "<td></td>";
-                echo "<td></td>";
-                echo "<td>Day Off</td>";
-                echo "</tr>";
+                // For weekends, check if it's a future date
+                if ($is_future_date) {
+                    echo "<tr>";
+                    echo "<td>$day</td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "</tr>";
+                } else {
+                    // Display weekends with debug info
+                    echo "<tr>";
+                    echo "<td>$day</td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td></td>";
+                    echo "<td>Day Off</td>";
+                    echo "</tr>";
+                }
             } else {
                 // Process attendance for weekdays
                 $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
@@ -453,18 +467,15 @@ function convertTo12HourFormat($time) {
                         echo "</tr>";
                     }
                 } else {
-                    // Also check for approved leaves even when there's no attendance record
-                    $leave_sql = "SELECT leave_type, start_date, end_date 
-                                  FROM leave_applications 
-                                  WHERE employee_id = ? 
-                                  AND ? BETWEEN start_date AND end_date 
-                                  AND status = 'Approved'
-                                  LIMIT 1";
-                    
-                    $current_date = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
+                    // Check for approved leaves
+                    $leave_sql = "SELECT leave_type FROM leave_applications 
+                                 WHERE employee_id = ? 
+                                 AND ? BETWEEN start_date AND end_date 
+                                 AND status = 'Approved'
+                                 LIMIT 1";
                     
                     if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
-                        mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $current_date);
+                        mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $date_string);
                         mysqli_stmt_execute($stmt_leave);
                         $result_leave = mysqli_stmt_get_result($stmt_leave);
                         
@@ -479,16 +490,27 @@ function convertTo12HourFormat($time) {
                             echo "<td>On Leave</td>";
                             echo "</tr>";
                         } else {
-                            // No leave application found - show as absent
-                            echo "<tr>";
-                            echo "<td>$day</td>";
-                            echo "<td></td>";
-                            echo "<td></td>";
-                            echo "<td></td>";
-                            echo "<td></td>";
-                            echo "<td></td>";
-                            echo "<td>Absent</td>";
-                            echo "</tr>";
+                            if ($is_future_date) {
+                                echo "<tr>";
+                                echo "<td>$day</td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "</tr>";
+                            } else {
+                                echo "<tr>";
+                                echo "<td>$day</td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td></td>";
+                                echo "<td>Absent</td>";
+                                echo "</tr>";
+                            }
                         }
                         mysqli_stmt_close($stmt_leave);
                     }
@@ -517,6 +539,7 @@ if (!empty($month) && !empty($year)) {
         $current_date = date_create(sprintf("%04d-%02d-%02d", intval($year), intval($month), $day));
         $day_name = date_format($current_date, 'l');
         $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
+        $is_future_date = $current_date > date_create('today');
 
         if (!$is_weekend) {
             $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
@@ -541,23 +564,18 @@ if (!empty($month) && !empty($year)) {
                 mysqli_stmt_close($stmt_leave);
             }
 
-            if ($attendance_for_day) {
+            if ($attendance_for_day && !$is_future_date) {
                 $days_present++;
                 $total_overall_hours += round($attendance_for_day['total_hours']);
-                
-                // Set regular hours to 8 for each attended day
                 $regular_hours = 8;
                 $total_regular_hours += $regular_hours;
-                
-                // Calculate overtime (if any)
                 $total_overtime_hours += max(0, round($attendance_for_day['total_hours']) - $regular_hours);
                 
-                // Check if late
                 if ($attendance_for_day['status'] === 'Late') {
                     $days_late++;
                 }
-            } elseif (!$is_on_leave) {
-                // Only count as absent if not on leave
+            } elseif (!$is_on_leave && !$is_future_date) {
+                // Only count as absent if not on leave and not a future date
                 $days_absent++;
             }
         }

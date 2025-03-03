@@ -273,80 +273,14 @@
     .reports h1 {
         text-align: center;
     }
+
     @media print {
-        .hover-area,
-        header, 
-        .sidebar,
-        .filter-controls,
-        footer {
-            display: none !important;
-        }
-
-        /* Set landscape mode and margins */
-        @page {
-            size: landscape;
-            margin: 1cm;
-        }
-
-        /* Main content adjustments */
-        .main-content {
-            margin: 0 !important;
-            padding: 10px !important;
-            width: 100% !important;
-        }
-
-        /* Grid layout for all charts */
-        #dashboard {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr) !important;
-            grid-gap: 20px !important;
-            padding: 15px !important;
-        }
-
-        /* Style the reports container */
-        .reports {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr) !important;
-            grid-template-rows: repeat(2, 1fr) !important;
-            grid-gap: 20px !important;
-            width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        /* Style individual chart containers */
-        .reports > div{
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            page-break-inside: avoid !important;
-            background: none !important;
-            box-shadow: none !important;
-        }
-
-        /* Adjust chart sizes */
-        canvas {
-            height: 300px !important;
-            width: 100% !important;
-        }
-
-        /* Style chart titles */
-        #chartTitle,
-        .reports h1 {
-            font-size: 14pt !important;
-            margin: 0 0 10px 0 !important;
-            text-align: center !important;
-            color: black !important;
-        }
-
-        /* Remove any full-width settings */
-        .reports > div:last-child {
-            grid-column: auto !important;
+        header {
+            display: none;
         }
     }
+ 
 
-    /* Non-print styles */
     .reports {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
@@ -429,7 +363,6 @@
         text-align: center;
     }
 
-    /* Match your existing color scheme */
     .chart-colors {
         --on-time: #69db7c;
         --late: #ff8787;
@@ -444,7 +377,6 @@
         width: 100% !important;
     }
 
-    /* Update print styles */
     @media print {
         .reports > div{
             height: 300px !important;

@@ -582,7 +582,7 @@ if (!empty($month) && !empty($year)) {
     }
 ?>
 
-<div style="margin-top: 20px;">
+<div class="summary-tables" style="margin-top: 20px;">
     <table style="width: 50%; border-collapse: collapse; float: left;">
         <tr>
             <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
@@ -608,7 +608,7 @@ if (!empty($month) && !empty($year)) {
         </tr>
     </table>
 
-    <div style="float: right;">
+    <div class="attendance-summary">
         <table style="border-collapse: collapse;">
             <tr>
                 <td style="padding: 5px; text-align: right;">Number of Days Present:</td>
@@ -636,8 +636,6 @@ if (!empty($month) && !empty($year)) {
             </tr>
         </table>
     </div>
-    <!-- Clear the floats -->
-    <div style="clear: both;"></div>
 </div>
 
 <?php } ?>
