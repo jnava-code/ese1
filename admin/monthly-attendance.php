@@ -487,7 +487,7 @@ foreach ($attendanceData as $employee_id => $attendance):
                     $status_color = "#ff8787"; // Red for absent
                     $absent_count++;
                 } elseif ($status == "P") {
-                    $status_display = "Present" . ' '  . '(' . $rstatus . ')';
+                    $status_display = $rstatus != 'Present' ? "Present" . ' '  . '(' . $rstatus . ')' : 'Present';
                     $status_color = "#69db7c"; // Green for present
                     $present_count++;
                 } elseif ($status == "L") {
