@@ -546,18 +546,24 @@ foreach ($attendanceData as $employee_id => $attendance):
             </div>
 
             <script>
-document.addEventListener("DOMContentLoaded", function () {
     const reportBtn = document.querySelector(".report_btn");
+    const printBtn = document.querySelector(".print_btn");
+
     
+    if(printBtn) {
+        printBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.print();
+        });
+    }
+
     if (reportBtn) {
         reportBtn.addEventListener("click", (e) => {
             const clicked = e.target.closest("a"); // Detect clicks on <a> elements inside dropdown-content
             
             if (!clicked) return; // Prevent errors if clicked outside the expected buttons
-
-            if (clicked.classList.contains("print_btn")) {
-                window.print();
-            } else if (clicked.classList.contains("pdf_btn")) {
+            
+            if (clicked.classList.contains("pdf_btn")) {
                 generatePDF();
             } else if (clicked.classList.contains("excel_btn")) {
                 generateExcel();
@@ -655,7 +661,6 @@ document.addEventListener("DOMContentLoaded", function () {
         link.click();
         document.body.removeChild(link);
     }
-});
                 
 
                 const employeeIdDisplay = document.querySelectorAll(".employee_id_display");
