@@ -173,9 +173,9 @@ if ($result_hired_date) {
         
         @media print {
             body * {
-                font-size: 10px;
+                font-size: 8px;
             }
-
+            
             table thead th,
             table tbody td {
                 padding: 6px !important;
@@ -385,7 +385,7 @@ if ($result_hired_date) {
             <th>Departure</th>
             <th>Hours</th>
             <th>Total Regular Hours</th>
-            <th>Total Hours</th>
+            <th>Total Overtime Hours</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -531,7 +531,6 @@ if (!empty($month) && !empty($year)) {
     }
 ?>
 
-<div style="margin-top: 20px;">
     <table style="width: 50%; border-collapse: collapse; float: left;">
         <tr>
             <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
@@ -585,9 +584,6 @@ if (!empty($month) && !empty($year)) {
             </tr>
         </table>
     </div>
-    <!-- Clear the floats -->
-    <div style="clear: both;"></div>
-</div>
 
 <?php } ?>
 

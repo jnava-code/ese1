@@ -74,7 +74,7 @@
                 WHEN a.status = 'Late' THEN 0.5
                 ELSE 0 
             END), 0) as attendance_score,
-            COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
+            COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
             DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
             FROM employees e
             LEFT JOIN attendance a ON e.employee_id = a.employee_id
