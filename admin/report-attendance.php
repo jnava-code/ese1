@@ -66,13 +66,12 @@ if (isset($_POST['search'])) {
                 ON la.employee_id = a.employee_id 
                 AND a.date BETWEEN la.start_date AND la.end_date
                 AND la.status = 'Approved'
-            WHERE a.employee_id = ? 
-            AND YEAR(a.date) = ? 
+            WHERE AND YEAR(a.date) = ? 
             AND MONTH(a.date) = ?";
 
     if ($stmt_attendance = mysqli_prepare($conn, $sql_attendance)) {
         // Bind parameters for the SQL statement
-        mysqli_stmt_bind_param($stmt_attendance, "iii", $official_employee_id, $year, $month);
+        mysqli_stmt_bind_param($stmt_attendance, "ii", $year, $month);
         mysqli_stmt_execute($stmt_attendance);
         $result_attendance = mysqli_stmt_get_result($stmt_attendance);
 
@@ -379,6 +378,7 @@ function convertTo12HourFormat($time) {
             <th>Status</th>
         </tr>
     </thead>
+    <?php echo $official_employee_id . ' ' . $month . ' ' . $year?>
     <tbody>
     <?php
     if (!empty($month) && !empty($year)) {
@@ -466,19 +466,7 @@ function convertTo12HourFormat($time) {
                         echo "<td>$status</td>";
                         echo "</tr>";
                     }
-                } else {
-                    // Check for approved leaves
-                    $leave_sql = "SELECT leave_type FROM leave_applications 
-                                 WHERE employee_id = ? 
-                                 AND ? BETWEEN start_date AND end_date 
-                                 AND status = 'Approved'
-                                 LIMIT 1";
-                    
-                    if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
-                        mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $date_string);
-                        mysqli_stmt_execute($stmt_leave);
-                        $result_leave = mysqli_stmt_get_result($stmt_leave);
-                        
+                } else {                      
                         if ($leave_row = mysqli_fetch_assoc($result_leave)) {
                             echo "<tr>";
                             echo "<td>$day</td>";
@@ -514,7 +502,6 @@ function convertTo12HourFormat($time) {
                         }
                         mysqli_stmt_close($stmt_leave);
                     }
-                }
             }
         }
     }
