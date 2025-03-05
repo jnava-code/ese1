@@ -100,15 +100,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Compute Total Hours
                         $total_hours = round($morning_hours + $afternoon_hours + $overtime_hours, 2);
             
-                        // Determine status based on hours worked
-                        if ($total_hours >= 8) {
-                            $status = "Present";
+                        // Determine status based on clock-out time
+                        if ($clock_out_datetime >= $overtime_start) {
+                            $status = "Overtime"; // If time-out is 5:30 PM or later
+                        } elseif ($clock_out_datetime >= $afternoon_end && $clock_out_datetime < $overtime_start) {
+                            $status = "Present"; // If time-out is between 5:00 PM and 5:29 PM
                         } elseif ($total_hours > 0 && $total_hours < 8) {
-                            $status = "Under Time";
+                            $status = "Under Time"; // If total hours worked is less than 8 hours
                         } else {
-                            $status = "Invalid";
+                            $status = "Invalid"; // Covers cases where no valid hours were recorded
                         }
-            
+
+        
                         // Convert clock-out time to 12-hour format
                         $clock_out_time_12hr = date('h:i:s A', strtotime($current_datetime));
             

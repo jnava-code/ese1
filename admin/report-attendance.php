@@ -87,9 +87,20 @@ if (isset($_POST['search'])) {
     }
 }
 
-function convertTo12HourFormat($time) {
-    return date("g:i A", strtotime($time));  // Adds AM/PM
+// function convertTo12HourFormat($time) {
+//     return date("h:i A", strtotime($time));
+// }
+
+$sql_hired_date = "SELECT MIN(YEAR(hire_date)) AS min_year FROM employees";
+$result_hired_date = mysqli_query($conn, $sql_hired_date);
+
+if ($result_hired_date) {
+    $row = mysqli_fetch_assoc($result_hired_date);
+    $existing_year = $row['min_year'];
+} else {
+    echo "Error: " . mysqli_error($conn);
 }
+
 
 ?>
 
@@ -325,8 +336,7 @@ function convertTo12HourFormat($time) {
                         $currentYear = date("Y");
                         $currentMonth = date("m");
 
-                        // Start year from 2025
-                        $startYear = 2025;
+                        $startYear = $existing_year;
 
                         // Loop through years from 2025 to current year
                         for ($y = $startYear; $y <= $currentYear; $y++) {
@@ -417,8 +427,8 @@ if (!empty($month) && !empty($year)) {
                     $status = $attendance_for_day['status'];
 
                     // Convert times to 12-hour format
-                    $clock_in_time_12hr = convertTo12HourFormat($clock_in_time);
-                    $clock_out_time_12hr = convertTo12HourFormat($clock_out_time);
+                    $clock_in_time_12hr =$clock_in_time;
+                    $clock_out_time_12hr = $clock_out_time;
 
                     echo "<td>$clock_in_time_12hr</td>";
                     echo "<td>$clock_out_time_12hr</td>";
@@ -587,36 +597,9 @@ if (!empty($month) && !empty($year)) {
 
     <script>
     function printReport() {
-        // Hide the buttons before printing
-        const buttons = document.querySelectorAll('.button');
-        buttons.forEach(button => button.style.display = 'none');
-
-        // Remove the header and footer for printing
-        const header = document.querySelector('header');
-        const footer = document.querySelector('footer');
-        if (header) header.style.display = 'none';
-        if (footer) footer.style.display = 'none';
-
-        // Print the document
         window.print();
-
-        // Restore the elements after printing
-        buttons.forEach(button => button.style.display = 'block');
-        if (header) header.style.display = 'block';
-        if (footer) footer.style.display = 'block';
     }
 
-    // Add event listener for when user cancels print
-    window.onafterprint = function() {
-        // Restore the elements if print is cancelled
-        const buttons = document.querySelectorAll('.button');
-        const header = document.querySelector('header');
-        const footer = document.querySelector('footer');
-        
-        buttons.forEach(button => button.style.display = 'block');
-        if (header) header.style.display = 'block';
-        if (footer) footer.style.display = 'block';
-    };
     </script>
 </body>
 </html>
