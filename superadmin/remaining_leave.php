@@ -274,7 +274,16 @@ button:disabled {
                 <th colspan="2" style="text-align: center;">Vacation Leave: <?php echo htmlspecialchars($row['vacation_leave']); ?></th>
                 <th colspan="2" style="text-align: center;">Maternity Leave: <?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></th>           
                 <th colspan="2" style="text-align: center;">Paternity Leave: <?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></th>           
-                <th colspan="2" style="text-align: center;">Total Days of Leave</th>
+                <th colspan="2" style="text-align: center;">
+                    Total Days of Leave: 
+                    <?php 
+                        $total_days = $row['sick_leave'] + $row['vacation_leave'] + 
+                                    (strtolower($row['gender']) == 'female' ? $row['maternity_leave'] : 0) + 
+                                    (strtolower($row['gender']) == 'male' ? $row['paternity_leave'] : 0);
+                        echo htmlspecialchars($total_days); 
+                    ?>
+                </th>
+
             </tr>
             <tr>
                 <th>Remaining</th>
