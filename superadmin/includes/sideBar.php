@@ -47,7 +47,7 @@
             
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
-                        <i class="fas fa-paper-plane"></i> Leave<i class="fas fa-chevron-down toggle-icon"></i>
+                        <i class="fas fa-paper-plane"></i> Leave Monitoring<i class="fas fa-chevron-down toggle-icon"></i>
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="./leave">Request Leave</a></li>

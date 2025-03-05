@@ -19,17 +19,20 @@ if (!$conn) {
 $days_in_month = 0;
 // Handle the form submission
 if (isset($_POST['search'])) {
-    // Get the selected value from the employee_name dropdown
-    $selectedValue = $_POST['employee_name'];
-    list($employee_id, $employee_name) = explode(',', $selectedValue);
-    $employee_id = intval($employee_id); // Sanitize the employee ID
+    // Get the selected employee ID
+    $search_name = $_POST['search_name'];
+    $employee_id = intval($_POST['employee_id']);
+    
+    // Ensure it's valid before proceeding
+    if ($employee_id <= 0) {
+        die("Invalid employee ID.");
+    }
 
-    // Separate the month-year value (e.g., 11-2025)
+    // Get month and year
     $monthYear = $_POST['month-year'];
-    list($month, $year) = explode('-', $monthYear);  // Separate into month and year
+    list($month, $year) = explode('-', $monthYear); 
 
-    $attendance_data = [];
-    // SQL to fetch employee details
+    // Fetch employee details
     $sql_employee = "SELECT employee_id, department, position FROM employees WHERE id = ? LIMIT 1";
     if ($stmt = mysqli_prepare($conn, $sql_employee)) {
         mysqli_stmt_bind_param($stmt, "i", $employee_id);
@@ -37,7 +40,6 @@ if (isset($_POST['search'])) {
         $result_employee = mysqli_stmt_get_result($stmt);
 
         if ($row = mysqli_fetch_assoc($result_employee)) {
-            // Fetch department and position
             $official_employee_id = $row['employee_id'];
             $department = $row['department'];
             $position = $row['position'];
@@ -50,6 +52,7 @@ if (isset($_POST['search'])) {
 
     // Fetch attendance for the specified month-year
     $attendance_data = [];
+    // Fetch attendance
     $sql_attendance = "
     SELECT 
         a.employee_id, 
@@ -72,20 +75,19 @@ if (isset($_POST['search'])) {
     AND MONTH(a.date) = ?";
 
     if ($stmt_attendance = mysqli_prepare($conn, $sql_attendance)) {
-        // Bind parameters for the SQL statement
         mysqli_stmt_bind_param($stmt_attendance, "iii", $official_employee_id, $year, $month);
         mysqli_stmt_execute($stmt_attendance);
         $result_attendance = mysqli_stmt_get_result($stmt_attendance);
 
-        // Store the attendance data in an array
         while ($attendance_row = mysqli_fetch_assoc($result_attendance)) {
             $attendance_date = $attendance_row['date'];
-            $day = date("d", strtotime($attendance_date)); // Get the day from the date
-            $attendance_data[$day] = $attendance_row;  // Store the attendance record for that day
+            $day = date("d", strtotime($attendance_date));
+            $attendance_data[$day] = $attendance_row;
         }
         mysqli_stmt_close($stmt_attendance);
     }
 }
+
 
 // function convertTo12HourFormat($time) {
 //     return date("h:i A", strtotime($time));
@@ -113,6 +115,12 @@ if ($result_hired_date) {
     <style>
         .attendance-report-content {
             padding: 25px 50px;
+        }
+
+        .attendance-report-content form {
+            display: flex;
+            gap: 5px;
+            flex-direction: column;
         }
 
         table thead th,
@@ -171,6 +179,40 @@ if ($result_hired_date) {
             box-sizing: border-box;
         }
         
+        .employees {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 32px;
+            left: 15%;
+            width: 100%;
+            max-width: 550px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-height: 50px;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+        }
+
+        .search-results .search-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .search-results .search-item:hover {
+            background: #f1f1f1;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
         @media print {
             body * {
                 font-size: 8px;
@@ -288,36 +330,17 @@ if ($result_hired_date) {
     <div class="attendance-report-content">
         <form method="POST">
             <div class="employees-and-date">
-                <div class="employees">
-                    <label for="">Name: </label>
-                    <select name="employee_name">
-                        <?php 
-                            $sql_employees = "
-                            SELECT 
-                                id,
-                                first_name,
-                                middle_name,
-                                last_name
-                            FROM employees";
-                        
-                            $result_employees = mysqli_query($conn, $sql_employees);
+            <div class="employees">
+                <label for="search_name">Employee Name: </label>
+                <input type="search" id="search_name" name="search_name" autocomplete="off" placeholder="Type employee name..." 
+                    value="<?php echo !empty($search_name) ? htmlspecialchars($search_name) : ''; ?>">
+                
+                <input type="hidden" id="employee_id" name="employee_id" 
+                    value="<?php echo !empty($employee_id) ? htmlspecialchars($employee_id) : ''; ?>">
 
-                            if ($result_employees): ?>
-                            <?php while ($row = mysqli_fetch_assoc($result_employees)): ?>
-                                <?php
-                                // Constructing the full name
-                                $fullname = htmlspecialchars($row['middle_name']) == '' 
-                                    ? htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['last_name']) 
-                                    : htmlspecialchars($row['first_name']) . ' ' .  htmlspecialchars($row['middle_name']) . ' ' . htmlspecialchars($row['last_name']);
-                                $value = $row['id'] . ',' . $fullname;
-                                ?>
-                                <option value="<?php echo $value; ?>" <?php echo isset($selectedValue) && $selectedValue == $value ? 'selected' : ''; ?>>
-                                    <?php echo $fullname; ?>
-                                </option>
-                            <?php endwhile; ?>
-                            <?php endif; ?>
-                    </select>
-                </div>
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
 
                 <div class="department">
                     <label for="">Department:</label>
@@ -595,6 +618,52 @@ if (!empty($month) && !empty($year)) {
     function printReport() {
         window.print();
     }
+
+        let searchInput = document.getElementById('search_name');
+        let resultsContainer = document.getElementById('searchResults');
+        let employeeIdInput = document.getElementById('employee_id');
+
+        searchInput.addEventListener('input', function () {
+            let query = searchInput.value.trim();
+
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            fetch(`search_employee?query=${query}`)
+            .then(response => response.text())
+            .then(data => {
+                if (data.trim() !== '') {
+                    resultsContainer.innerHTML = data;
+                    resultsContainer.classList.add('active');
+                } else {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.remove('active');
+                }
+            });
+        });
+
+        window.selectEmployee = function (id, name) {
+            searchInput.value = name; // Set name in input field
+            employeeIdInput.value = id; // Store ID in hidden input
+            resultsContainer.innerHTML = ''; // Clear results
+            resultsContainer.classList.remove('active');
+        };
+    
+        // document.addEventListener('click', function (event) {
+        //     if (event.target.classList.contains('search-item')) {
+        //         searchInput.value = event.target.textContent;
+        //         resultsContainer.innerHTML = '';
+        //     }
+        // });
+
+        // // Hide results when clicking outside
+        // document.addEventListener('click', function (event) {
+        //     if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+        //         resultsContainer.innerHTML = '';
+        //     }
+        // });
 
     </script>
 </body>

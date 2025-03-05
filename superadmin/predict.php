@@ -43,21 +43,25 @@
             <?php endif; ?>
         <?php
         // Function to calculate attrition risk score using linear regression
-        function calculateAttritionRisk($attendance_score, $satisfaction_score, $years_of_service) {
-            // Weights for each factor (can be adjusted based on importance)
-            $attendance_weight = 0.3;
-            $satisfaction_weight = 0.4;
-            $years_weight = 0.3;
+        function calculateAttritionRisk($attendance_score, $satisfaction_score, $performance_score, $years_of_service) {
+            // Weights for each factor (total should be 1)
+            $attendance_weight = 0.25;    // 25% weight
+            $satisfaction_weight = 0.25;  // 25% weight
+            $performance_weight = 0.25;   // 25% weight
+            $years_weight = 0.25;        // 25% weight
 
             // Normalize years of service (assuming max 30 years)
             $normalized_years = min($years_of_service / 30, 1);
             
-            // Calculate weighted score (inverse for years as longer tenure typically means lower risk)
-            $risk_score = ($attendance_weight * (1 - $attendance_score)) + 
-                         ($satisfaction_weight * (1 - $satisfaction_score)) + 
-                         ($years_weight * (1 - $normalized_years));
+            // Calculate risk score (inverse relationship - higher scores mean lower risk)
+            $risk_score = 1 - (
+                ($attendance_score * $attendance_weight) +
+                ($satisfaction_score * $satisfaction_weight) +
+                ($performance_score * $performance_weight) +
+                ($normalized_years * $years_weight)
+            );
 
-            return $risk_score;
+            return max(0, min(1, $risk_score)); // Ensure score is between 0 and 1
         }
 
         // Fetch employee data and calculate attrition risk
@@ -75,10 +79,12 @@
                 ELSE 0 
             END), 0) as attendance_score,
             COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
+            COALESCE(AVG(pe.overall_score) / 100, 0) as performance_score,
             DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
             FROM employees e
             LEFT JOIN attendance a ON e.employee_id = a.employee_id
             LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+            LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
             LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
             WHERE e.is_archived = 0
             GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
@@ -100,11 +106,13 @@
                 
                 $attendance_score = floatval($row['attendance_score']);
                 $satisfaction_score = floatval($row['satisfaction_score']);
+                $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
                     $satisfaction_score,
+                    $performance_score,
                     $years_of_service
                 );
 
@@ -141,10 +149,11 @@
                             <th>Years of Service</th>
                             <th>Attendance Score</th>
                             <th>Satisfaction Score</th>
+                            <th>Performance Score</th>
                             <th>Attrition Risk</th>
-                            <th>Risk Level</th>
-                            <th>Justification</th>
+                            <th>Risk Level</th>                         
                             <th>Recommendations</th>
+                            <th>Justification</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -153,49 +162,64 @@
             // Second pass to display table data
             foreach ($allRows as $row) {
                 $attendance_score = floatval($row['attendance_score']);
-                $satisfaction_score = floatval($row['satisfaction_score']);
+                $satisfaction_score = floatval($row['satisfaction_score']) * 20; // Convert to percentage
+                $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
-                    $satisfaction_score,
+                    $satisfaction_score / 100, // Convert back to 0-1 scale for risk calculation
+                    $performance_score,
                     $years_of_service
                 );
 
-                // Determine risk level
+                // Determine risk level and generate justification based on real-time data
+                $justifications = [];
                 if ($risk_score <= 0.3) {
                     $risk_level = '<span class="low-risk">Low Risk</span>';
                     $recommendation = 'Promotion';
-                    $justifications = [
-                        'Outstanding Performance - Scores above 90% in evaluations.',
-                        'Excellent Attendance - Consistently punctual and reliable.', 
-                        'High Job Satisfaction - Reports commitment to the company.', 
-                        'Super Low Attrition Risk - Likely to stay and grow with the company.', 
-                        'Leadership Potential - Strong teamwork and leadership feedback.'
-                    ];
                 } elseif ($risk_score <= 0.6) {
                     $risk_level = '<span class="medium-risk">Medium Risk</span>';
                     $recommendation = 'Demotion';
-                    $justifications = [
-                        'Consistently Poor Performance – Below 50% in multiple evaluation periods.',
-                        'High Absenteeism – 40% absence rate significantly affecting productivity.',
-                        'Job Dissatisfaction – Reports strong discontent with workload and environment.',
-                        'Multiple Warnings Issued – No improvement despite HR interventions.',
-                        'Company Downsizing – Retrenchment is necessary due to business restructuring and cost-cutting measures.'
-                    ];
                 } else {
                     $risk_level = '<span class="high-risk">High Risk</span>';
                     $recommendation = 'Retrenchment';
-                    $justifications = [
-                        'Consistently Poor Performance - Below 50% in multiple evaluation periods.', 
-                        'High Absenteeism - 40% absence rate significantly affecting productivity.',
-                        'Job Dissatisfaction - Reports strong discontent with workload and environment.', 
-                        'Multiple Warnings Issued - No improvement despite HR interventions.', 
-                        'Company Downsizing - Retrenchment is necessary due to business restructuring and cost-cutting measures.'
-                    ];
                 }
 
-                // Format recommendations as a list
+                // Generate justification based on real-time data
+                if ($performance_score < 0.60) {
+                    $justifications[] = 'Consistently Poor Performance - Below 60% in multiple evaluation periods.';
+                } elseif ($performance_score >= 0.60 && $performance_score < 0.80) {
+                    $justifications[] = 'Performance between 60% and 80% - Needs improvement.';
+                } elseif ($performance_score >= 0.90) {
+                    $justifications[] = 'High Performance - Exceptional results exceeding expectations.';
+                }
+
+                if ($attendance_score < 0.50) {
+                    $justifications[] = 'High Absenteeism - Below 50% attendance rate significantly affecting productivity.';
+                } elseif ($attendance_score >= 0.50 && $attendance_score < 0.70) {
+                    $justifications[] = 'Attendance between 50% and 70% - Needs improvement.';
+                } elseif ($attendance_score >= 0.90) {
+                    $justifications[] = 'Excellent Attendance - Above 90%, showing commitment and reliability.';
+                }
+
+                if ($satisfaction_score < 0.40) {
+                    $justifications[] = 'Job Dissatisfaction - Reports strong discontent with workload and environment.';
+                } elseif ($satisfaction_score >= 0.40 && $satisfaction_score < 0.60) {
+                    $justifications[] = 'Job Satisfaction between 40% and 60% - Moderate contentment but needs monitoring.';
+                } elseif ($satisfaction_score >= 0.80) {
+                    $justifications[] = 'High Job Satisfaction - Demonstrates strong engagement and positivity.';
+                }
+
+                if ($risk_score > 0.60) {
+                    $justifications[] = 'High Attrition Risk - Likely to leave the company.';
+                } elseif ($risk_score > 0.30 && $risk_score <= 0.60) {
+                    $justifications[] = 'Medium Attrition Risk - Potential risk of leaving the company.';
+                } elseif ($risk_score <= 0.30) {
+                    $justifications[] = 'Low Attrition Risk - Likely to stay with the company.';
+                }
+
+                // Format justifications as a list
                 $justification_list = '<ul>';
                 foreach ($justifications as $jus) {
                     $justification_list .= "<li>$jus</li>";
@@ -215,6 +239,7 @@
                     '" . json_encode([
                         'attendance_score' => $attendance_score,
                         'satisfaction_score' => $satisfaction_score,
+                        'performance_score' => $performance_score,
                         'years_of_service' => $years_of_service
                     ]) . "'
                 ) ON DUPLICATE KEY UPDATE 
@@ -222,6 +247,7 @@
                     factors = '" . json_encode([
                         'attendance_score' => $attendance_score,
                         'satisfaction_score' => $satisfaction_score,
+                        'performance_score' => $performance_score,
                         'years_of_service' => $years_of_service
                     ]) . "'";
 
@@ -252,7 +278,8 @@
                         <td>{$row['first_name']} {$row['last_name']}</td>
                         <td>" . number_format($years_of_service, 1) . "</td>
                         <td>" . number_format($attendance_score * 100, 1) . "%</td>
-                        <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
+                        <td>" . number_format($satisfaction_score, 1) . "%</td>
+                        <td>" . number_format($performance_score * 100, 1) . "%</td>
                         <td>" . number_format($risk_score * 100, 1) . "%</td>
                         <td>$risk_level</td>
                         <td>$recommendation</td>
