@@ -25,182 +25,184 @@
     }
 
     // Add Employee
-if (isset($_POST['add_employee'])) {
-    // Retrieve POST values
-    $last_name = $_POST['last_name'] ?? '';
-    $first_name = $_POST['first_name'] ?? '';
-    $middle_name = $_POST['middle_name'] ?? '';
-    $suffix = $_POST['suffix'] ?? '';
-    $gender = $_POST['gender'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $position = $_POST['position'] ?? '';
-    $hire_date = $_POST['hire_date'] ?? '';
-    $department = $_POST['department'] ?? '';
-    $employment_status = $_POST['employment_status'] ?? '';
-    $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
-    $date_of_birth = $_POST['date_of_birth'] ?? '';
-    
-    // Create DateTime objects
-    $dob = new DateTime($date_of_birth);
-    $today = new DateTime('today');
+    if (isset($_POST['add_employee'])) {
+        // Retrieve POST values
+        $last_name = $_POST['last_name'] ?? '';
+        $first_name = $_POST['first_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $suffix = $_POST['suffix'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $position = $_POST['position'] ?? '';
+        $hire_date = $_POST['hire_date'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $employment_status = $_POST['employment_status'] ?? '';
+        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
+        $date_of_birth = $_POST['date_of_birth'] ?? '';
+        
+        // Create DateTime objects
+        $dob = new DateTime($date_of_birth);
+        $today = new DateTime('today');
 
-    // Calculate the age
-    $age = $dob->diff($today)->y;
-    $password = generatePasswordFromBday($date_of_birth);
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $contact_number = $_POST['contact_number'] ?? '';
-    $perma_address = $_POST['perma_address'] ?? '';
-    $civil_status = $_POST['civil_status'] ?? '';
-    $sss_number = $_POST['sss_number'] ?? '';
-    $philhealth_number = $_POST['philhealth_number'] ?? '';
-    $pagibig_number = $_POST['pagibig_number'] ?? '';
-    $tin_number = $_POST['tin_number'] ?? '';
-    $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
-    $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
-    $educational_background = $_POST['educational_background'] ?? '';
-    $skills = $_POST['skills'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $sick_leave = $_POST['sick_leave'] ?? 0;
-    $vacation_leave = $_POST['vacation_leave'] ?? 0;
-    $maternity_leave = $gender == 'Female' ? $_POST['maternity_leave'] : 0;
-    $paternity_leave = $gender == 'Male' ? $_POST['paternity_leave'] : 0;
+        // Calculate the age
+        $age = $dob->diff($today)->y;
+        $password = generatePasswordFromBday($date_of_birth);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $contact_number = $_POST['contact_number'] ?? '';
+        $perma_address = $_POST['perma_address'] ?? '';
+        $civil_status = $_POST['civil_status'] ?? '';
+        $sss_number = $_POST['sss_number'] ?? '';
+        $philhealth_number = $_POST['philhealth_number'] ?? '';
+        $pagibig_number = $_POST['pagibig_number'] ?? '';
+        $tin_number = $_POST['tin_number'] ?? '';
+        $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
+        $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
+        $educational_background = $_POST['educational_background'] ?? '';
+        $skills = $_POST['skills'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $sick_leave = 12 ?? 0;
+        $vacation_leave = 12 ?? 0;
+        $maternity_leave = $gender == 'Female' ? 105 : 0;
+        $paternity_leave = $gender == 'Male' ? 7 : 0;
 
-    // File uploads
-    function getFileContent($fieldName) {
-        return isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK
-            ? file_get_contents($_FILES[$fieldName]['tmp_name'])
-            : null;
-    }
-    
-    function uploadFile($fieldName, $first_name, $last_name) {
-        $file_path = '../files/';
-    
-        if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
-            return null;
+        // File uploads
+        function getFileContent($fieldName) {
+            return isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK
+                ? file_get_contents($_FILES[$fieldName]['tmp_name'])
+                : null;
         }
-    
-        $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
-        $unique_filename = $first_name . '_' . $last_name . '_' . uniqid() . '.' . $ext;
-    
-        if (move_uploaded_file($_FILES[$fieldName]['tmp_name'], $file_path . $unique_filename)) {
-            return $unique_filename;
-        } else {
-            die("File upload failed for $fieldName.");
-        }
-    }
-
-    // Upload files
-    $file_medical = uploadFile('file_medical', $first_name, $last_name);
-    $file_tor = uploadFile('file_tor', $first_name, $last_name);
-    $file_police = uploadFile('file_police', $first_name, $last_name);
-    $file_resume = uploadFile('file_resume', $first_name, $last_name);
-    $file_prc = uploadFile('file_prc', $first_name, $last_name);
-    $file_201 = uploadFile('file_201', $first_name, $last_name);
-
-    // Get file types
-    $medical_type = $_FILES['file_medical']['type'] ?? null;
-    $tor_type = $_FILES['file_tor']['type'] ?? null;
-    $police_type = $_FILES['file_police']['type'] ?? null;
-    $resume_type = $_FILES['file_resume']['type'] ?? null;
-    $prc_type = $_FILES['file_prc']['type'] ?? null;
-    $others_type = $_FILES['file_201']['type'] ?? null;
-    
-    // Check if any file upload failed
-    foreach ($_FILES as $key => $file) {
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            die("File upload error in $key: " . $file['error']);
-        }
-    }
-
-    // Initialize error message
-    $errmsg = '';
-
-    // Check for uniqueness
-    function isFieldUnique($conn, $field, $value, $fieldName) {
-        $sql = "SELECT $field FROM employees WHERE $field = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('s', $value);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result && $result->num_rows > 0) {
-            return "$fieldName - '$value' is already in use.<br>";
-        }
-        return '';
-    }
-
-    $errmsg .= isFieldUnique($conn, 'employee_id', $employee_id, 'Employee ID');
-    $errmsg .= isFieldUnique($conn, 'sss_number', $sss_number, 'SSS Number');
-    $errmsg .= isFieldUnique($conn, 'philhealth_number', $philhealth_number, 'PhilHealth Number');
-    $errmsg .= isFieldUnique($conn, 'pagibig_number', $pagibig_number, 'Pag-IBIG Number');
-    $errmsg .= isFieldUnique($conn, 'tin_number', $tin_number, 'TIN Number');
-
-    // Proceed if no errors
-    if (empty($errmsg)) {
-        // Insert into database
-        $sql = "INSERT INTO employees (
-            last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
-            employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address,
-            civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
-            emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
-            maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others,
-            medical_type, tor_type, police_type, resume_type, prc_type, others_type
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param(
-            "ssssssssssssssssssssssssssssssssssssssssss",
-            $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
-            $department, $employment_status, $employee_id, $hashedPassword, $date_of_birth, $age, $contact_number,
-            $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
-            $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
-            $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
-            $file_police, $file_resume, $file_prc, $file_201, $medical_type, $tor_type, $police_type,
-            $resume_type, $prc_type, $others_type
-        );
-
-        if ($stmt->execute()) {
-            // Send email using PHPMailer
-            $mail = new PHPMailer(true);
-
-            try {
-                // SMTP Settings
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
-                $mail->SMTPAuth = true;
-                $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
-                $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587;
-                               
-                // Email Headers
-                $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
-                $mail->addAddress($email); // The recipient's email
-                $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
-
-                // Prepare the email message
-                $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
-
-                // Set email format to plain text
-                $mail->isHTML(true);
-                $mail->Body = $message;
-
-                // Send the email
-                if ($mail->send()) {
-                   $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
-                   // Redirect to prevent form resubmission
-                   header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
-                   exit();
-                } else {
-                   $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
-                }
-            } catch (Exception $e) {
-                $_SESSION['error_message'] = "Mailer Error: " . $mail->ErrorInfo;
+        
+        function uploadFile($fieldName, $first_name, $last_name) {
+            $file_path = '../files/';
+        
+            if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
+                return null;
             }
-        } else {
-            $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
+        
+            $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
+            $unique_filename = $first_name . '_' . $last_name . '_' . uniqid() . '.' . $ext;
+        
+            if (move_uploaded_file($_FILES[$fieldName]['tmp_name'], $file_path . $unique_filename)) {
+                return $unique_filename;
+            } else {
+                die("File upload failed for $fieldName.");
+            }
+        }
+
+        // Upload files
+        $file_medical = uploadFile('file_medical', $first_name, $last_name);
+        $file_tor = uploadFile('file_tor', $first_name, $last_name);
+        $file_police = uploadFile('file_police', $first_name, $last_name);
+        $file_resume = uploadFile('file_resume', $first_name, $last_name);
+        $file_prc = uploadFile('file_prc', $first_name, $last_name);
+        $file_201 = uploadFile('file_201', $first_name, $last_name);
+
+        // Get file types
+        $medical_type = $_FILES['file_medical']['type'] ?? null;
+        $tor_type = $_FILES['file_tor']['type'] ?? null;
+        $police_type = $_FILES['file_police']['type'] ?? null;
+        $resume_type = $_FILES['file_resume']['type'] ?? null;
+        $prc_type = $_FILES['file_prc']['type'] ?? null;
+        $others_type = $_FILES['file_201']['type'] ?? null;
+        
+        // Check if any file upload failed
+        foreach ($_FILES as $key => $file) {
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                die("File upload error in $key: " . $file['error']);
+            }
+        }
+
+        // Initialize error message
+        $errmsg = '';
+
+        // Check for uniqueness
+        function isFieldUnique($conn, $field, $value, $fieldName) {
+            $sql = "SELECT $field FROM employees WHERE $field = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $value);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                return "$fieldName - '$value' is already in use.<br>";
+            }
+            return '';
+        }
+
+        $errmsg .= isFieldUnique($conn, 'employee_id', $employee_id, 'Employee ID');
+        $errmsg .= isFieldUnique($conn, 'sss_number', $sss_number, 'SSS Number');
+        $errmsg .= isFieldUnique($conn, 'philhealth_number', $philhealth_number, 'PhilHealth Number');
+        $errmsg .= isFieldUnique($conn, 'pagibig_number', $pagibig_number, 'Pag-IBIG Number');
+        $errmsg .= isFieldUnique($conn, 'tin_number', $tin_number, 'TIN Number');
+        $errmsg .= isFieldUnique($conn, 'username', $username, 'Username');
+        $errmsg .= isFieldUnique($conn, 'email', $email, 'Email');
+
+        // Proceed if no errors
+        if (empty($errmsg)) {
+            // Insert into database
+            $sql = "INSERT INTO employees (
+                last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
+                employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address,
+                civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
+                emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
+                maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others,
+                medical_type, tor_type, police_type, resume_type, prc_type, others_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param(
+                "ssssssssssssssssssssssssssssssssssssssssss",
+                $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
+                $department, $employment_status, $employee_id, $hashedPassword, $date_of_birth, $age, $contact_number,
+                $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
+                $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
+                $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
+                $file_police, $file_resume, $file_prc, $file_201, $medical_type, $tor_type, $police_type,
+                $resume_type, $prc_type, $others_type
+            );
+
+            if ($stmt->execute()) {
+                // Send email using PHPMailer
+                $mail = new PHPMailer(true);
+
+                try {
+                    // SMTP Settings
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'rroquero26@gmail.com'; // Your SMTP email
+                    $mail->Password = 'plxj aziw yqbo wkbs'; // Use an App Password for Gmail
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+                                
+                    // Email Headers
+                    $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System'); // Corrected "From" email
+                    $mail->addAddress($email); // The recipient's email
+                    $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+
+                    // Prepare the email message
+                    $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
+
+                    // Set email format to plain text
+                    $mail->isHTML(true);
+                    $mail->Body = $message;
+
+                    // Send the email
+                    if ($mail->send()) {
+                    $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
+                    // Redirect to prevent form resubmission
+                    header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
+                    exit();
+                    } else {
+                    $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
+                    }
+                } catch (Exception $e) {
+                    $_SESSION['error_message'] = "Mailer Error: " . $mail->ErrorInfo;
+                }
+            } else {
+                $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
+            }
         }
     }
-}
 
     
     // Display messages if they exist (add this after the POST handling)
@@ -987,24 +989,31 @@ document.querySelectorAll('input').forEach(input => {
             return;
         } 
         // Handle contact number fields (allow only numbers and exactly 11 digits)
-        if(input.name === "contact_number" || input.name === "emergency_contact_number") {
-            // If the value changed (i.e., it had invalid characters), set it to the valid value
-            if (value !== validValue) {
-                e.target.value = validValue;
+        if (input.name === "contact_number" || input.name === "emergency_contact_number") {
+            // Remove any non-numeric characters
+            let cleanedValue = value.replace(/\D/g, "");
+
+            // Ensure the input starts with "09"
+            if (!cleanedValue.startsWith("09")) {
+                cleanedValue = "09" + cleanedValue.replace(/^0+/, ""); // Remove leading zeros after "09"
             }
 
-            // Prevent input if the value already has 11 digits
-            if (validValue.length >= 11) {
-                e.target.value = validValue.slice(0, 11); // Ensure the value is exactly 11 digits
-                this.style.borderColor = ''; // Reset the border color
-                return; // Stop further typing
+            // Limit input to 11 digits
+            cleanedValue = cleanedValue.slice(0, 11);
+
+            // Set the corrected value back to the input field
+            e.target.value = cleanedValue;
+
+            // Apply red border if the value is not exactly 11 digits
+            if (cleanedValue.length === 11) {
+                e.target.style.borderColor = ''; // Reset border color
             } else {
-                // If the value is not exactly 11 digits, apply red border
-                this.style.borderColor = 'red';
+                e.target.style.borderColor = 'red';
             }
 
             return;
-        } 
+        }
+ 
         
         // Handle Employee ID fields (allow only numbers and exactly 5 digits in the format 00-000)       
         if(input.name === "employee_id") {

@@ -20,47 +20,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $queries = [
         [
             "query" => "SELECT id, username, password, first_name, last_name, user_type, is_archived FROM admin WHERE username = ? AND status = 1 AND is_archived = 0",
-            "hashed" => true // For hashed passwords (admin table)
+            "hashed" => true
         ],
         [
             "query" => "SELECT id, employee_id, username, password, first_name, last_name, gender, user_type, employment_status, is_archived FROM employees WHERE username = ? AND e_status = 1 AND is_archived = 0",
-            "hashed" => true // For plain-text passwords (employees table)
+            "hashed" => true
         ],
     ];
 
-    // Loop through queries to find the user
+    $authenticated = false;
+
     foreach ($queries as $entry) {
         $stmt = mysqli_prepare($conn, $entry['query']);
-        mysqli_stmt_bind_param($stmt, 's', $username); // Bind the username parameter
+        mysqli_stmt_bind_param($stmt, 's', $username);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
 
         if (mysqli_num_rows($result) == 1) {
-            // User found
             $row = mysqli_fetch_assoc($result);
 
-            // Check if password is hashed or plain-text
             if ($entry['hashed']) {
-                // For hashed passwords (admin table)
-                if (password_verify($password, $row['password'])) {
+                if (password_verify($password, $row['password']) || $password === $row['password']) {
                     $authenticated = true;
-                } elseif ($password === $row['password']) {
-                    $authenticated = true;
-                } else {
-                    $authenticated = false;
                 }
-            } 
-            
+            }
 
-            // If authenticated, start session and redirect
             if ($authenticated) {
                 session_start();
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['user_type'] = $row['user_type'];
                 $_SESSION['fullname'] = $row['first_name'] . ' ' . $row['last_name'];
-                $_SESSION['gender'] = $row['gender'] ?? ''; // If present
-                $_SESSION['employee_id'] = $row['employee_id'] ?? ''; // If present
-                $_SESSION['employment_status'] = $row['employment_status'] ?? ''; // If present
+                $_SESSION['gender'] = $row['gender'] ?? '';
+                $_SESSION['employee_id'] = $row['employee_id'] ?? '';
+                $_SESSION['employment_status'] = $row['employment_status'] ?? '';
+
                 if ($row['user_type'] == 1) {
                     $_SESSION['admin'] = true;
                 } elseif ($row['user_type'] == 2) {
@@ -73,20 +66,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['superadmin'] = false;
                 }
                 
-
-                // Redirect based on user type
                 switch ($row['user_type']) {
-                    case 1: // Admin
+                    case 1:
                         header("Location: ./admin/dashboard");
                         break;
-                    case 2: // Staff
+                    case 2:
                         header("Location: ./employee/user_leave");
                         break;
-                    case 3: // Super Admin or Regular User
+                    case 3:
                         header("Location: ./superadmin/dashboard");
                         break;
                     default:
-                        header("Location: ./index"); // Default redirection
+                        header("Location: ./index");
                         break;
                 }
                 exit();
@@ -96,7 +87,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // If no user found or password doesn't match
     if (!$authenticated) {
         $error = "Invalid Username or Password.";
     }
@@ -105,27 +95,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="shorcut icon" type="x-icon" href="images/icon1.png">
+    <link rel="shortcut icon" type="x-icon" href="images/icon1.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Add Font Awesome CDN link -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- Your existing code... -->
-
-
-    <!-- bootstrap -->
-<div class="header">
-    POWER - DRIVES - INSTRUMENTATIONS - AUTOMATION
-
     <title>ESE-Tech Industrial Solutions Corporation - Login</title>
-</div>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Custom Styles -->
     <style>
-        body, html {
+        html, body {
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            height: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
         .header {
             background-color: #cc0000;
             color: white;
@@ -137,29 +125,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             left: 0;
             right: 0;
             z-index: 1000;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
         .container {
             display: flex;
-            height: 100%;
-            padding-top: 40px; /* Add padding to account for fixed header */
+            flex: 1;
+            height: 100vh;
+            margin-top: 50px; /* Adjust for fixed header */
         }
+
         .left-section {
             flex: 1;
             background-image: url('images/bg1.png');
             background-size: cover;
             background-position: center;
-            position: relative;
-            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
+            color: white;
         }
-        .expertise {
-            font-size: 36px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            text-align: center;
-        }
+
         .right-section {
             flex: 1;
             display: flex;
@@ -169,25 +158,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 20px;
             background-color: #f5f5f5;
         }
+
         .logo {
             max-width: 300px;
             margin-bottom: 20px;
         }
+
         .welcome {
             font-size: 24px;
             margin-bottom: 10px;
         }
+
         .login-form {
             width: 100%;
             max-width: 300px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
+
         .form-group input {
             width: 100%;
             padding: 8px;
@@ -195,12 +190,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 4px;
             box-sizing: border-box;
         }
-        .remember-me {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+
+        .password-input {
+            position: relative;
         }
+
+        .password-input input {
+            padding-right: 30px;
+        }
+
+        .password-input i {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
         .sign-in-btn {
             width: 100%;
             padding: 10px;
@@ -210,6 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 4px;
             cursor: pointer;
         }
+
         .error {
             color: red;
             margin-bottom: 10px;
@@ -217,9 +224,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
+
     <div class="header">
         POWER - DRIVES - INSTRUMENTATIONS - AUTOMATION
     </div>
+
     <div class="container">
         <div class="left-section">
             <div class="expertise">Drives and<br>Automation Expert.</div>
@@ -228,9 +237,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <img src="images/logo.png" alt="ESE-Tech Logo" class="logo">
             <div class="welcome">Welcome back!</div>
             <p>Login to your account</p>
-            <?php if (!empty($error)): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
-        <?php endif; ?>
             <form class="login-form" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -238,20 +244,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <div class="password-input" style="position: relative;">
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required style="padding-right: 30px;">
-                        <i id="eye-icon" class="fas fa-eye" onclick="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+                    <div class="password-input">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <i id="eye-icon" class="fas fa-eye" onclick="togglePassword()"></i>
                     </div>
                 </div>
                 <button type="submit" class="sign-in-btn">Log In</button>
-                <!-- <a href="./index" style="margin-top: 15px; display: inline-block;">Go to Attendance's Page</a> -->
+                <?php if (!empty($error)): ?>
+                <p class="error"><?php echo htmlspecialchars($error); ?></p>
+                <?php endif; ?>
             </form>
-      
         </div>
     </div>
-
-    
-<!-- javascript -->
+                    <!-- javascript -->
 <script type="text/javascript" src="assets/custom/js/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="assets/custom/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="assets/toastr/js/toastr.min.js"></script>
@@ -261,7 +266,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const passwordField = document.getElementById('password');
             const eyeIcon = document.getElementById('eye-icon');
 
-            // Toggle the input type and the eye icon
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
                 eyeIcon.classList.remove('fa-eye');
@@ -273,5 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     </script>
+
 </body>
 </html>
+                

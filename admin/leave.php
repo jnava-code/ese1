@@ -15,9 +15,10 @@ $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $sql = "
     SELECT 
         leave_applications.*, 
-        CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name 
+        CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name,
+        employees.employee_id 
     FROM leave_applications 
-    JOIN employees 
+    LEFT JOIN employees 
     ON leave_applications.employee_id = employees.employee_id";
 if ($status_filter != 'all') {
     $sql .= " WHERE leave_applications.status = '" . mysqli_real_escape_string($conn, $status_filter) . "'";

@@ -60,10 +60,6 @@
         $educational_background = $_POST['educational_background'];
         $skills = $_POST['skills'];
         $username = $_POST['username'];
-        $sick_leave = $_POST['sick_leave'];
-        $vacation_leave = $_POST['vacation_leave'];
-        $maternity_leave = $_POST['maternity_leave'];
-        $paternity_leave = $_POST['paternity_leave'];
 
         // Ensure that the SQL query is correct
         $sql = "UPDATE employees 
@@ -72,7 +68,7 @@
                     employee_id=?, date_of_birth=?, contact_number=?, perma_address=?,
                     civil_status=?, sss_number=?, philhealth_number=?, pagibig_number=?,
                     tin_number=?, emergency_contact_name=?, emergency_contact_number=?, 
-                    educational_background=?, skills=?, username=?, sick_leave=? , vacation_leave=? , maternity_leave=? , paternity_leave=? 
+                    educational_background=?, skills=?, username=?
                 WHERE id=?";
     
         // Prepare the statement
@@ -86,7 +82,7 @@
                           $perma_address, $civil_status, $sss_number, $philhealth_number, 
                           $pagibig_number, $tin_number, $emergency_contact_name, 
                           $emergency_contact_number, $educational_background, $skills, 
-                          $username, $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $id);
+                          $username, $id);
     
         // Execute the statement
         if ($stmt->execute()) {
@@ -102,16 +98,6 @@
         header("Location: ./employees");
         exit();
     }
-    
-    // // Execute the query using the appropriate parameters
-    // executeQuery($conn, $sql, 'ssssssssssssssssssssssi', [
-    //     $last_name, $first_name, $middle_name, $email, 
-    //     $position, $hire_date, $department, $employment_status,
-    //     $employee_id, $password, $date_of_birth, $contact_number, $perma_address,
-    //     $civil_status, $sss_number, $philhealth_number, $pagibig_number,
-    //     $tin_number, $emergency_contact_name, $emergency_contact_number, 
-    //     $educational_background, $skills, $id
-    // ]);     
 
     function generatePasswordFromBday($date_of_birth) {
         // Extract month, day, and year from the date
@@ -361,22 +347,22 @@
             <div class="form-row">
                     <div id="sick_leave_container" class="col-md-6">
                         <label for="sick_leave">Sick Leave</label>
-                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] ?>">
+                        <input type="text" id="sick_leave" class="form-control" name="sick_leave" placeholder="Sick Leave" value="<?php  echo $employee['sick_leave'] ?>" disabled>
                     </div>
 
                     <div id="vacation_leave_container" class="col-md-6">
                         <label for="vacation_leave">Vacation Credit</label>
-                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="<?php  echo $employee['vacation_leave'] ?>">
+                        <input type="text" id="vacation_leave" class="form-control" name="vacation_leave" placeholder="Vacation Credit" value="<?php  echo $employee['vacation_leave'] ?>" disabled>
                     </div>
 
                     <div id="maternity_leave_container" class="col-md-6">
                         <label for="maternity_leave">Maternity Credit</label>
-                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="<?php  echo $employee['maternity_leave'] ?>">
+                        <input type="text" id="maternity_leave" class="form-control" name="maternity_leave" placeholder="Maternity Credit" value="<?php  echo $employee['maternity_leave'] ?>" disabled>
                     </div>
 
                     <div id="paternity_leave_container" class="col-md-6">
                         <label for="paternity_leave">Paternity Credit</label>
-                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="<?php  echo $employee['paternity_leave'] ?>">
+                        <input type="text" id="paternity_leave" class="form-control" name="paternity_leave" placeholder="Paternity Credit" value="<?php  echo $employee['paternity_leave'] ?>" disabled>
                     </div>
                 </div>
 

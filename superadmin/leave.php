@@ -15,9 +15,10 @@ $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $sql = "
     SELECT 
         leave_applications.*, 
-        CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name 
+        CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name,
+        employees.employee_id
     FROM leave_applications 
-    JOIN employees 
+    LEFT JOIN employees 
     ON leave_applications.employee_id = employees.employee_id";
 if ($status_filter != 'all') {
     $sql .= " WHERE leave_applications.status = '" . mysqli_real_escape_string($conn, $status_filter) . "'";
@@ -191,7 +192,6 @@ button:disabled {
 <main class="main-content">
     <section id="dashboard">
         <h2>LEAVE APPLICATION REQUESTS</h2>
-
         <!-- Filter Buttons -->
         <div class="filter-buttons">
             <a href="?status=all" class="<?php echo $status_filter == 'all' ? 'active' : ''; ?>">All</a>
@@ -237,6 +237,7 @@ button:disabled {
     <tbody>
         <?php while ($row = mysqli_fetch_assoc($result)) { ?>
             <tr>
+                
                 <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
                 <td><?php echo htmlspecialchars($row['file_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['start_date']); ?></td>
@@ -248,7 +249,8 @@ button:disabled {
                 <td class="actions">
                     <?php
                         if ($row['status'] == 'Pending') {
-                            echo '<form action="./process_leave" method="POST">
+                            echo '<form action="./process_leave" method="POST">                           
+                                    <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
                                     <input type="hidden" name="leave_id" value="' . $row['leave_id'] . '">
                                     <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
                                     <input type="hidden" name="leave_type" value="' . $row['leave_type'] . '">

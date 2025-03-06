@@ -47,7 +47,15 @@
             <li><a href="./predict"><i class="fas fa-chart-line"></i> Prediction</a></li>
             <li><a href="./reports"><i class="fas fa-file-alt"></i> Reports</a></li>
             <li><a href="./performance-evaluation"><i class="fas fa-trophy"></i> Performance</a></li>
-            <li><a href="./satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
+                    <i class="fas fa-smile"></i> Satisfaction<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="./satisfaction">Satisfaction Monitoring</a></li>
+                    <li><a href="./edit_satisfaction_criteria">Edit Satisfaction Criteria</a></li>
+                </ul>
+            </li>            
 
         </ul>
     </div>
