@@ -242,7 +242,7 @@ if ($result_hired_date) {
             .position label,
             .employees label,
             .button label {
-                width: fit-content;
+                width: 108px;
                 font-weight: 600;
             }
 

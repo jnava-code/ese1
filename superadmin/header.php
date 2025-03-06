@@ -5,7 +5,7 @@ session_start();
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
-if (!isset($_SESSION['superadmin'])) {
+if (!isset($_SESSION['admin'])) {
     header("Location: ../index");
     exit();
 }
@@ -86,6 +86,7 @@ $result = mysqli_query($conn, $sql);
         .notification-container {
             position: relative;
         }
+
         .badge {
             position: absolute;
             top: -15px;
@@ -101,8 +102,8 @@ $result = mysqli_query($conn, $sql);
         .notification-dropdown {
             display: none;
             position: absolute;
-            top: 75px;
-            right: 160px;
+            top: 25px;
+            right: 0px;
             background-color: #ffffff;
             width: 350px;
             max-height: 400px;
