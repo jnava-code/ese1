@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 05, 2025 at 03:20 PM
+-- Generation Time: Mar 06, 2025 at 01:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -129,7 +129,58 @@ INSERT INTO `attrition_forecasting` (`forecast_id`, `employee_id`, `prediction_d
 (23, 24001, '2025-03-05', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.6603}'),
 (24, 25002, '2025-03-05', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0822}'),
 (25, 24001, '2025-03-05', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.6603}'),
-(26, 25002, '2025-03-05', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0822}');
+(26, 25002, '2025-03-05', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0822}'),
+(27, 24001, '2025-03-06', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(28, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(29, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(30, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(31, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(32, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(33, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(34, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(35, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(36, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(37, 24003, '2025-03-06', 0.00, '{\"attendance_score\":0,\"satisfaction_score\":1800,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(38, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(39, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(40, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(41, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(42, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(43, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(44, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(45, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(46, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(47, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(48, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(49, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(50, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(51, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(52, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(53, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(54, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(55, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(56, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(57, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(58, 24003, '2025-03-06', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0.9,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(59, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(60, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(61, 24003, '2025-03-06', 0.95, '{\"attendance_score\":0,\"satisfaction_score\":18,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(62, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(63, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(64, 24003, '2025-03-06', 0.77, '{\"attendance_score\":0,\"satisfaction_score\":90,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(65, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(66, 24001, '2025-03-06', 0.77, '{\"attendance_score\":0.9,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.663}'),
+(67, 24003, '2025-03-06', 0.00, '{\"attendance_score\":0,\"satisfaction_score\":90,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(68, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(69, 24001, '2025-03-06', 0.00, '{\"attendance_score\":0.9,\"satisfaction_score\":90,\"performance_score\":0,\"years_of_service\":0.663}'),
+(70, 24003, '2025-03-06', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(71, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(72, 24001, '2025-03-06', 0.00, '{\"attendance_score\":0.9,\"satisfaction_score\":90,\"performance_score\":1,\"years_of_service\":0.663}'),
+(73, 24003, '2025-03-06', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(74, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}'),
+(75, 24001, '2025-03-06', 0.00, '{\"attendance_score\":0.9,\"satisfaction_score\":90,\"performance_score\":1,\"years_of_service\":0.663}'),
+(76, 24003, '2025-03-06', 0.99, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":1.0986}'),
+(77, 25002, '2025-03-06', 1.00, '{\"attendance_score\":0,\"satisfaction_score\":0,\"performance_score\":0,\"years_of_service\":0.0849}');
 
 -- --------------------------------------------------------
 
@@ -232,8 +283,9 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `last_name`, `first_name`, `middle_name`, `suffix`, `gender`, `email`, `position`, `hire_date`, `department`, `employment_status`, `employee_id`, `user_type`, `password`, `e_status`, `date_of_birth`, `age`, `contact_number`, `perma_address`, `civil_status`, `sss_number`, `philhealth_number`, `pagibig_number`, `tin_number`, `emergency_contact_name`, `emergency_contact_number`, `educational_background`, `skills`, `username`, `sick_leave`, `vacation_leave`, `maternity_leave`, `paternity_leave`, `sick_availed`, `vacation_availed`, `maternity_availed`, `paternity_availed`, `medical`, `tor`, `nbi_clearance`, `resume`, `prc`, `others`, `medical_type`, `tor_type`, `police_type`, `resume_type`, `prc_type`, `others_type`, `is_archived`) VALUES
-(3, 'Sanggalang', 'Jeremy', 'Zulueta', '', 'Male', 'mallarimaricris121902@gmail.com', 'Programmer', '2024-07-07', 'Technical', 'Regular', 24001, 2, '$2y$10$zFdibl3zYs8tO7bxLjZkaO/46QuGj2S9bHGrSLdWHKTxH4bT3x48q', 1, '1999-06-06', '25', '09093476284', '0006 Santa Rosa, Pilar, Bataan', 'Married', '00-0000000-8', '00-000000000-8', '0000-0000-0008', '000-000-000-008', 'Regine Velasquez', '09595623785', 'College graduate', 'Coder', 'Jeremy', 12, 12, 0, 7, 5, 0, 0, 0, 'Jeremy_Sanggalang_67c74f61bf4f5.', 'Jeremy_Sanggalang_67c74f61bf79c.', 'Jeremy_Sanggalang_67c74f61bf96c.', 'Jeremy_Sanggalang_67c74f61c0de7.', 'Jeremy_Sanggalang_67c74f61c0f48.', 'Jeremy_Sanggalang_67c74f61c1098.', 'application/pdf', 'image/png', 'image/jpeg', 'image/png', 'image/png', 'image/jpeg', 0),
-(4, 'Margallo', 'Justine', 'Gabi', '', 'Male', 'mallarimaricris121902@gmail.com', 'Photographer', '2025-02-03', 'Sales & Marketing', 'Probationary', 25002, 2, '$2y$10$DoiJodwzjmQbKmgqDTnQOefbzYoi8yOg3Rw2AsaAv4KHOoi57UQVu', 1, '1998-07-07', '26', '09993344667', '0007 Orion, Bataan', 'Single', '00-0000000-9', '00-000000000-9', '0000-0000-0009', '000-000-000-009', 'Ogie Alcasid', '09621853430', 'Master\'s degree graduate', 'Photogenic', 'Justine', 12, 12, 0, 7, 0, 0, 0, 0, 'Justine_Margallo_67c7503231f39.p', 'Justine_Margallo_67c75032321bb.p', 'Justine_Margallo_67c7503232350.j', 'Justine_Margallo_67c75032324dc.p', 'Justine_Margallo_67c7503232651.j', 'Justine_Margallo_67c75032327bd.j', 'application/pdf', 'image/png', 'image/jpeg', 'image/png', 'image/jpeg', 'image/jpeg', 0);
+(3, 'Sanggalang', 'Jeremy', 'Zulueta', '', 'Male', 'mallarimaricris121902@gmail.com', 'Programmer', '2024-07-07', 'Technical', 'Regular', 24001, 2, '$2y$10$zFdibl3zYs8tO7bxLjZkaO/46QuGj2S9bHGrSLdWHKTxH4bT3x48q', 1, '1999-06-06', '25', '09093476284', '0006 Santa Rosa, Pilar, Bataan', 'Married', '00-0000000-8', '00-000000000-8', '0000-0000-0008', '000-000-000-008', 'Regine Velasquez', '09595623785', 'College graduate', 'Coder', 'Jeremy', 12, 12, 0, 7, 0, 0, 0, 0, 'Jeremy_Sanggalang_67c74f61bf4f5.', 'Jeremy_Sanggalang_67c74f61bf79c.', 'Jeremy_Sanggalang_67c74f61bf96c.', 'Jeremy_Sanggalang_67c74f61c0de7.', 'Jeremy_Sanggalang_67c74f61c0f48.', 'Jeremy_Sanggalang_67c74f61c1098.', 'application/pdf', 'image/png', 'image/jpeg', 'image/png', 'image/png', 'image/jpeg', 0),
+(4, 'Margallo', 'Justine', 'Gabi', '', 'Male', 'mallarimaricris121902@gmail.com', 'Photographer', '2025-02-03', 'Sales & Marketing', 'Probationary', 25002, 2, '$2y$10$DoiJodwzjmQbKmgqDTnQOefbzYoi8yOg3Rw2AsaAv4KHOoi57UQVu', 1, '1998-07-07', '26', '09993344667', '0007 Orion, Bataan', 'Single', '00-0000000-9', '00-000000000-9', '0000-0000-0009', '000-000-000-009', 'Ogie Alcasid', '09621853430', 'Master\'s degree graduate', 'Photogenic', 'Justine', 12, 12, 0, 7, 0, 0, 0, 0, 'Justine_Margallo_67c7503231f39.p', 'Justine_Margallo_67c75032321bb.p', 'Justine_Margallo_67c7503232350.j', 'Justine_Margallo_67c75032324dc.p', 'Justine_Margallo_67c7503232651.j', 'Justine_Margallo_67c75032327bd.j', 'application/pdf', 'image/png', 'image/jpeg', 'image/png', 'image/jpeg', 'image/jpeg', 0),
+(5, 'Nava', 'Jeremiah', 'Garay', '', 'Male', 'aiahnava5@gmail.com', 'Computer Programmer I', '2024-01-30', 'Procurement', 'Regular', 24003, 2, '$2y$10$3rg/UY/LXqnkac5R33WOT.ojfxYE8Gyr2rGd0Pu9d0s6EG1BehDfW', 1, '1999-06-13', '25', '09155434721', '087 Townsite Proper Mariveles Bataan', 'Single', '43-3453468-1', '21-432432342-1', '1246-3243-4231', '876-456-235-424', 'Jeremiah Nava', '09155434721', 'College graduate', 'Programming', 'aiahnava', 12, 12, 0, 7, 0, 2, 0, 0, 'Jeremiah_Nava_67c97d3b3d37b.jpg', 'Jeremiah_Nava_67c97d3b3d63b.jpg', 'Jeremiah_Nava_67c97d3b3d816.jpg', 'Jeremiah_Nava_67c97d3b3d9b8.jpg', 'Jeremiah_Nava_67c97d3b3db08.jpg', 'Jeremiah_Nava_67c97d3b3dc18.jpg', 'image/jpeg', 'image/jpeg', 'image/jpeg', 'image/jpeg', 'image/jpeg', 'image/jpeg', 0);
 
 -- --------------------------------------------------------
 
@@ -248,6 +300,27 @@ CREATE TABLE `e_recommendations` (
   `reason` text DEFAULT NULL,
   `effective_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `job_satisfaction_criteria`
+--
+
+CREATE TABLE `job_satisfaction_criteria` (
+  `satisfaction_id` int(11) NOT NULL,
+  `title` varchar(50) NOT NULL,
+  `description` varchar(500) NOT NULL,
+  `is_archived` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `job_satisfaction_criteria`
+--
+
+INSERT INTO `job_satisfaction_criteria` (`satisfaction_id`, `title`, `description`, `is_archived`) VALUES
+(2, 'Isa', 'Isa pa kase kailangan lang', 0),
+(3, 'dalawa', 'dalawa pa kase kailangan din e', 0);
 
 -- --------------------------------------------------------
 
@@ -287,7 +360,7 @@ CREATE TABLE `job_satisfaction_surveys` (
 --
 
 INSERT INTO `job_satisfaction_surveys` (`survey_id`, `employee_id`, `survey_date`, `questions`, `overall_rating`) VALUES
-(6, 25001, '2025-02-22', '{\"clarity_of_responsibilities\":\"5\",\"work_environment\":\"5\",\"work_life_balance\":\"5\",\"manager_support\":\"5\",\"team_collaboration\":\"5\",\"compensation\":\"5\",\"career_growth\":\"5\"}', 5.00);
+(7, 24001, '2025-03-06', '{\"question_Isa\":4,\"question_dalawa\":5}', 4.50);
 
 -- --------------------------------------------------------
 
@@ -306,6 +379,13 @@ CREATE TABLE `leave_applications` (
   `reason` text DEFAULT NULL,
   `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `leave_applications`
+--
+
+INSERT INTO `leave_applications` (`leave_id`, `employee_id`, `leave_type`, `file_date`, `start_date`, `end_date`, `number_of_days`, `reason`, `status`) VALUES
+(1, 24003, 'Vacation', '2025-03-06', '2025-03-10', '2025-03-12', '2', 'Unwind lang par, kapagod eh', 'Approved');
 
 -- --------------------------------------------------------
 
@@ -366,7 +446,7 @@ CREATE TABLE `performance_evaluations` (
 --
 
 INSERT INTO `performance_evaluations` (`id`, `employee_id`, `admin_id`, `evaluation_date`, `criteria`, `comments`, `remarks`, `overall_score`, `status`) VALUES
-(1, 25001, 1, '2025-02-27', '{\"Attitude\":5,\"Performance\":5,\"try\":5}', 'Good job', 'Very Effective', 5.00, 'Completed');
+(1, 24001, 1, '2025-02-27', '{\"Attitude\":5,\"Performance\":5,\"try\":5}', 'Good job', 'Very Effective', 5.00, 'Completed');
 
 -- --------------------------------------------------------
 
@@ -435,6 +515,12 @@ ALTER TABLE `e_recommendations`
   ADD KEY `employee_id` (`employee_id`);
 
 --
+-- Indexes for table `job_satisfaction_criteria`
+--
+ALTER TABLE `job_satisfaction_criteria`
+  ADD PRIMARY KEY (`satisfaction_id`);
+
+--
 -- Indexes for table `job_satisfaction_form_status`
 --
 ALTER TABLE `job_satisfaction_form_status`
@@ -500,7 +586,7 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `attrition_forecasting`
 --
 ALTER TABLE `attrition_forecasting`
-  MODIFY `forecast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `forecast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `departments`
@@ -518,13 +604,19 @@ ALTER TABLE `educational_backgrounds`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `e_recommendations`
 --
 ALTER TABLE `e_recommendations`
   MODIFY `recommendation_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `job_satisfaction_criteria`
+--
+ALTER TABLE `job_satisfaction_criteria`
+  MODIFY `satisfaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `job_satisfaction_form_status`
@@ -536,13 +628,13 @@ ALTER TABLE `job_satisfaction_form_status`
 -- AUTO_INCREMENT for table `job_satisfaction_surveys`
 --
 ALTER TABLE `job_satisfaction_surveys`
-  MODIFY `survey_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `survey_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `leave_applications`
 --
 ALTER TABLE `leave_applications`
-  MODIFY `leave_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `leave_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `monthly_attendance`
