@@ -184,7 +184,7 @@ if (isset($_POST['update_criteria'])) {
                                 <!-- Delete form -->
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="criteria_id" value="<?php echo $row['satisfaction_id']; ?>" />
-                                    <button type="submit" name="delete_performance" class="btn btn-danger" onclick='return confirm("Are you sure you want to delete this performance criteria?");'>Delete</button>
+                                    <button type="submit" name="delete_performance" class="btn btn-danger" onclick='return confirm("Are you sure you want to delete this satisfaction criteria?");'>Delete</button>
                                 </form>
                                 <!-- Archive or Restore Buttons -->
                                 <?php 

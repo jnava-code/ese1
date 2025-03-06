@@ -12,7 +12,7 @@
             <li><a href="./user_leave"><i class="fas fa-paper-plane"></i> Leave Application</a></li>
             <li><a href="./user_satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
             <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
-            <li><a href="./user_history"><i class="fas fa-clock"></i> History</a></li>
+            <li><a href="./user_history"><i class="fas fa-clock"></i> Leave History</a></li>
         </ul>
     </div>
 </nav>
