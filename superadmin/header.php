@@ -83,10 +83,13 @@ $result = mysqli_query($conn, $sql);
             font-size: 24px;
         }
 
+        .notification-container {
+            position: relative;
+        }
         .badge {
             position: absolute;
-            top: 30px;
-            right: 150px;
+            top: -15px;
+            right: -15px;
             background-color: red;
             color: white;
             font-size: 12px;
