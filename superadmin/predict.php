@@ -74,12 +74,12 @@
             er.recommendation_type,
             er.reason,
             COALESCE(AVG(CASE 
-                WHEN a.status = 'On Time' THEN 1
-                WHEN a.status = 'Late' THEN 0.5
+                WHEN a.status = 'On Time' OR a.status = 'Present' OR a.status = 'Over Time' THEN 1
+                WHEN a.status = 'Late' OR a.status = 'Under Time' THEN 0.5
                 ELSE 0 
             END), 0) as attendance_score,
             COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
-            COALESCE(AVG(pe.overall_score) / 100, 0) as performance_score,
+            COALESCE(AVG(pe.overall_score) / 5, 0) as performance_score,
             DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
             FROM employees e
             LEFT JOIN attendance a ON e.employee_id = a.employee_id
@@ -162,13 +162,13 @@
             // Second pass to display table data
             foreach ($allRows as $row) {
                 $attendance_score = floatval($row['attendance_score']);
-                $satisfaction_score = floatval($row['satisfaction_score']) * 20; // Convert to percentage
+                $satisfaction_score = floatval($row['satisfaction_score']) * 100; // Convert to percentage
                 $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
-                    $satisfaction_score / 100, // Convert back to 0-1 scale for risk calculation
+                    $satisfaction_score, // Convert back to 0-1 scale for risk calculation
                     $performance_score,
                     $years_of_service
                 );
