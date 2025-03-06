@@ -232,11 +232,36 @@
 </head>
 
 <style>
+    .printer-controls {
+        display: none;
+        position: absolute;
+        background: white;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .print-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .printer-controls button {
+        text-align: left;
+        border-radius: none !important;
+    }
+    /* Show buttons when hovering over the print container */
+    .print-container:hover .printer-controls {
+        display: flex;
+        flex-direction: column;
+        width: 375px;
+    }
+
     .reports {
         display: flex;
         gap: 50px;
         flex-wrap: wrap;
         justify-content: center;
+
+        width: 100%;
     }
 
     .summary-section {
@@ -280,13 +305,16 @@
         }
     }
  
-
     .reports {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
         grid-template-rows: repeat(2, 1fr) !important;
         grid-gap: 20px !important;
         padding: 20px !important;
+    }
+
+    .print-container {
+        margin-bottom: 25px;
     }
 
     .reports > div {
@@ -378,22 +406,40 @@
     }
 
     @media print {
+        .reports {
+            display: block !important; /* Change to block for printing */
+            width: 100% !important; /* Ensure it takes full width */
+        }
+
         .reports > div{
-            height: 300px !important;
+            height: 290px !important;
         }
 
         canvas {
             height: 200px !important;
         }
 
+        .print-container,
         .filter-controls {
             display: none !important;
         }
     }
+
+
 </style>
 <body>   
     <!-- Main Content Area -->
     <main class="main-content">
+        <div class="print-container">
+            <button class="btn btn-primary search-btn" id="print_main">Print</button>
+            <div class="printer-controls">
+                <button class="btn btn-primary search-btn" id="print_all">All</button>
+                <button class="btn btn-primary search-btn" id="print_attendance">Attendance Report</button>
+                <button class="btn btn-primary search-btn" id="print_employees">Employees Report</button>
+                <button class="btn btn-primary search-btn" id="print_risk">Attrition Risk Report</button>
+                <button class="btn btn-primary search-btn" id="print_age_gender">Employees by Age and Gender Report</button>   
+            </div>
+        </div>
         <section id="dashboard">
             <!-- Filter Controls -->
             <div class="filter-controls">
@@ -469,26 +515,26 @@
 
             <!-- Charts Section -->
             <div class="reports">
-                <div>
+                <div class="print_attendance">
                     <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
                     <div class="attendance-chart-container" style="display: none;">
                         <canvas id="filteredAttendanceChart" width="400" height="400"></canvas>
                     </div>
                 </div>
                 <!-- Employees Report -->
-                <div>
+                <div class="print_employees">
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
                 </div>
 
-                <div>
+                <div class="print_risk">
                     <h1>Attrition Risk Report</h1>
                     <canvas id="attritionChart" width="400" height="400"></canvas>
                 </div>
 
                 <!-- Employees by Age and Gender Report -->
-                <div>
+                <div class="print_age_gender">
                     <h1>Employees by Age and Gender Report</h1>
                     <canvas id="ageGenderChart" width="600" height="400"></canvas>
                 </div>
@@ -827,6 +873,56 @@
             // Fetch daily report for today
             fetchDailyReport();
         });
+
+        const print_all = document.getElementById('print_all');
+        const print_attendance = document.getElementById('print_attendance');
+        const print_employees = document.getElementById('print_employees');
+        const print_risk = document.getElementById('print_risk');
+        const print_age_gender = document.getElementById('print_age_gender');
+
+        const print_attendance_div = document.querySelector('.print_attendance');
+        const print_employees_div = document.querySelector('.print_employees'); 
+        const print_risk_div = document.querySelector('.print_risk'); 
+        const print_age_gender_div = document.querySelector('.print_age_gender'); 
+
+        if(print_all) {
+            print_all.addEventListener("click", (e) => {
+                window.print();
+            });
+        }
+        function printIndividual(printBtn, mainPrint, first_div, second_div, third_div) {
+            if (printBtn) {
+                printBtn.addEventListener("click", (e) => {
+                    // Get the elements
+                    if (mainPrint) {
+                        mainPrint.style.width = "100%"; // Expand width for printing
+                    }
+
+                    // Hide other elements before printing
+                    if (first_div) first_div.style.display = "none";
+                    if (second_div) second_div.style.display = "none";
+                    if (third_div) third_div.style.display = "none";
+
+                    // Trigger print
+                    window.print();
+
+                    // Restore the original width and show hidden elements after printing
+                    setTimeout(() => {
+                        if (mainPrint) {
+                            mainPrint.style.width = ""; // Reset to original width
+                        }
+                        if (first_div) first_div.style.display = "";
+                        if (second_div) second_div.style.display = "";
+                        if (third_div) third_div.style.display = "";
+                    }, 500);
+                });
+            }
+        }
+
+        printIndividual(print_attendance, print_attendance_div, print_employees_div, print_risk_div, print_age_gender_div);
+        printIndividual(print_employees, print_employees_div, print_attendance_div, print_risk_div, print_age_gender_div);
+        printIndividual(print_risk, print_risk_div, print_attendance_div, print_employees_div, print_age_gender_div);
+        printIndividual(print_age_gender, print_age_gender_div, print_attendance_div, print_employees_div, print_risk_div);
     </script>
 </body>
 </html>

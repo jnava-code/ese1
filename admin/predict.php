@@ -162,51 +162,64 @@
             // Second pass to display table data
             foreach ($allRows as $row) {
                 $attendance_score = floatval($row['attendance_score']);
-                $satisfaction_score = floatval($row['satisfaction_score']);
+                $satisfaction_score = floatval($row['satisfaction_score']) * 20; // Convert to percentage
                 $performance_score = floatval($row['performance_score']);
                 $years_of_service = floatval($row['years_of_service']);
 
                 $risk_score = calculateAttritionRisk(
                     $attendance_score,
-                    $satisfaction_score,
+                    $satisfaction_score / 100, // Convert back to 0-1 scale for risk calculation
                     $performance_score,
                     $years_of_service
                 );
 
-                // Determine risk level
+                // Determine risk level and generate justification based on real-time data
+                $justifications = [];
                 if ($risk_score <= 0.3) {
                     $risk_level = '<span class="low-risk">Low Risk</span>';
                     $recommendation = 'Promotion';
-                    $justifications = [
-                        'Outstanding Performance - Scores above 90% in evaluations.',
-                        'Excellent Attendance - Consistently punctual and reliable.', 
-                        'High Job Satisfaction - Reports commitment to the company.', 
-                        'Super Low Attrition Risk - Likely to stay and grow with the company.', 
-                        'Leadership Potential - Strong teamwork and leadership feedback.'
-                    ];
                 } elseif ($risk_score <= 0.6) {
                     $risk_level = '<span class="medium-risk">Medium Risk</span>';
                     $recommendation = 'Demotion';
-                    $justifications = [
-                        'Consistently Poor Performance – Below 50% in multiple evaluation periods.',
-                        'High Absenteeism – 40% absence rate significantly affecting productivity.',
-                        'Job Dissatisfaction – Reports strong discontent with workload and environment.',
-                        'Multiple Warnings Issued – No improvement despite HR interventions.',
-                        'Company Downsizing – Retrenchment is necessary due to business restructuring and cost-cutting measures.'
-                    ];
                 } else {
                     $risk_level = '<span class="high-risk">High Risk</span>';
                     $recommendation = 'Retrenchment';
-                    $justifications = [
-                        'Consistently Poor Performance - Below 50% in multiple evaluation periods.', 
-                        'High Absenteeism - 40% absence rate significantly affecting productivity.',
-                        'Job Dissatisfaction - Reports strong discontent with workload and environment.', 
-                        'Multiple Warnings Issued - No improvement despite HR interventions.', 
-                        'Company Downsizing - Retrenchment is necessary due to business restructuring and cost-cutting measures.'
-                    ];
                 }
 
-                // Format recommendations as a list
+                // Generate justification based on real-time data
+                if ($performance_score < 0.60) {
+                    $justifications[] = 'Consistently Poor Performance - Below 60% in multiple evaluation periods.';
+                } elseif ($performance_score >= 0.60 && $performance_score < 0.80) {
+                    $justifications[] = 'Performance between 60% and 80% - Needs improvement.';
+                } elseif ($performance_score >= 0.90) {
+                    $justifications[] = 'High Performance - Exceptional results exceeding expectations.';
+                }
+
+                if ($attendance_score < 0.50) {
+                    $justifications[] = 'High Absenteeism - Below 50% attendance rate significantly affecting productivity.';
+                } elseif ($attendance_score >= 0.50 && $attendance_score < 0.70) {
+                    $justifications[] = 'Attendance between 50% and 70% - Needs improvement.';
+                } elseif ($attendance_score >= 0.90) {
+                    $justifications[] = 'Excellent Attendance - Above 90%, showing commitment and reliability.';
+                }
+
+                if ($satisfaction_score < 0.40) {
+                    $justifications[] = 'Job Dissatisfaction - Reports strong discontent with workload and environment.';
+                } elseif ($satisfaction_score >= 0.40 && $satisfaction_score < 0.60) {
+                    $justifications[] = 'Job Satisfaction between 40% and 60% - Moderate contentment but needs monitoring.';
+                } elseif ($satisfaction_score >= 0.80) {
+                    $justifications[] = 'High Job Satisfaction - Demonstrates strong engagement and positivity.';
+                }
+
+                if ($risk_score > 0.60) {
+                    $justifications[] = 'High Attrition Risk - Likely to leave the company.';
+                } elseif ($risk_score > 0.30 && $risk_score <= 0.60) {
+                    $justifications[] = 'Medium Attrition Risk - Potential risk of leaving the company.';
+                } elseif ($risk_score <= 0.30) {
+                    $justifications[] = 'Low Attrition Risk - Likely to stay with the company.';
+                }
+
+                // Format justifications as a list
                 $justification_list = '<ul>';
                 foreach ($justifications as $jus) {
                     $justification_list .= "<li>$jus</li>";
@@ -265,7 +278,7 @@
                         <td>{$row['first_name']} {$row['last_name']}</td>
                         <td>" . number_format($years_of_service, 1) . "</td>
                         <td>" . number_format($attendance_score * 100, 1) . "%</td>
-                        <td>" . number_format($satisfaction_score * 100, 1) . "%</td>
+                        <td>" . number_format($satisfaction_score, 1) . "%</td>
                         <td>" . number_format($performance_score * 100, 1) . "%</td>
                         <td>" . number_format($risk_score * 100, 1) . "%</td>
                         <td>$risk_level</td>

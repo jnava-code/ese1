@@ -16,6 +16,10 @@ $sql = "SELECT
             vacation_leave,
             maternity_leave,
             paternity_leave,
+            sick_availed,
+            vacation_availed,
+            maternity_availed,
+            paternity_availed,
             gender
             FROM employees
             WHERE employment_status = 'Regular'";
@@ -24,32 +28,32 @@ $result = mysqli_query($conn, $sql);
 
 $query_string = $_SERVER['QUERY_STRING'];
 
-if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $gender = $_POST['gender'];
-    $sick_leave = $_POST['sick_leave'];
-    $vacation_leave = $_POST['vacation_leave'];
+// if (isset($_POST['update'])) {
+//     $id = $_POST['id'];
+//     $gender = $_POST['gender'];
+//     $sick_leave = $_POST['sick_leave'];
+//     $vacation_leave = $_POST['vacation_leave'];
     
-    // Ensure only male employees have paternity leave and only female employees have maternity leave
-    $paternity_leave = ($gender == 'Male') ? $_POST['paternity_leave'] : 0;
-    $maternity_leave = ($gender == 'Female') ? $_POST['maternity_leave'] : 0;
+//     // Ensure only male employees have paternity leave and only female employees have maternity leave
+//     $paternity_leave = ($gender == 'Male') ? $_POST['paternity_leave'] : 0;
+//     $maternity_leave = ($gender == 'Female') ? $_POST['maternity_leave'] : 0;
 
-    // Update the database
-    $sql_update = "UPDATE `employees` 
-                   SET `sick_leave`='$sick_leave', 
-                       `vacation_leave`='$vacation_leave', 
-                       `paternity_leave`='$paternity_leave', 
-                       `maternity_leave`='$maternity_leave' 
-                   WHERE id='$id'";
+//     // Update the database
+//     $sql_update = "UPDATE `employees` 
+//                    SET `sick_leave`='$sick_leave', 
+//                        `vacation_leave`='$vacation_leave', 
+//                        `paternity_leave`='$paternity_leave', 
+//                        `maternity_leave`='$maternity_leave' 
+//                    WHERE id='$id'";
 
-    $update_result = mysqli_query($conn, $sql_update);
+//     $update_result = mysqli_query($conn, $sql_update);
 
-    if ($update_result) {
-        echo "<script>alert('Leave updated successfully!'); window.location.href='remaining_leave';</script>"; // Success message
-    } else {
-        echo "<script>alert('Error updating leave! Please try again.');</script>"; // Error message
-    }
-}
+//     if ($update_result) {
+//         echo "<script>alert('Leave updated successfully!'); window.location.href='remaining_leave';</script>"; // Success message
+//     } else {
+//         echo "<script>alert('Error updating leave! Please try again.');</script>"; // Error message
+//     }
+// }
 
 ?>
 
@@ -81,7 +85,7 @@ if (isset($_POST['update'])) {
 
 #attendance-table th, #attendance-table td {
     padding: 12px;
-    text-align: left;
+    /* text-align: left; */
 }
 
 #attendance-table th {
@@ -232,6 +236,23 @@ button:disabled {
 
         cursor: pointer;
     }
+
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .styled-table th, 
+    .styled-table td {
+        border: 1px solid black; /* Adds border */
+        padding: 8px;
+        text-align: center;
+    }
+
+    .styled-table th {
+        background-color: #f2f2f2; /* Light gray background for headers */
+    }
+
 </style>
 
 <!-- Main Content Area -->
@@ -240,31 +261,104 @@ button:disabled {
         <h2>REMAINING DAYS OF LEAVE</h2>
         <!-- Styled Leave Requests Table -->
         <table id="myTable" class="styled-table">
-    <thead>
-        <tr>
-            <th>Employee Name</th>
-            <th>Sick Leave</th>
-            <th>Vacation Leave</th>
-            <th>Maternity Leave</th>           
-            <th>Paternity Leave</th>           
-            <th>Total Days of Leave</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-
-    <tbody>
     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-        <?php $total = $row['sick_leave'] + $row['vacation_leave'] + $row['maternity_leave'] + $row['paternity_leave']?>
-        <tr>
-            <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['sick_leave']); ?></td>
-            <td><?php echo htmlspecialchars($row['vacation_leave']); ?></td>
-            <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></td>
-            <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></td>
-            <td><?php echo htmlspecialchars($total); ?></td>
-            <td>
-                <button class="add_leave" type="button" id="add_leave_<?php echo $row['id']?>">Add Leave</button>
-                <form id="leave_modal_<?php echo $row['id']?>" class="leave_modal" method="post">
+        <?php 
+            $total_remaining = $row['sick_leave'] + $row['vacation_leave'] + ($row['maternity_leave'] ?? 0) + ($row['paternity_leave'] ?? 0);
+            $total_availed = $row['sick_availed'] + $row['vacation_availed'] + ($row['maternity_availed'] ?? 0) + ($row['paternity_availed'] ?? 0);
+        ?>    
+
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align: center;">Employee Name</th>
+                <th colspan="2" style="text-align: center;">Sick Leave: <?php echo htmlspecialchars($row['sick_leave']); ?></th>
+                <th colspan="2" style="text-align: center;">Vacation Leave: <?php echo htmlspecialchars($row['vacation_leave']); ?></th>
+                <th colspan="2" style="text-align: center;">Maternity Leave: <?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></th>           
+                <th colspan="2" style="text-align: center;">Paternity Leave: <?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></th>           
+                <th colspan="2" style="text-align: center;">
+                    Total Days of Leave: 
+                    <?php 
+                        $total_days = $row['sick_leave'] + $row['vacation_leave'] + 
+                                    (strtolower($row['gender']) == 'female' ? $row['maternity_leave'] : 0) + 
+                                    (strtolower($row['gender']) == 'male' ? $row['paternity_leave'] : 0);
+                        echo htmlspecialchars($total_days); 
+                    ?>
+                </th>
+
+            </tr>
+            <tr>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
+                <td><?php echo htmlspecialchars($row['sick_leave'] - $row['sick_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['sick_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['vacation_leave'] - $row['vacation_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['vacation_availed']); ?></td>
+                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave'] - $row['maternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave'] - $row['paternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_availed']) : '--'; ?></td>
+                <td><?php echo htmlspecialchars($total_remaining); ?></td>
+                <td><?php echo htmlspecialchars($total_availed); ?></td>
+            </tr>      
+        </tbody>
+    <?php } ?>
+</table>
+
+    </section>
+</main>
+
+<?php
+mysqli_close($conn); // Close database connection
+include('footer.php'); // Admin footer file
+?>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+<script>
+//   $(document).ready( function () {
+//     $('#myTable').DataTable();
+//   });
+
+</script>
+
+<!-- <script>
+            // Unique variable names for each modal
+            const addLeaveButton_<?php echo $row['id']?> = document.getElementById('add_leave_<?php echo $row['id']?>');
+            const leaveModal_<?php echo $row['id']?> = document.getElementById('leave_modal_<?php echo $row['id']?>');
+            const closeModal_<?php echo $row['id']?> = document.getElementById('close_modal_<?php echo $row['id']?>');
+
+            // Add event listener to show modal
+            if(addLeaveButton_<?php echo $row['id']?>) {
+                addLeaveButton_<?php echo $row['id']?>.addEventListener('click', function () {
+                    leaveModal_<?php echo $row['id']?>.classList.add('show'); // Show the modal
+                });
+            }
+
+            // Add event listener to close modal
+            if(closeModal_<?php echo $row['id']?>) {
+                closeModal_<?php echo $row['id']?>.addEventListener('click', function () {
+                    leaveModal_<?php echo $row['id']?>.classList.remove('show'); // Hide the modal
+                });         
+            }
+        </script> -->
+
+        <!-- <form id="leave_modal_<?php echo $row['id']?>" class="leave_modal" method="post">
                     <input type="hidden" name="id" id="employee_id_<?php echo $row['id']?>" value="<?php echo $row['id']?>">
                     <input type="hidden" name="gender" value="<?php echo $row['gender']?>">
                     <div class="title-and-x">
@@ -285,51 +379,4 @@ button:disabled {
                         <?php endif ?>
                     </div>
                     <input type="submit" name="update" value="Update Leave">
-                </form>
-            </td>
-        </tr>
-
-        <script>
-            // Unique variable names for each modal
-            const addLeaveButton_<?php echo $row['id']?> = document.getElementById('add_leave_<?php echo $row['id']?>');
-            const leaveModal_<?php echo $row['id']?> = document.getElementById('leave_modal_<?php echo $row['id']?>');
-            const closeModal_<?php echo $row['id']?> = document.getElementById('close_modal_<?php echo $row['id']?>');
-
-            // Add event listener to show modal
-            if(addLeaveButton_<?php echo $row['id']?>) {
-                addLeaveButton_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.add('show'); // Show the modal
-                });
-            }
-
-            // Add event listener to close modal
-            if(closeModal_<?php echo $row['id']?>) {
-                closeModal_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.remove('show'); // Hide the modal
-                });         
-            }
-        </script>
-    <?php } ?>
-</tbody>
-
-
-</table>
-    </section>
-</main>
-
-<?php
-mysqli_close($conn); // Close database connection
-include('footer.php'); // Admin footer file
-?>
-
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
-<script>
-  $(document).ready( function () {
-    $('#myTable').DataTable();
-  });
-
-</script>
+                </form> -->

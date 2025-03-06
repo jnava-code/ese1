@@ -16,6 +16,10 @@ $sql = "SELECT
             vacation_leave,
             maternity_leave,
             paternity_leave,
+            sick_availed,
+            vacation_availed,
+            maternity_availed,
+            paternity_availed,
             gender
             FROM employees
             WHERE employment_status = 'Regular'";
@@ -81,7 +85,7 @@ $query_string = $_SERVER['QUERY_STRING'];
 
 #attendance-table th, #attendance-table td {
     padding: 12px;
-    text-align: left;
+    /* text-align: left; */
 }
 
 #attendance-table th {
@@ -232,6 +236,23 @@ button:disabled {
 
         cursor: pointer;
     }
+
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .styled-table th, 
+    .styled-table td {
+        border: 1px solid black; /* Adds border */
+        padding: 8px;
+        text-align: center;
+    }
+
+    .styled-table th {
+        background-color: #f2f2f2; /* Light gray background for headers */
+    }
+
 </style>
 
 <!-- Main Content Area -->
@@ -240,35 +261,62 @@ button:disabled {
         <h2>REMAINING DAYS OF LEAVE</h2>
         <!-- Styled Leave Requests Table -->
         <table id="myTable" class="styled-table">
-    <thead>
-        <tr>
-            <th>Employee Name</th>
-            <th>Sick Leave</th>
-            <th>Vacation Leave</th>
-            <th>Maternity Leave</th>           
-            <th>Paternity Leave</th>           
-            <th>Total Days of Leave</th>
-        </tr>
-    </thead>
-
-    <tbody>
     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-        <?php $total = $row['sick_leave'] + $row['vacation_leave'] + $row['maternity_leave'] + $row['paternity_leave']?>
-        <tr>
-            <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['sick_leave']); ?></td>
-            <td><?php echo htmlspecialchars($row['vacation_leave']); ?></td>
-            <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></td>
-            <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></td>
-            <td><?php echo htmlspecialchars($total); ?></td>
-        </tr>
+        <?php 
+            $total_remaining = $row['sick_leave'] + $row['vacation_leave'] + ($row['maternity_leave'] ?? 0) + ($row['paternity_leave'] ?? 0);
+            $total_availed = $row['sick_availed'] + $row['vacation_availed'] + ($row['maternity_availed'] ?? 0) + ($row['paternity_availed'] ?? 0);
+        ?>    
 
-       
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align: center;">Employee Name</th>
+                <th colspan="2" style="text-align: center;">Sick Leave: <?php echo htmlspecialchars($row['sick_leave']); ?></th>
+                <th colspan="2" style="text-align: center;">Vacation Leave: <?php echo htmlspecialchars($row['vacation_leave']); ?></th>
+                <th colspan="2" style="text-align: center;">Maternity Leave: <?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></th>           
+                <th colspan="2" style="text-align: center;">Paternity Leave: <?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></th>           
+                <th colspan="2" style="text-align: center;">
+                    Total Days of Leave: 
+                    <?php 
+                        $total_days = $row['sick_leave'] + $row['vacation_leave'] + 
+                                    (strtolower($row['gender']) == 'female' ? $row['maternity_leave'] : 0) + 
+                                    (strtolower($row['gender']) == 'male' ? $row['paternity_leave'] : 0);
+                        echo htmlspecialchars($total_days); 
+                    ?>
+                </th>
+
+            </tr>
+            <tr>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+                <th>Remaining</th>
+                <th>Availed</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
+                <td><?php echo htmlspecialchars($row['sick_leave'] - $row['sick_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['sick_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['vacation_leave'] - $row['vacation_availed']); ?></td>
+                <td><?php echo htmlspecialchars($row['vacation_availed']); ?></td>
+                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave'] - $row['maternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave'] - $row['paternity_availed']) : '--'; ?></td>
+                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_availed']) : '--'; ?></td>
+                <td><?php echo htmlspecialchars($total_remaining); ?></td>
+                <td><?php echo htmlspecialchars($total_availed); ?></td>
+            </tr>      
+        </tbody>
     <?php } ?>
-</tbody>
-
-
 </table>
+
     </section>
 </main>
 
@@ -283,9 +331,9 @@ include('footer.php'); // Admin footer file
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 <script>
-  $(document).ready( function () {
-    $('#myTable').DataTable();
-  });
+//   $(document).ready( function () {
+//     $('#myTable').DataTable();
+//   });
 
 </script>
 
