@@ -10,7 +10,7 @@ if (!$conn) {
 
 
 $username = mysqli_real_escape_string($conn, $_SESSION['username']); 
-$sql = "SELECT sick_leave, vacation_leave, maternity_leave, paternity_leave FROM employees WHERE username='$username'";
+$sql = "SELECT sick_leave, vacation_leave, maternity_leave, paternity_leave, sick_availed, vacation_availed, maternity_availed, paternity_availed FROM employees WHERE username='$username'";
 $result = mysqli_query($conn, $sql);
 
 if($result) {
@@ -19,6 +19,10 @@ if($result) {
     $vacation_leave = $row['vacation_leave'];
     $maternity_leave = $row['maternity_leave'];
     $paternity_leave = $row['paternity_leave'];
+    $sick_availed = $row['sick_availed'];
+    $vacation_availed = $row['vacation_availed'];
+    $maternity_availed = $row['maternity_availed'];
+    $paternity_availed = $row['paternity_availed'];
 }
 
 // Check if the form is submitted
@@ -168,22 +172,22 @@ if (isset($_SESSION['success_message'])) {
             <form action="" method="POST">
                 <div>
                     <label for="sick_leave">Sick Leave Credits:</label>
-                    <input type="text" id="sick_leave" name="sick_leave" value="<?php echo htmlspecialchars($sick_leave) . ' days'; ?>" readonly>
+                    <input type="text" id="sick_leave" name="sick_leave" value="<?php echo htmlspecialchars($sick_leave - $sick_availed) . ' days'; ?>" readonly>
                 </div>
                 <div>
                     <label for="vacation_leave">Vacation Leave Credits:</label>
-                    <input type="text" id="vacation_leave" name="vacation_leave" value="<?php echo htmlspecialchars($vacation_leave) . ' days'; ?>" readonly>
+                    <input type="text" id="vacation_leave" name="vacation_leave" value="<?php echo htmlspecialchars($vacation_leave - $vacation_availed) . ' days'; ?>" readonly>
                 </div>
                 <?php 
                     if ($_SESSION['gender'] == "Male") {
                         echo '<div>
                                 <label for="paternity_leave">Paternity Leave Credits:</label>
-                                <input type="text" id="paternity_leave" name="paternity_leave" value="' . htmlspecialchars($paternity_leave) . ' days" readonly>
+                                <input type="text" id="paternity_leave" name="paternity_leave" value="' . htmlspecialchars($paternity_leave - $paternity_availed) . ' days" readonly>
                             </div>';
                     } else {
                         echo '<div>
                                 <label for="maternity_leave">Maternity Leave Credits:</label>
-                                <input type="text" id="maternity_leave" name="maternity_leave" value="' . htmlspecialchars($maternity_leave) . ' days" readonly>
+                                <input type="text" id="maternity_leave" name="maternity_leave" value="' . htmlspecialchars($maternity_leave - $maternity_availed) . ' days" readonly>
                             </div>';
                     }
                 ?>

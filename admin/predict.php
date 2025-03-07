@@ -65,30 +65,111 @@
         }
 
         // Fetch employee data and calculate attrition risk
-        $query = "SELECT 
-            e.employee_id,
-            e.first_name,
-            e.last_name,
-            e.hire_date,
-            er.recommendation_id,
-            er.recommendation_type,
-            er.reason,
-            COALESCE(AVG(CASE 
-                WHEN a.status = 'On Time' OR a.status = 'Present' OR a.status = 'Over Time' THEN 1
-                WHEN a.status = 'Late' OR a.status = 'Under Time' THEN 0.5
-                ELSE 0 
-            END), 0) as attendance_score,
-            COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
-            COALESCE(AVG(pe.overall_score) / 5, 0) as performance_score,
-            DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
-            FROM employees e
-            LEFT JOIN attendance a ON e.employee_id = a.employee_id
-            LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
-            LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
-            LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
-            WHERE e.is_archived = 0
-            GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
+        // $query = "SELECT 
+        //     e.employee_id,
+        //     e.first_name,
+        //     e.last_name,
+        //     e.hire_date,
+        //     er.recommendation_id,
+        //     er.recommendation_type,
+        //     er.reason,
+        //     COALESCE(AVG(CASE 
+        //         WHEN a.status = 'On Time' OR a.status = 'Present' OR a.status = 'Over Time' THEN 1
+        //         WHEN a.status = 'Late' OR a.status = 'Under Time' THEN 0.5
+        //         ELSE 0 
+        //     END), 0) as attendance_score,
+        //     COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
+        //     COALESCE(AVG(pe.overall_score) / 5, 0) as performance_score,
+        //     DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
+        //     FROM employees e
+        //     LEFT JOIN attendance a ON e.employee_id = a.employee_id
+        //     LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+        //     LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
+        //     LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
+        //     WHERE e.is_archived = 0
+        //     GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
 
+        $query = "WITH working_days AS (
+                    SELECT 
+                        e.employee_id,
+                        COUNT(*) AS total_working_days
+                    FROM employees e
+                    JOIN (
+                        SELECT 
+                            d.date, e.employee_id
+                        FROM (
+                            SELECT CURDATE() - INTERVAL n DAY AS date
+                            FROM (
+                                SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL 
+                                SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL 
+                                SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL 
+                                SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL 
+                                SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL 
+                                SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL 
+                                SELECT 19 UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL 
+                                SELECT 22 UNION ALL SELECT 23 UNION ALL SELECT 24 UNION ALL 
+                                SELECT 25 UNION ALL SELECT 26 UNION ALL SELECT 27 UNION ALL 
+                                SELECT 28 UNION ALL SELECT 29 UNION ALL SELECT 30
+                            ) AS numbers
+                        ) AS d
+                        JOIN employees e ON d.date >= e.hire_date AND d.date <= CURDATE()
+                        WHERE WEEKDAY(d.date) < 5  -- Exclude Saturdays (5) and Sundays (6)
+                    ) wd ON wd.employee_id = e.employee_id
+                    GROUP BY e.employee_id
+                ), 
+
+                absences AS (
+                    SELECT 
+                        e.employee_id,
+                        COUNT(*) AS total_absences
+                    FROM employees e
+                    JOIN (
+                        SELECT 
+                            d.date, e.employee_id
+                        FROM (
+                            SELECT CURDATE() - INTERVAL n DAY AS date
+                            FROM (
+                                SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL 
+                                SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL 
+                                SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL 
+                                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL 
+                                SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL 
+                                SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL 
+                                SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL 
+                                SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL 
+                                SELECT 24 UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL 
+                                SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 UNION ALL 
+                                SELECT 30
+                            ) AS numbers
+                        ) AS d
+                        JOIN employees e ON d.date >= e.hire_date AND d.date <= CURDATE()
+                        LEFT JOIN attendance a ON e.employee_id = a.employee_id AND a.date = d.date
+                        WHERE WEEKDAY(d.date) < 5  -- Exclude weekends
+                        AND a.employee_id IS NULL  -- Employee has no attendance record
+                    ) ab ON ab.employee_id = e.employee_id
+                    GROUP BY e.employee_id
+                )
+
+                SELECT 
+                    e.employee_id,
+                    e.first_name,
+                    e.last_name,
+                    e.hire_date,
+                    er.recommendation_id,
+                    er.recommendation_type,
+                    er.reason,
+                    COALESCE(1 - (a.total_absences / wd.total_working_days), 1) AS attendance_score,  
+                    COALESCE(AVG(js.overall_rating) / 5, 0) AS satisfaction_score,
+                    COALESCE(AVG(pe.overall_score) / 5, 0) AS performance_score,
+                    DATEDIFF(CURRENT_DATE, e.hire_date) / 365 AS years_of_service
+                FROM employees e
+                LEFT JOIN working_days wd ON e.employee_id = wd.employee_id
+                LEFT JOIN absences a ON e.employee_id = a.employee_id
+                LEFT JOIN job_satisfaction_surveys js ON e.employee_id = js.employee_id
+                LEFT JOIN performance_evaluations pe ON e.employee_id = pe.employee_id
+                LEFT JOIN e_recommendations er ON e.employee_id = er.employee_id
+                WHERE e.is_archived = 0
+                GROUP BY e.employee_id, e.first_name, e.last_name, e.hire_date";
         $result = mysqli_query($conn, $query);
 
         if ($result) {
