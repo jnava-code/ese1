@@ -63,7 +63,6 @@
     $overtime_count = getCount($conn, "SELECT count(*) as overtime_count FROM attendance WHERE status = 'Over Time'");
     $leave_count = getCount($conn, "SELECT count(*) as leave_count FROM leave_applications WHERE status = 'Approved'");
 
-    // $week_start = date('Y-m-d', strtotime('monday this week'));
 
     // Daily Counts
     $daily_absent = getAbsentCount($conn, "SELECT employee_id, hire_date FROM employees WHERE hire_date = '$presentDate'");
@@ -93,6 +92,14 @@
 
     $notAbsent = $late_count + $ontime_count + $leave_count;
     $total_absent_days = $absent_days - $notAbsent;
+
+    $male_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE gender = 'Male'");
+    $female_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE gender = 'Female'");
+
+    $regular_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Regular'");
+    $probationary_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Probationary'");
+    $resigned_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Resigned'");
+    $terminated_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Terminated'");
 
     // Fetch department names and colors from the departments table
     $sqlDepartments = "SELECT dept_name, colors FROM departments";
@@ -528,6 +535,16 @@
                     <?php $totalEmployees = array_sum($employeeCounts); ?>
                 </div>
 
+                <div class="print_gender">
+                    <h1>Gender Report</h1>
+                    <canvas id="genderChart" width="400" height="400"></canvas>
+                </div>
+
+                <div class="print_status">
+                    <h1>Employment Status Report</h1>
+                    <canvas id="statusChart" width="400" height="400"></canvas>
+                </div>
+
                 <div class="print_risk">
                     <h1>Attrition Risk Report</h1>
                     <canvas id="attritionChart" width="400" height="400"></canvas>
@@ -843,7 +860,6 @@
         function fetchAttendanceData(type, params) {
             // Create URL with parameters
             const queryString = new URLSearchParams(params).toString();
-            console.log(params);
             
             fetch(`get_attendance_data?type=${type}&${queryString}`)
                 .then(response => response.json())
@@ -923,6 +939,69 @@
         printIndividual(print_employees, print_employees_div, print_attendance_div, print_risk_div, print_age_gender_div);
         printIndividual(print_risk, print_risk_div, print_attendance_div, print_employees_div, print_age_gender_div);
         printIndividual(print_age_gender, print_age_gender_div, print_attendance_div, print_employees_div, print_risk_div);
+
+        var maleCount = <?php echo $male_count; ?>;
+        var femaleCount = <?php echo $female_count; ?>;
+
+        var genderCtx = document.getElementById('genderChart').getContext('2d');
+        var genderChart = new Chart(genderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female'], // Labels for gender
+                datasets: [{
+                    data: [maleCount, femaleCount],
+                    backgroundColor: ['#36A2EB', '#FF6384'], // Default colors for male and female
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    datalabels: {
+                        anchor: 'center', // Center the label inside the doughnut
+                        align: 'center',
+                        color: '#fff', // White text for visibility
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                },
+            },
+            plugins: [ChartDataLabels] // Ensure you have the ChartDataLabels plugin loaded
+        });
+        
+        var regular_count = <?php echo $regular_count; ?> 
+        var probationary_count = <?php echo $probationary_count; ?> 
+        var resigned_count = <?php echo $resigned_count; ?> 
+        var terminated_count = <?php echo $terminated_count; ?>
+
+        console.log(regular_count);
+        var genderCtx = document.getElementById('statusChart').getContext('2d');
+        var genderChart = new Chart(genderCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Regular', 'Probationary', 'Resigned', 'Terminated'], // Labels for gender
+                datasets: [{
+                    data: [regular_count, probationary_count, resigned_count, terminated_count],
+                    backgroundColor: ['#36A2EB', '#FF6384', '#1ABC9C', '#F1C40F'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    datalabels: {
+                        anchor: 'center', // Center the label inside the doughnut
+                        align: 'center',
+                        color: '#fff', // White text for visibility
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                },
+            },
+            plugins: [ChartDataLabels] // Ensure you have the ChartDataLabels plugin loaded
+        });
     </script>
 </body>
 </html>
