@@ -1,13 +1,6 @@
 <?php
 include('header.php'); // Admin header file
 
-// Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'esetech');
-
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
 // Build the SQL query with JOIN
 $sql = "SELECT 
             id,
@@ -331,9 +324,9 @@ include('footer.php'); // Admin footer file
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 <script>
-//   $(document).ready( function () {
-//     $('#myTable').DataTable();
-//   });
+  $(document).ready( function () {
+    $('#myTable').DataTable();
+  });
 
 </script>
 

@@ -1,4 +1,4 @@
-<?php include('header.php'); ?>
+
     <?php
     // Database connection
     $conn = mysqli_connect('localhost', 'root', '', 'esetech');
@@ -45,7 +45,7 @@ if (isset($_POST['update_admin'])) {
 
         // Validate required fields
         if (empty($username) || empty($user_type) || empty($status) || empty($first_name) || empty($last_name) || empty($email) || empty($contact_number)) {
-            header("Location: edit_admin.php?id=$id&error=All fields are required");
+            header("Location: edit_admin?id=$id&error=All fields are required");
             exit();
         }
 
@@ -59,20 +59,13 @@ if (isset($_POST['update_admin'])) {
         header("Location: edit_admin?id=$id");
         exit();
     } else {
-        header("Location: admin_list.php?error=Invalid ID");
+        header("Location: admin_list?error=Invalid ID");
         exit();
     }
 }
 
 ?>
 
-
-<nav class="sidebar">
-    <ul>
-        <li><a href="./dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="./superadmin"><i class="fas fa-user-friends"></i> Manage Admins</a></li>
-    </ul>
-</nav>
 
 
     <!DOCTYPE html>
@@ -81,12 +74,13 @@ if (isset($_POST['update_admin'])) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit Employee</title>
-        <link rel="stylesheet" href="styles.css">
+        <!-- <link rel="stylesheet" href="styles.css"> -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     </head>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
 <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- FontAwesome for the eye icon -->
+<?php include('header.php'); ?>
     <?php include('includes/sideBar.php'); ?>
     <body>
         <main class="main-content">

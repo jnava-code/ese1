@@ -1,14 +1,12 @@
 <?php
-
-
-include('header.php');
+ob_start();
 
 // Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
+include('header.php');
 require '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -250,7 +248,7 @@ if (isset($_SESSION['success_message'])) {
     echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
     unset($_SESSION['success_message']);
 }
-
+ob_end_flush();
 ?>
 
 <?php include('includes/sideBar.php'); ?>

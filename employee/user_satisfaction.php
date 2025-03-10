@@ -1,7 +1,3 @@
-<?php
-include('user_header.php');
-include('includes/sideBar.php');
-?>
 
 <style>
     body {
@@ -36,6 +32,10 @@ include('includes/sideBar.php');
         background-color: #f9f9f9;
     }
 </style>
+<?php
+include('user_header.php');
+include('includes/sideBar.php');
+?>
 
 <main class="main-content">
     <section id="dashboard">
@@ -88,7 +88,8 @@ include('includes/sideBar.php');
                                 VALUES ('$employee_id', '$survey_date', '$questions_json', '$overall_rating')";
                 
                         if (mysqli_query($conn, $sql)) {
-                            echo "<p style='color: green;'>Survey submitted successfully!</p>";
+                            header("Location: user_satisfaction");
+                            exit;
                         } else {
                             echo "<p style='color: red;'>Error: " . mysqli_error($conn) . "</p>";
                         }

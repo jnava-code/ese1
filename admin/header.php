@@ -1,11 +1,9 @@
 <?php 
 session_start();
-
-// Database connection
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 // Check if the user is logged in
-if (!isset($_SESSION['admin'])) {
+if (!isset($_SESSION['superadmin'])) {
     header("Location: ../index");
     exit();
 }
@@ -52,6 +50,8 @@ $sql = "
     ORDER BY action_date DESC, survey_date DESC;
 ";
 $result = mysqli_query($conn, $sql);
+
+
 ?>
 
 <!DOCTYPE html>

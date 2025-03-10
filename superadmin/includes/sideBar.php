@@ -13,6 +13,16 @@
 
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
+                    <i class="fas fa-user-cog"></i> Manage Admin<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="./superadmin">Admins Profile</a></li>
+                    <li><a href="./admin_archive">Archive</a></li>
+                </ul>
+            </li>
+
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
                     <i class="fas fa-user-friends"></i> Employees Profile<i class="fas fa-chevron-down toggle-icon"></i>
                 </a>
                 <ul class="dropdown-menu">
@@ -24,7 +34,7 @@
             
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
-                    <i class="fas fa-calendar-check"></i>Attendance Management<i class="fas fa-chevron-down toggle-icon"></i>
+                    <i class="fas fa-calendar-check"></i>Attendance Monitoring<i class="fas fa-chevron-down toggle-icon"></i>
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="./daily-attendance">Daily Attendance</a></li>

@@ -75,14 +75,15 @@
         $stmt = $conn->prepare($sql);
     
         // Correct the bind_param call: Match the correct number of placeholders with type definitions
-        $stmt->bind_param("ssssssssssssssssssssssssssssi", 
-                          $last_name, $first_name, $middle_name, $suffix, $gender, $email, 
-                          $position, $hire_date, $department, $employment_status, 
-                          $employee_id, $date_of_birth, $contact_number, 
-                          $perma_address, $civil_status, $sss_number, $philhealth_number, 
-                          $pagibig_number, $tin_number, $emergency_contact_name, 
-                          $emergency_contact_number, $educational_background, $skills, 
-                          $username, $id);
+        $stmt->bind_param("ssssssssssssssssssssssssi", 
+                  $last_name, $first_name, $middle_name, $suffix, $gender, $email, 
+                  $position, $hire_date, $department, $employment_status, 
+                  $employee_id, $date_of_birth, $contact_number, 
+                  $perma_address, $civil_status, $sss_number, $philhealth_number, 
+                  $pagibig_number, $tin_number, $emergency_contact_name, 
+                  $emergency_contact_number, $educational_background, $skills, 
+                  $username, $id);
+
     
         // Execute the statement
         if ($stmt->execute()) {

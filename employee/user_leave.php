@@ -259,20 +259,20 @@ if (isset($_SESSION['success_message'])) {
         }
     }, 5000); // 5000ms = 5 seconds
 
-    // Function to ensure end date cannot be earlier than start date
-    function validateEndDate() {
-        const sick_leave = document.getElementById("sick_leave");
-        const vacation_leave = document.getElementById("vacation_leave");
-        const maternity_leave = document.getElementById("maternity_leave");
-        const paternity_leave = document.getElementById("paternity_leave");
-        const startDateInput = document.getElementById('start_date');
-        const endDateInput = document.getElementById('end_date');
-        const numberOfDays =document.getElementById("no_of_days");
-        const leaveType =document.getElementById("leave_type");
+// Function to validate the end date and calculate days excluding weekends
+function validateEndDate() {
+    const sick_leave = document.getElementById("sick_leave");
+    const vacation_leave = document.getElementById("vacation_leave");
+    const maternity_leave = document.getElementById("maternity_leave");
+    const paternity_leave = document.getElementById("paternity_leave");
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const numberOfDays = document.getElementById("no_of_days");
+    const leaveType = document.getElementById("leave_type");
 
-        const startDate = new Date(startDateInput.value);
-        
-        if (leaveType) {
+    const startDate = new Date(startDateInput.value);
+
+    if (leaveType) {
         this.selectedLeaveType = "Sick"; // Default leave type
         leaveType.addEventListener("change", e => {
             this.selectedLeaveType = e.target.value;
@@ -291,37 +291,45 @@ if (isset($_SESSION['success_message'])) {
             }
         });
     }
-    
-    if (startDateInput.value) {
-        endDateInput.setAttribute('min', startDateInput.value);
-        
-        // Calculate the difference in days if endDate is set
+
+    if (startDateInput.value && endDateInput.value) {
         const endDate = new Date(endDateInput.value);
-        
-        if (endDateInput.value) {
-            const timeDiff = endDate - startDate; // Difference in milliseconds
-            const dayDiff = timeDiff / (1000 * 3600 * 24); // Convert to days
 
-            numberOfDays.value = dayDiff;
-            // this.leaveType.value = this.leaveType.value - dayDiff;
-            // Match selected leave type and remove " days" if present
-            if (this.selectedLeaveType === "Sick") {
-                this.leaveType = sick_leave.value.replace(" days", "").trim() - dayDiff;
-            } else if (this.selectedLeaveType === "Vacation") {
-                this.leaveType = vacation_leave.value.replace(" days", "").trim() - dayDiff;
-            } else if (this.selectedLeaveType === "Maternity") { // Corrected typo "Meternity"
-                this.leaveType = maternity_leave.value.replace(" days", "").trim() - dayDiff;
-            } else {
-                this.leaveType = paternity_leave.value.replace(" days", "").trim() - dayDiff;
-            } 
+        // Calculate the difference in days excluding weekends (Saturday and Sunday)
+        let totalDays = 0;
+        let currentDate = new Date(startDate);
 
-            this.leaveType.value = `${this.leaveType} days`;
+        while (currentDate <= endDate) {
+            // Get the day of the week (0 = Sunday, 6 = Saturday)
+            const dayOfWeek = currentDate.getDay();
+            // Only count weekdays (Monday to Friday)
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                totalDays++;
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
         }
+
+        // Update the number of days field
+        numberOfDays.value = totalDays;
+
+        // Update leave type credits based on the selected leave type
+        if (this.selectedLeaveType === "Sick") {
+            this.leaveType = sick_leave.value.replace(" days", "").trim() - totalDays;
+        } else if (this.selectedLeaveType === "Vacation") {
+            this.leaveType = vacation_leave.value.replace(" days", "").trim() - totalDays;
+        } else if (this.selectedLeaveType === "Maternity") {
+            this.leaveType = maternity_leave.value.replace(" days", "").trim() - totalDays;
+        } else {
+            this.leaveType = paternity_leave.value.replace(" days", "").trim() - totalDays;
+        }
+
+        // Update the leave type input values
+        this.leaveType.value = `${this.leaveType} days`;
     }
 }
 
-    // Initial call to set min end date on page load
-    validateEndDate();
+// Initial call to set min end date on page load
+validateEndDate();
 
 // Function to reset form
 function resetForm() {
@@ -343,6 +351,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     // If form is valid
     setTimeout(resetForm, 1000);
 });
+
 </script>
 
 <?php include('user_footer.php'); ?>

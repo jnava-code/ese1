@@ -221,6 +221,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: red;
             margin-bottom: 10px;
         }
+
+        .container {
+            display: flex;
+        }
+
+        .left-section {
+            flex: 1;
+            background-image: url('images/bg1.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .expertise {
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -231,7 +254,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="container">
         <div class="left-section">
-            <div class="expertise">Drives and<br>Automation Expert.</div>
+            <div class="expertise">Drives and Automation Expert.</div>
         </div>
         <div class="right-section">
             <img src="images/logo.png" alt="ESE-Tech Logo" class="logo">

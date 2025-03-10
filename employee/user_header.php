@@ -76,6 +76,22 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
             cursor: pointer;
         }
 
+        .notification-count {
+            position: absolute;
+            top: 30px;
+            right: 165px;
+            background-color: red;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .notification {
             display: none;
             position: absolute;
@@ -138,6 +154,10 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
             font-size: 12px;
             color: #888;
         }
+
+        .header-right {
+            display: relative;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +168,11 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     </div>
     
     <div class="header-right">
-        <i class="fas fa-bell bell-btn"></i>  
+        <i class="fas fa-bell bell-btn"></i>
+        <!-- Notification count -->
+        <?php if (count($notifications) > 0): ?>
+            <div class="notification-count"><?php echo count($notifications); ?></div>
+        <?php endif; ?>
         <div class="profile">
             <strong>
             <?php echo isset($_SESSION['fullname']) ? htmlspecialchars($_SESSION['fullname']) : 'Guest'; ?>
