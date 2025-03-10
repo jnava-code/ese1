@@ -101,6 +101,11 @@
     $resigned_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Resigned'");
     $terminated_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Terminated'");
 
+    $educational_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE educational_background = 'Technical-Vocational Program graduate'");
+    $college_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE educational_background = 'College graduate'");
+    $master_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE educational_background = 'Master\'s degree graduate'");
+    $doctorate_count = getCount($conn, "SELECT COUNT(*) as count FROM employees WHERE educational_background = 'Doctorate degree graduate'");
+
     // Fetch department names and colors from the departments table
     $sqlDepartments = "SELECT dept_name, colors FROM departments";
     $resultDepartments = mysqli_query($conn, $sqlDepartments);
@@ -244,6 +249,8 @@
         position: absolute;
         background: white;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+
+        z-index: 50;
     }
 
     .print-container {
@@ -444,7 +451,10 @@
                 <button class="btn btn-primary search-btn" id="print_attendance">Attendance Report</button>
                 <button class="btn btn-primary search-btn" id="print_employees">Employees Report</button>
                 <button class="btn btn-primary search-btn" id="print_risk">Attrition Risk Report</button>
-                <button class="btn btn-primary search-btn" id="print_age_gender">Employees by Age and Gender Report</button>   
+                <button class="btn btn-primary search-btn" id="print_gender">Gender Report</button>
+                <button class="btn btn-primary search-btn" id="print_status">Employment Status Report</button>
+                <button class="btn btn-primary search-btn" id="print_age_gender">Employees by Age and Gender Report</button> 
+                <button class="btn btn-primary search-btn" id="print_educational">Education Background Report</button>   
             </div>
         </div>
         <section id="dashboard">
@@ -520,7 +530,6 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
             <div class="reports">
                 <div class="print_attendance">
                     <h2 id="chartTitle" class="text-center" style="margin-top: 20px; display: none;">Attendance Report</h2>
@@ -528,7 +537,7 @@
                         <canvas id="filteredAttendanceChart" width="400" height="400"></canvas>
                     </div>
                 </div>
-                <!-- Employees Report -->
+                
                 <div class="print_employees">
                     <h1>Employees Report</h1>
                     <canvas id="departmentChart" width="400" height="400"></canvas>
@@ -550,10 +559,14 @@
                     <canvas id="attritionChart" width="400" height="400"></canvas>
                 </div>
 
-                <!-- Employees by Age and Gender Report -->
                 <div class="print_age_gender">
                     <h1>Employees by Age and Gender Report</h1>
                     <canvas id="ageGenderChart" width="600" height="400"></canvas>
+                </div>
+
+                <div class="print_educational">
+                    <h1>Employees by Age and Gender Report</h1>
+                    <canvas id="educationalChart" width="600" height="400"></canvas>
                 </div>
             </div>
         </section>
@@ -895,29 +908,35 @@
         const print_employees = document.getElementById('print_employees');
         const print_risk = document.getElementById('print_risk');
         const print_age_gender = document.getElementById('print_age_gender');
+        const print_gender = document.getElementById('print_gender');
+        const print_status = document.getElementById('print_status');     
+        const print_educational = document.getElementById('print_educational');   
 
         const print_attendance_div = document.querySelector('.print_attendance');
         const print_employees_div = document.querySelector('.print_employees'); 
         const print_risk_div = document.querySelector('.print_risk'); 
         const print_age_gender_div = document.querySelector('.print_age_gender'); 
+        const print_gender_div = document.querySelector('.print_gender'); 
+        const print_status_div = document.querySelector('.print_status');        
+        const print_educational_div = document.querySelector('.print_educational');   
 
         if(print_all) {
-            print_all.addEventListener("click", (e) => {
+            print_all.addEventListener("click", () => {
                 window.print();
             });
         }
-        function printIndividual(printBtn, mainPrint, first_div, second_div, third_div) {
+
+        function printIndividual(printBtn, mainPrint, ...otherDivs) {
             if (printBtn) {
-                printBtn.addEventListener("click", (e) => {
-                    // Get the elements
+                printBtn.addEventListener("click", () => {
                     if (mainPrint) {
                         mainPrint.style.width = "100%"; // Expand width for printing
                     }
 
                     // Hide other elements before printing
-                    if (first_div) first_div.style.display = "none";
-                    if (second_div) second_div.style.display = "none";
-                    if (third_div) third_div.style.display = "none";
+                    otherDivs.forEach(div => {
+                        if (div) div.style.display = "none";
+                    });
 
                     // Trigger print
                     window.print();
@@ -927,18 +946,20 @@
                         if (mainPrint) {
                             mainPrint.style.width = ""; // Reset to original width
                         }
-                        if (first_div) first_div.style.display = "";
-                        if (second_div) second_div.style.display = "";
-                        if (third_div) third_div.style.display = "";
+                        otherDivs.forEach(div => {
+                            if (div) div.style.display = ""; // Restore visibility
+                        });
                     }, 500);
                 });
             }
         }
 
-        printIndividual(print_attendance, print_attendance_div, print_employees_div, print_risk_div, print_age_gender_div);
-        printIndividual(print_employees, print_employees_div, print_attendance_div, print_risk_div, print_age_gender_div);
-        printIndividual(print_risk, print_risk_div, print_attendance_div, print_employees_div, print_age_gender_div);
-        printIndividual(print_age_gender, print_age_gender_div, print_attendance_div, print_employees_div, print_risk_div);
+        printIndividual(print_attendance, print_attendance_div, print_employees_div, print_risk_div, print_age_gender_div, print_gender_div, print_status_div, print_educational_div);
+        printIndividual(print_employees, print_employees_div, print_attendance_div, print_risk_div, print_age_gender_div, print_gender_div, print_status_div), print_educational_div;
+        printIndividual(print_risk, print_risk_div, print_attendance_div, print_employees_div, print_age_gender_div, print_gender_div, print_status_div, print_educational_div);
+        printIndividual(print_gender, print_gender_div, print_attendance_div, print_employees_div, print_risk_div, print_age_gender_div, print_status_div, print_educational_div);
+        printIndividual(print_status, print_status_div, print_attendance_div, print_employees_div, print_risk_div, print_gender_div, print_age_gender_div, print_educational_div);
+        printIndividual(print_educational, print_educational_div, print_attendance_div, print_employees_div, print_risk_div, print_gender_div, print_age_gender_div, print_status_div);
 
         var maleCount = <?php echo $male_count; ?>;
         var femaleCount = <?php echo $female_count; ?>;
@@ -975,7 +996,6 @@
         var resigned_count = <?php echo $resigned_count; ?> 
         var terminated_count = <?php echo $terminated_count; ?>
 
-        console.log(regular_count);
         var genderCtx = document.getElementById('statusChart').getContext('2d');
         var genderChart = new Chart(genderCtx, {
             type: 'pie',
@@ -1002,6 +1022,56 @@
             },
             plugins: [ChartDataLabels] // Ensure you have the ChartDataLabels plugin loaded
         });
+
+        var educationalCount = <?php echo $educational_count; ?>;
+var collegeCount = <?php echo $college_count; ?>;
+var masterCount = <?php echo $master_count; ?>;
+var doctorateCount = <?php echo $doctorate_count; ?>;
+
+
+        var educationalCtx = document.getElementById('educationalChart').getContext('2d');
+        var educationalChart = new Chart(educationalCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Technical-Vocational Program graduate', 'College graduate', 'Master\'s degree graduate', 'Doctorate degree graduate'],
+                datasets: [{
+                    data: [educationalCount, collegeCount, masterCount, doctorateCount],
+                    backgroundColor: ['#36A2EB', '#FF6384', '#1ABC9C', '#F1C40F'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value) => {
+                            if (value === 0) return "";
+                            return value;
+                        },
+                        color: '#000',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Employees'
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
     </script>
 </body>
 </html>
