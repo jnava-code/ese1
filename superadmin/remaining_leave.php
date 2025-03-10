@@ -20,34 +20,6 @@ $sql = "SELECT
 $result = mysqli_query($conn, $sql);
 
 $query_string = $_SERVER['QUERY_STRING'];
-
-// if (isset($_POST['update'])) {
-//     $id = $_POST['id'];
-//     $gender = $_POST['gender'];
-//     $sick_leave = $_POST['sick_leave'];
-//     $vacation_leave = $_POST['vacation_leave'];
-    
-//     // Ensure only male employees have paternity leave and only female employees have maternity leave
-//     $paternity_leave = ($gender == 'Male') ? $_POST['paternity_leave'] : 0;
-//     $maternity_leave = ($gender == 'Female') ? $_POST['maternity_leave'] : 0;
-
-//     // Update the database
-//     $sql_update = "UPDATE `employees` 
-//                    SET `sick_leave`='$sick_leave', 
-//                        `vacation_leave`='$vacation_leave', 
-//                        `paternity_leave`='$paternity_leave', 
-//                        `maternity_leave`='$maternity_leave' 
-//                    WHERE id='$id'";
-
-//     $update_result = mysqli_query($conn, $sql_update);
-
-//     if ($update_result) {
-//         echo "<script>alert('Leave updated successfully!'); window.location.href='remaining_leave';</script>"; // Success message
-//     } else {
-//         echo "<script>alert('Error updating leave! Please try again.');</script>"; // Error message
-//     }
-// }
-
 ?>
 
 <!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
@@ -58,17 +30,16 @@ $query_string = $_SERVER['QUERY_STRING'];
 <style>
 /* Reuse the same styles from the Attendance table for consistency */
 .report_btn {
-        display: flex;
-        align-items: center;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
-        margin-bottom: 15px;
-    }
+.report_btn button {
+    border-radius: 0px;
+    cursor: pointer;
+}
 
-    .report_btn button {
-        border-radius: 0px;
-        cursor: pointer;
-    }
-    
 /* Style for Table */
 #attendance-table {
     width: 100%;
@@ -78,7 +49,6 @@ $query_string = $_SERVER['QUERY_STRING'];
 
 #attendance-table th, #attendance-table td {
     padding: 12px;
-    /* text-align: left; */
 }
 
 #attendance-table th {
@@ -140,112 +110,109 @@ button:disabled {
 }
 
 @media print {
-        header,
-        .main-content h2,
-        .filter-buttons,
-        .report_btn,
-        .dataTables_length,
-        .dataTables_filter,
-        .dataTables_info,
-        .dataTables_paginate {
-            display: none !important;
-        }
-
-        th.sorting::before,
-        th.sorting_asc::before,
-        th.sorting_desc::before,
-        th.sorting::after,
-        th.sorting_asc::after,
-        th.sorting_desc::after {
-            content: none !important;
-            display: none !important;
-        }
-
-        table th,
-        table tr {
-            font-size: 12px;
-            padding: 5px;
-        }
-
-        table.dataTable thead>tr>th.sorting {
-            padding-right: 0px;
-        }
+    header,
+    .main-content h2,
+    .filter-buttons,
+    .report_btn,
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate {
+        display: none !important;
     }
 
-    .leave_modal {
-        display: none;
+    th.sorting::before,
+    th.sorting_asc::before,
+    th.sorting_desc::before,
+    th.sorting::after,
+    th.sorting_asc::after,
+    th.sorting_desc::after {
+        content: none !important;
+        display: none !important;
     }
 
-    .leave_modal.show {
-        display: flex;
-        gap: 5px;
-        flex-direction: column;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        width: 350px;
-        padding: 25px;
-        background-color: #fff;
-    }
-
-    .leave_content {
-        display: flex;
-        gap: 5px;
-        flex-direction: column;
-    }
-
-    .leave_content input {
+    table th,
+    table tr {
+        font-size: 12px;
         padding: 5px;
     }
 
-    input[type="submit"],
-    button[type="button"] {
-        padding: 12px 20px;
-        border: none;
-        border-radius: 5px;
-        background-color: #007bff;
-        color: #fff;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        margin-top: 5px;
+    table.dataTable thead>tr>th.sorting {
+        padding-right: 0px;
     }
+}
 
-    input[type="submit"]:hover,
-    button[type="button"]:hover {
-        background-color: #0056b3;
-    }
+.leave_modal {
+    display: none;
+}
 
-    .title-and-x {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+.leave_modal.show {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 350px;
+    padding: 25px;
+    background-color: #fff;
+}
 
-    .title-and-x span {
-        font-size: 24px;
+.leave_content {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+}
 
-        cursor: pointer;
-    }
+.leave_content input {
+    padding: 5px;
+}
 
-    .styled-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+input[type="submit"],
+button[type="button"] {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 5px;
+}
 
-    .styled-table th, 
-    .styled-table td {
-        border: 1px solid black; /* Adds border */
-        padding: 8px;
-        text-align: center;
-    }
+input[type="submit"]:hover,
+button[type="button"]:hover {
+    background-color: #0056b3;
+}
 
-    .styled-table th {
-        background-color: #f2f2f2; /* Light gray background for headers */
-    }
+.title-and-x {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
+.title-and-x span {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.styled-table th, 
+.styled-table td {
+    border: 1px solid black; /* Adds border */
+    padding: 8px;
+    text-align: center;
+}
+
+.styled-table th {
+    background-color: #f2f2f2; /* Light gray background for headers */
+}
 </style>
 
 <!-- Main Content Area -->
@@ -254,62 +221,65 @@ button:disabled {
         <h2>REMAINING DAYS OF LEAVE</h2>
         <!-- Styled Leave Requests Table -->
         <table id="myTable" class="styled-table">
-    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-        <?php 
-            $total_remaining = $row['sick_leave'] + $row['vacation_leave'] + ($row['maternity_leave'] ?? 0) + ($row['paternity_leave'] ?? 0);
-            $total_availed = $row['sick_availed'] + $row['vacation_availed'] + ($row['maternity_availed'] ?? 0) + ($row['paternity_availed'] ?? 0);
-        ?>    
-
-        <thead>
-            <tr>
-                <th rowspan="2" style="text-align: center;">Employee Name</th>
-                <th colspan="2" style="text-align: center;">Sick Leave: <?php echo htmlspecialchars($row['sick_leave']); ?></th>
-                <th colspan="2" style="text-align: center;">Vacation Leave: <?php echo htmlspecialchars($row['vacation_leave']); ?></th>
-                <th colspan="2" style="text-align: center;">Maternity Leave: <?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></th>           
-                <th colspan="2" style="text-align: center;">Paternity Leave: <?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></th>           
-                <th colspan="2" style="text-align: center;">
-                    Total Days of Leave: 
+            <thead>
+                <tr>
+                    <th rowspan="2" style="text-align: center;">Employee Name</th>
+                    <th colspan="3" style="text-align: center;">Sick Leave</th>
+                    <th colspan="3" style="text-align: center;">Vacation Leave</th>
+                    <th colspan="3" style="text-align: center;">Maternity Leave</th>           
+                    <th colspan="3" style="text-align: center;">Paternity Leave</th>           
+                    <th colspan="3" style="text-align: center;">Days of Leave</th>
+                </tr>
+                <tr>
+                    <th>Total</th>
+                    <th>Remaining</th>
+                    <th>Availed</th>
+                    <th>Total</th>
+                    <th>Remaining</th>
+                    <th>Availed</th>
+                    <th>Total</th>
+                    <th>Remaining</th>
+                    <th>Availed</th>
+                    <th>Total</th>
+                    <th>Remaining</th>
+                    <th>Availed</th>
+                    <th>Total</th>
+                    <th>Remaining</th>
+                    <th>Availed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                     <?php 
-                        $total_days = $row['sick_leave'] + $row['vacation_leave'] + 
-                                    (strtolower($row['gender']) == 'female' ? $row['maternity_leave'] : 0) + 
-                                    (strtolower($row['gender']) == 'male' ? $row['paternity_leave'] : 0);
-                        echo htmlspecialchars($total_days); 
-                    ?>
-                </th>
+                        $total = $row['sick_leave'] + $row['vacation_leave'] + ($row['maternity_leave'] ?? 0) + ($row['paternity_leave'] ?? 0);
+                        $total_remaining = ($row['sick_leave'] - $row['sick_availed']) 
+                        + ($row['vacation_leave'] - $row['vacation_availed'])
+                        + ($row['maternity_leave'] - $row['maternity_availed'] ?? 0) 
+                        + ($row['paternity_leave'] - $row['paternity_availed'] ?? 0);
+                        $total_availed = $row['sick_availed'] + $row['vacation_availed'] + ($row['maternity_availed'] ?? 0) + ($row['paternity_availed'] ?? 0);
+                    ?>    
 
-            </tr>
-            <tr>
-                <th>Remaining</th>
-                <th>Availed</th>
-                <th>Remaining</th>
-                <th>Availed</th>
-                <th>Remaining</th>
-                <th>Availed</th>
-                <th>Remaining</th>
-                <th>Availed</th>
-                <th>Remaining</th>
-                <th>Availed</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr>
-                <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
-                <td><?php echo htmlspecialchars($row['sick_leave'] - $row['sick_availed']); ?></td>
-                <td><?php echo htmlspecialchars($row['sick_availed']); ?></td>
-                <td><?php echo htmlspecialchars($row['vacation_leave'] - $row['vacation_availed']); ?></td>
-                <td><?php echo htmlspecialchars($row['vacation_availed']); ?></td>
-                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave'] - $row['maternity_availed']) : '--'; ?></td>
-                <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_availed']) : '--'; ?></td>
-                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave'] - $row['paternity_availed']) : '--'; ?></td>
-                <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_availed']) : '--'; ?></td>
-                <td><?php echo htmlspecialchars($total_remaining); ?></td>
-                <td><?php echo htmlspecialchars($total_availed); ?></td>
-            </tr>      
-        </tbody>
-    <?php } ?>
-</table>
-
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['sick_leave']); ?></td>
+                        <td><?php echo htmlspecialchars($row['sick_leave'] - $row['sick_availed']); ?></td>
+                        <td><?php echo htmlspecialchars($row['sick_availed']); ?></td>
+                        <td><?php echo htmlspecialchars($row['vacation_leave']); ?></td>
+                        <td><?php echo htmlspecialchars($row['vacation_leave'] - $row['vacation_availed']); ?></td>
+                        <td><?php echo htmlspecialchars($row['vacation_availed']); ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave']) : '--'; ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_leave'] - $row['maternity_availed']) : '--'; ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'female' ? htmlspecialchars($row['maternity_availed']) : '--'; ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave']) : '--'; ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_leave'] - $row['paternity_availed']) : '--'; ?></td>
+                        <td><?php echo strtolower($row['gender']) == 'male' ? htmlspecialchars($row['paternity_availed']) : '--'; ?></td>
+                        <td><?php echo htmlspecialchars($total); ?></td>
+                        <td><?php echo htmlspecialchars($total_remaining); ?></td>
+                        <td><?php echo htmlspecialchars($total_availed); ?></td>
+                    </tr>      
+                <?php } ?>
+            </tbody>
+        </table>
     </section>
 </main>
 
@@ -327,49 +297,4 @@ include('footer.php'); // Admin footer file
   $(document).ready( function () {
     $('#myTable').DataTable();
   });
-
 </script>
-
-<!-- <script>
-            // Unique variable names for each modal
-            const addLeaveButton_<?php echo $row['id']?> = document.getElementById('add_leave_<?php echo $row['id']?>');
-            const leaveModal_<?php echo $row['id']?> = document.getElementById('leave_modal_<?php echo $row['id']?>');
-            const closeModal_<?php echo $row['id']?> = document.getElementById('close_modal_<?php echo $row['id']?>');
-
-            // Add event listener to show modal
-            if(addLeaveButton_<?php echo $row['id']?>) {
-                addLeaveButton_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.add('show'); // Show the modal
-                });
-            }
-
-            // Add event listener to close modal
-            if(closeModal_<?php echo $row['id']?>) {
-                closeModal_<?php echo $row['id']?>.addEventListener('click', function () {
-                    leaveModal_<?php echo $row['id']?>.classList.remove('show'); // Hide the modal
-                });         
-            }
-        </script> -->
-
-        <!-- <form id="leave_modal_<?php echo $row['id']?>" class="leave_modal" method="post">
-                    <input type="hidden" name="id" id="employee_id_<?php echo $row['id']?>" value="<?php echo $row['id']?>">
-                    <input type="hidden" name="gender" value="<?php echo $row['gender']?>">
-                    <div class="title-and-x">
-                        <h2>Update Leave</h2>
-                        <span class="close_modal" id="close_modal_<?php echo $row['id']?>">&#215;</span>
-                    </div>
-                    <div class="leave_content">
-                        <label for="">Sick Leave</label>
-                        <input type="number" name="sick_leave" id="sick_leave_<?php echo $row['id']?>" value="<?php echo $row['sick_leave']?>" placeholder="Sick Leave">
-                        <label for="">Vacation Leave</label>
-                        <input type="number" name="vacation_leave" id="vacation_leave_<?php echo $row['id']?>" value="<?php echo $row['vacation_leave']?>" placeholder="Vacation Leave">
-                        <?php if(strtolower($row['gender']) == 'male'): ?>
-                            <label for="">Paternity Leave</label>
-                            <input type="number" name="paternity_leave" id="paternity_leave_<?php echo $row['id']?>" value="<?php echo $row['paternity_leave']?>" placeholder="Paternity Leave">
-                        <?php else: ?>                            
-                            <label for="">Maternity Leave</label>
-                            <input type="number" name="maternity_leave" id="maternity_leave_<?php echo $row['id']?>" value="<?php echo $row['maternity_leave']?>" placeholder="Maternity Leave">
-                        <?php endif ?>
-                    </div>
-                    <input type="submit" name="update" value="Update Leave">
-                </form> -->

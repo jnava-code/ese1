@@ -31,6 +31,8 @@
         }
     }
 ?>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
     <section id="dashboard">
         <h2>ATTRITION PREDICTION</h2>
@@ -564,14 +566,16 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
-<script>
-$(document).ready(function() {
-    $('#attritionTable').DataTable({
-        order: [[5, 'desc']], // Sort by attrition risk by default
-        pageLength:
-        responsive: true
-    });
-});
-</script>
 
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+<script>
+  $(document).ready( function () {
+    $('#attritionTable').DataTable();
+  });
+
+</script>
 <?php include('footer.php'); ?>

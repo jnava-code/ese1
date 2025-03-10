@@ -491,6 +491,7 @@ textarea.form-control {
   display: flex;
 }
 
+.dataTables_length label,
 #myTable_length label {
   display: flex;
   gap: 5px;
