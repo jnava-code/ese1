@@ -1,13 +1,11 @@
 <?php 
 include('user_header.php'); 
 
-// Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'esetech'); // Update with actual credentials
+$conn = mysqli_connect('localhost', 'root', '', 'esetech'); 
 
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
 
 $username = mysqli_real_escape_string($conn, $_SESSION['username']); 
 $sql = "SELECT sick_leave, vacation_leave, maternity_leave, paternity_leave, sick_availed, vacation_availed, maternity_availed, paternity_availed FROM employees WHERE username='$username'";
@@ -25,9 +23,7 @@ if($result) {
     $paternity_availed = $row['paternity_availed'];
 }
 
-// Check if the form is submitted
 if (isset($_POST['submit'])) {
-    // Get form input values
     $employee_id = $_SESSION['employee_id'];
     $file_date = $_POST['file_date'];
     $start_date = $_POST['start_date'];
@@ -36,7 +32,6 @@ if (isset($_POST['submit'])) {
     $noOfDays = $_POST['no_of_days'];
     $reason = mysqli_real_escape_string($conn, $_POST['reason']);
 
-    // Ensure that the employee_id exists in the employees table
     $check_employee_sql = "SELECT employee_id FROM employees WHERE employee_id = '$employee_id'";
     $check_result = mysqli_query($conn, $check_employee_sql);
 
@@ -46,7 +41,6 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $sql)) {
             $_SESSION['success_message'] = "Leave application submitted successfully!";
-            // Redirect to prevent form resubmission
             header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
             exit();
         } else {
@@ -57,7 +51,6 @@ if (isset($_POST['submit'])) {
     }
 }
 
-// Display messages if they exist
 if (isset($_SESSION['success_message'])) {
     $message = $_SESSION['success_message'];
     $message_type = "success";
@@ -70,17 +63,8 @@ if (isset($_SESSION['success_message'])) {
 
 ?>
 
-<!-- <nav class="sidebar">
-    <ul>
-        <li><a href="./user_leave"><i class="fas fa-paper-plane"></i> Leave Application</a></li>
-        <li><a href="./user_satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
-        <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
-    </ul>
-</nav> -->
-
 <?php include('includes/sideBar.php'); ?>
     
-<!-- Main Content Area with Styling -->
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -160,14 +144,12 @@ if (isset($_SESSION['success_message'])) {
     <section id="dashboard">
         <h2>Leave Application</h2>
 
-        <!-- Display feedback message -->
         <?php if (isset($message)): ?>
             <div class="message <?= $message_type; ?>" id="notification">
                 <?= $message; ?>
             </div>
         <?php endif; ?>
 
-        <!-- Leave Application Form -->
         <?php if ($_SESSION['employment_status'] === "Regular") { ?>
             <form action="" method="POST">
                 <div>
@@ -225,7 +207,6 @@ if (isset($_SESSION['success_message'])) {
                             }     
                         ?>              
                     </select>
-
                 </div>
 
                 <div>
@@ -243,115 +224,84 @@ if (isset($_SESSION['success_message'])) {
 
 <script>
     const fileDateInput = document.getElementById('file_date');
-    
     const today = new Date();
     const year = today.getFullYear();
-    let day = today.getDate().toString().padStart(2, '0'); // Pads single digit day with leading zero
-    let month = (today.getMonth() + 1).toString().padStart(2, '0'); // Pads single digit month with leading zero
+    let day = today.getDate().toString().padStart(2, '0');
+    let month = (today.getMonth() + 1).toString().padStart(2, '0');
     
-    if(fileDateInput) fileDateInput.value = `${year}-${month}-${day}`
-    
-    // Hide the notification after 5 seconds
+    if(fileDateInput) fileDateInput.value = `${year}-${month}-${day}`;
+
     setTimeout(() => {
         const notification = document.getElementById('notification');
         if (notification) {
             notification.style.display = 'none';
         }
-    }, 5000); // 5000ms = 5 seconds
+    }, 5000);
 
-// Function to validate the end date and calculate days excluding weekends
-function validateEndDate() {
-    const sick_leave = document.getElementById("sick_leave");
-    const vacation_leave = document.getElementById("vacation_leave");
-    const maternity_leave = document.getElementById("maternity_leave");
-    const paternity_leave = document.getElementById("paternity_leave");
-    const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    const numberOfDays = document.getElementById("no_of_days");
-    const leaveType = document.getElementById("leave_type");
+    function validateEndDate() {
+        const sick_leave = document.getElementById("sick_leave");
+        const vacation_leave = document.getElementById("vacation_leave");
+        const maternity_leave = document.getElementById("maternity_leave");
+        const paternity_leave = document.getElementById("paternity_leave");
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const numberOfDays = document.getElementById("no_of_days");
+        const leaveType = document.getElementById("leave_type");
 
-    const startDate = new Date(startDateInput.value);
+        const startDate = new Date(startDateInput.value);
 
-    if (leaveType) {
-        this.selectedLeaveType = "Sick"; // Default leave type
-        leaveType.addEventListener("change", e => {
-            this.selectedLeaveType = e.target.value;
-            
-            // Match selected leave type and remove " days" if present
-            if (this.selectedLeaveType === "Sick") {
-                this.leaveType = sick_leave.value.replace(" days", "").trim();
-            } else if (this.selectedLeaveType === "Vacation") {
-                this.leaveType = vacation_leave.value.replace(" days", "").trim();
-            } else if (this.selectedLeaveType === "Maternity") { // Corrected typo "Meternity"
-                this.leaveType = maternity_leave.value.replace(" days", "").trim();
-            } else if (this.selectedLeaveType === "Paternity") {
-                this.leaveType = paternity_leave.value.replace(" days", "").trim();
+        let availableLeave = 0;
+
+        if (leaveType.value === "Sick") {
+            availableLeave = sick_leave.value.replace(" days", "").trim();
+        } else if (leaveType.value === "Vacation") {
+            availableLeave = vacation_leave.value.replace(" days", "").trim();
+        } else if (leaveType.value === "Maternity") {
+            availableLeave = maternity_leave.value.replace(" days", "").trim();
+        } else if (leaveType.value === "Paternity") {
+            availableLeave = paternity_leave.value.replace(" days", "").trim();
+        }
+
+        if (startDateInput.value && endDateInput.value) {
+            const endDate = new Date(endDateInput.value);
+
+            let totalDays = 0;
+            let currentDate = new Date(startDate);
+
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    totalDays++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            if (totalDays > availableLeave) {
+                totalDays = availableLeave;
+                numberOfDays.value = totalDays;
+                endDateInput.value = calculateEndDate(startDate, totalDays);
             } else {
-                this.leaveType = ""; // Default empty value if no match
+                numberOfDays.value = totalDays;
             }
-        });
+        }
     }
 
-    if (startDateInput.value && endDateInput.value) {
-        const endDate = new Date(endDateInput.value);
+    function calculateEndDate(startDate, totalDays) {
+        let newEndDate = new Date(startDate);
+        let daysAdded = 0;
 
-        // Calculate the difference in days excluding weekends (Saturday and Sunday)
-        let totalDays = 0;
-        let currentDate = new Date(startDate);
-
-        while (currentDate <= endDate) {
-            // Get the day of the week (0 = Sunday, 6 = Saturday)
-            const dayOfWeek = currentDate.getDay();
-            // Only count weekdays (Monday to Friday)
+        while (daysAdded < totalDays) {
+            newEndDate.setDate(newEndDate.getDate() + 1);
+            const dayOfWeek = newEndDate.getDay();
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                totalDays++;
+                daysAdded++;
             }
-            currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // Update the number of days field
-        numberOfDays.value = totalDays;
-
-        // Update leave type credits based on the selected leave type
-        if (this.selectedLeaveType === "Sick") {
-            this.leaveType = sick_leave.value.replace(" days", "").trim() - totalDays;
-        } else if (this.selectedLeaveType === "Vacation") {
-            this.leaveType = vacation_leave.value.replace(" days", "").trim() - totalDays;
-        } else if (this.selectedLeaveType === "Maternity") {
-            this.leaveType = maternity_leave.value.replace(" days", "").trim() - totalDays;
-        } else {
-            this.leaveType = paternity_leave.value.replace(" days", "").trim() - totalDays;
-        }
-
-        // Update the leave type input values
-        this.leaveType.value = `${this.leaveType} days`;
+        return newEndDate.toISOString().split('T')[0];
     }
-}
 
-// Initial call to set min end date on page load
-validateEndDate();
-
-// Function to reset form
-function resetForm() {
-    document.querySelector('form').reset();
-}
-
-// Prevent form resubmission on page refresh
-if (window.history.replaceState) {
-    window.history.replaceState(null, null, window.location.href);
-}
-
-// Reset form on page load if it was a redirect
-if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
-    resetForm();
-}
-
-// Add to your existing form submit handler
-document.querySelector('form').addEventListener('submit', function(e) {
-    // If form is valid
-    setTimeout(resetForm, 1000);
-});
-
+    validateEndDate();
 </script>
 
 <?php include('user_footer.php'); ?>
