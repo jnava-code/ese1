@@ -133,8 +133,9 @@
 
             <div class="form-group">
                 <label for="evaluation_date">Evaluation Date:</label>
-                <input type="date" name="evaluation_date" required class="form-control">
+                <input type="date" name="evaluation_date" required class="form-control" value="<?php echo date('Y-m-d'); ?>">
             </div>
+
 
             <h3>Performance Criteria</h3>
 
