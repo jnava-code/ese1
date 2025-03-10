@@ -25,17 +25,18 @@
 
         // Fetch evaluation data
         $query = "SELECT 
-            performance_evaluations.evaluation_date, 
-            performance_evaluations.status, 
-            performance_evaluations.overall_score, 
-            performance_evaluations.comments, 
-            employees.employee_id, 
-            employees.first_name, 
-            employees.last_name, 
-            performance_evaluations.remarks
-            FROM performance_evaluations 
-            JOIN employees ON performance_evaluations.employee_id = employees.employee_id 
-            ORDER BY performance_evaluations.evaluation_date DESC";
+        performance_evaluations.evaluation_date, 
+        performance_evaluations.status, 
+        performance_evaluations.overall_score, 
+        performance_evaluations.comments, 
+        employees.employee_id, 
+        employees.first_name, 
+        employees.last_name, 
+        performance_evaluations.remarks,
+        (performance_evaluations.overall_score / 5) AS performance_score
+        FROM performance_evaluations 
+        JOIN employees ON performance_evaluations.employee_id = employees.employee_id 
+        ORDER BY performance_evaluations.evaluation_date DESC";
 
         $result = mysqli_query($conn, $query); // Execute the query
 
@@ -220,6 +221,7 @@
                     <th>Full Name</th>
                     <th>Evaluation Date</th>
                     <th>Overall Score</th>
+                    <th>Percentage</th>
                     <th>Comment</th>
                     <th>Status</th>
                     <th>Remarks</th> <!-- Remarks Column -->
@@ -234,6 +236,7 @@
                         echo "<td>" . $row['first_name'] . " " . $row['last_name'] . "</td>";
                         echo "<td>" . $row['evaluation_date'] . "</td>";
                         echo "<td>" . $row['overall_score'] . "</td>";
+                        echo "<td>" . $row['performance_score'] * 100 . "%" . "</td>";
                         echo "<td>" . $row['comments'] . "</td>";
                         echo "<td>" . $row['status'] . "</td>";
                         echo "<td>" . (isset($row['remarks']) ? $row['remarks'] : 'No Remarks') . "</td>";

@@ -1,17 +1,18 @@
 <?php include('header.php'); ?>
 
-<!-- ITO NA YUNG SIDEBAR PANEL (file located in "includes" folder) -->
+<!-- Sidebar Panel -->
 <?php include('includes/sideBar.php'); ?>
 
 <?php
-        // Database connection
-        $conn = mysqli_connect('localhost', 'root', '', 'esetech');
-        if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
-        }
+    // Database connection
+    $conn = mysqli_connect('localhost', 'root', '', 'esetech');
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
 ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+
 <main class="main-content">
     <section id="dashboard">
         <div class="performance-and-button">
@@ -34,65 +35,37 @@
                     $satisfaction_result = mysqli_query($conn, $satisfaction_sql);
                     if($satisfaction_result) {
                         while($row = mysqli_fetch_assoc($satisfaction_result)) {
-                            // Assuming $row['questions'] contains the JSON string
-                            $questions = json_decode($row['questions'], true);  // Decode the JSON string into an associative array
-
-                            // Accessing individual values from the decoded array
-                            $clarity_of_responsibilities = $questions['clarity_of_responsibilities'];
-                            $work_environment = $questions['work_environment'];
-                            $work_life_balance = $questions['work_life_balance'];
-                            $manager_support = $questions['manager_support'];
-                            $team_collaboration = $questions['team_collaboration'];
-                            $compensation = $questions['compensation'];
-                            $career_growth = $questions['career_growth'];
+                            // Decode the JSON string into an associative array
+                            $questions = json_decode($row['questions'], true);  
                 ?>       
-                
+
                 <div class="form-row">
                     <div class="col-md-6">
                         <label>Employee Name</label>
                         <input type="text" class="form-control" value="<?php echo $row['middle_name'] == "" ? $row['first_name'] . ' '. $row['last_name'] : $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']; ?>" readonly>
                     </div>
                 </div>
+
+                <!-- Loop through each question dynamically -->
+                <div class="form-row">
+                    <?php
+                        // Loop through the questions and dynamically generate the input fields
+                        foreach ($questions as $question => $score) {
+                            // Extract question name (remove "question_" prefix)
+                            $question_label = str_replace('question_', '', $question);
+                    ?>
+
                         
-                <div class="form-row">
-                    <div class="col-md-6">
-                        <label>Clarity of job responsibilities</label>
-                        <input type="text" class="form-control" value="<?php echo $clarity_of_responsibilities?>" readonly>
-                    </div>
+                            <div class="col-md-6">
+                                <label><?php echo ucfirst(str_replace('_', ' ', $question_label)); ?></label>  <!-- Format the label -->
+                                <input type="text" class="form-control" value="<?php echo $score; ?>" readonly>
+                            </div>
+                        
 
-                    <div class="col-md-6">
-                        <label>Physical work environment</label>
-                        <input type="text" class="form-control" value="<?php echo $work_environment?>" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label>Work-life balance</label>
-                        <input type="text" class="form-control" value="<?php echo $work_life_balance?>" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label>Support from manager</label>
-                        <input type="text" class="form-control" value="<?php echo $manager_support?>" readonly>
-                    </div>
+                    <?php
+                        }
+                    ?>
                 </div>
-
-                <div class="form-row">
-                    <div class="col-md-6">
-                        <label>Team collaboration</label>
-                        <input type="text" class="form-control" value="<?php echo $team_collaboration?>" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label>Compensation</label>
-                        <input type="text" class="form-control" value="<?php echo $compensation?>" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label>Career growth</label>
-                        <input type="text" class="form-control" value="<?php echo $career_growth?>" readonly>
-                    </div>
-                </div>
-
                 <div class="form-row">
                     <div class="col-md-6">
                         <label>Survey Date</label>
@@ -190,39 +163,40 @@
     tr:hover {
         background-color: #f9f9f9;
     }
+
     .notification {
-    margin: 20px auto;
-    padding: 15px;
-    text-align: center;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    max-width: 800px;
-}
+        margin: 20px auto;
+        padding: 15px;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        max-width: 800px;
+    }
 
-.notification.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
+    .notification.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
 
-.notification.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
+    .notification.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
 
-.notification.status-open {
-    background-color: #e3f7df;
-    color: #0f5132;
-    border: 1px solid #d1e7dd;
-}
+    .notification.status-open {
+        background-color: #e3f7df;
+        color: #0f5132;
+        border: 1px solid #d1e7dd;
+    }
 
-.notification.status-closed {
-    background-color: #f8d7da;
-    color: #842029;
-    border: 1px solid #f5c2c7;
-}
+    .notification.status-closed {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
 </style>
 
 <script>
@@ -231,10 +205,11 @@
             event.preventDefault();
             $(this).parent().toggleClass('active');
         });
+
         $(document).ready(function () {
-        // Initialize DataTable
-        $('#myTable').DataTable();
-    });
+            // Initialize DataTable
+            $('#myTable').DataTable();
+        });
 </script>
 
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
