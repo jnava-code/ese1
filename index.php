@@ -225,25 +225,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .container {
             display: flex;
+            flex-direction: row;
+            
         }
 
         .left-section {
-            flex: 1;
             background-image: url('images/bg1.png');
             background-size: cover;
             background-position: center;
-            position: relative;
+            text-align: center;
             color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
+            height: auto;
         }
+        
         .expertise {
             font-size: 36px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             text-align: center;
+        }
+
+        @media only screen and (max-width: 700px) {
+            .header {
+                font-size: 10px;
+                padding: 0px;
+            }
+            .container {
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                min-height: 80vh;
+                width: 100%;    
+            }
+
+            .left-section {
+                display: none;
+            }
+            
+            .right-section {
+                width: 100%;    
+            }
+
+            .right-section {
+                padding: 0px;
+                justify-content: initial;
+                padding-top: 50px;
+            }
+
+            .expertise {
+                font-size: 24px;
+            }
+            
+            .logo {
+                max-width: 200px;
+                margin-bottom: 0px;
+            }
+
+            .welcome {
+                font-size: 18px;
+                margin-bottom: 5px;
+            }
+
+            p {
+                font-size: 14px;
+                margin: 8px 0px;
+            }
         }
     </style>
 </head>
