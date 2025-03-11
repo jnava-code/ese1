@@ -351,7 +351,7 @@ ob_end_flush();
                     <div class="form-row">
                         <div class="col-md-6">
                             <label for="birthday">Date Of Birth</label>
-                            <input type="date" class="form-control" name="birthday" placeholder="Date Of Birth" required>
+                            <input type="date" max="2005-12-31" class="form-control" name="birthday" placeholder="Date Of Birth" required>
                         </div>
                         <div class="col-md-6">
                             <label for="email">Email</label>
