@@ -47,6 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($authenticated) {
                 session_start();
+                $_SESSION['id'] = $row['id'];
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['user_type'] = $row['user_type'];
                 $_SESSION['fullname'] = $row['first_name'] . ' ' . $row['last_name'];

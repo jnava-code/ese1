@@ -48,7 +48,7 @@
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $employee_id = $_POST['employee_id'];
             $evaluation_date = $_POST['evaluation_date'];
-            $admin_id = 1; // Replace with actual admin ID
+            $admin_id = $_SESSION['id'];
             $comments = mysqli_real_escape_string($conn, $_POST['comments']);
 
             // Fetch performance criteria from the database
@@ -115,7 +115,22 @@
             }
         }
         
-        // Removed mysqli_close($conn) here, move it to the end
+        $admin_id = $_SESSION['id'];
+
+        // Fetch employees eligible for evaluation
+        $eligible_employees_sql = "
+            SELECT e.*
+            FROM employees e
+            LEFT JOIN (
+                SELECT employee_id, MAX(evaluation_date) AS last_eval_date 
+                FROM performance_evaluations 
+                WHERE admin_id = '$admin_id'
+                GROUP BY employee_id
+            ) pe ON e.employee_id = pe.employee_id
+            WHERE pe.last_eval_date IS NULL OR pe.last_eval_date <= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+        ";
+
+        $eligible_employees_result = mysqli_query($conn, $eligible_employees_sql);
 
         ?>
 
@@ -123,18 +138,24 @@
             <div class="form-group">
                 <label for="employee_id">Employee:</label>
                 <select name="employee_id" required class="form-control">
-                    <?php while ($row = mysqli_fetch_assoc($employees_result)) { ?>
+                    <?php 
+                    while ($row = mysqli_fetch_assoc($eligible_employees_result)) { 
+                    ?>
                         <option value="<?php echo $row['employee_id']; ?>">
                             <?php echo $row['first_name'] . " " . $row['last_name']; ?>
                         </option>
-                    <?php } ?>
+                    <?php 
+                    } 
+                    ?>
                 </select>
+
             </div>
 
             <div class="form-group">
                 <label for="evaluation_date">Evaluation Date:</label>
-                <input type="date" name="evaluation_date" required class="form-control">
+                <input type="date" name="evaluation_date" required class="form-control" value="<?php echo date('Y-m-d'); ?>">
             </div>
+
 
             <h3>Performance Criteria</h3>
 
