@@ -190,8 +190,6 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
             }
 
             .notification-count {
-                top: 12px;
-                right: 115px;
 
                 font-size: 8px;
                 width: 15px;
