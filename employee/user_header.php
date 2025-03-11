@@ -197,7 +197,7 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
             }
 
             .notification {
-                top: 105px;
+                top: 125px;
                 right: -15px !important;
                 
                 width: 200px;
