@@ -4,18 +4,6 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
-    // Function to execute queries with error handling
-    function executeQuery($conn, $sql, $types = null, $params = []) {
-        $stmt = mysqli_prepare($conn, $sql);
-        if ($types && $params) {
-            mysqli_stmt_bind_param($stmt, $types, ...$params);
-        }
-        if (!mysqli_stmt_execute($stmt)) {
-            echo "Error: " . mysqli_stmt_error($stmt);
-        }
-        mysqli_stmt_close($stmt);
-    }
-
     // Get unique departments for dropdown
     $dept_sql = "SELECT DISTINCT department FROM (
         SELECT department FROM employees WHERE is_archived = 0
@@ -103,7 +91,17 @@ if (isset($_POST['delete_dept'])) {
     }
 }
 
-// Archive Employee (instead of delete)
+function executeQuery($conn, $sql, $types = null, $params = []) {
+    $stmt = mysqli_prepare($conn, $sql);
+    if ($types && $params) {
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+    }
+    if (!mysqli_stmt_execute($stmt)) {
+        echo "Error: " . mysqli_stmt_error($stmt);
+    }
+    mysqli_stmt_close($stmt);
+}
+
 if (isset($_GET['delete_id'])) {
     $id = $_GET['delete_id'];
     $sql = "UPDATE employees SET is_archived = 1 WHERE id=?";
@@ -288,7 +286,8 @@ if (isset($_POST['update_dept'])) {
                                 <td><?php echo $employee['employment_status']; ?></td>
                                 <td class="action-buttons">
                                     <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
-                                    <a href="?delete_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
+                                    <a href="?delete_id=<?php echo $employee['id']; ?>" class="btn btn-danger" 
+                                       onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
                                 </td>
                             </tr>
                         <?php endwhile; ?>

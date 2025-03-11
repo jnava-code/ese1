@@ -317,16 +317,16 @@ mysqli_close($conn);
     });
 
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function (event) {
-            const parent = this.parentElement;
+    toggle.addEventListener('click', function (event) {
+        const parent = this.parentElement;
 
-            // Prevent the link's default behavior
-            event.preventDefault();
+        // Prevent the link's default behavior
+        event.preventDefault();
 
-            // Toggle the active class
-            parent.classList.toggle('active');
-        });
+        // Toggle the active class
+        parent.classList.toggle('active');
     });
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     // Event listener for the dropdown export buttons

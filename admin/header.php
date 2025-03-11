@@ -2,12 +2,10 @@
 session_start();
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
-// Check if the user is logged in
-if (!isset($_SESSION['admin'])) {
+if (!isset($_SESSION['superadmin']) && !isset($_SESSION['admin'])) {
     header("Location: ../index");
     exit();
 }
-
 // Count notifications
 $sql_count = "
     SELECT COUNT(*) AS notification_count FROM (

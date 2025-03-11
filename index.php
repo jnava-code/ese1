@@ -69,13 +69,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 switch ($row['user_type']) {
                     case 1:
+                    case 3:
                         header("Location: ./admin/dashboard");
                         break;
                     case 2:
                         header("Location: ./employee/user_leave");
-                        break;
-                    case 3:
-                        header("Location: ./superadmin/dashboard");
                         break;
                     default:
                         header("Location: ./index");

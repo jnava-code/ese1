@@ -4,6 +4,12 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
+    if (!isset($_SESSION['superadmin'])) {
+        // Redirect to the dashboard if the user is not a superadmin
+        header("Location: ./dashboard");
+        exit();
+    }
+
     function executeQuery($conn, $sql, $types = null, $params = []) {
         $stmt = mysqli_prepare($conn, $sql);
         if ($types && $params) {

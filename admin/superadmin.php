@@ -7,6 +7,13 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 include('header.php');
+
+if (!isset($_SESSION['superadmin'])) {
+    // Redirect to the dashboard if the user is not a superadmin
+    header("Location: ./dashboard");
+    exit();
+}
+
 require '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
