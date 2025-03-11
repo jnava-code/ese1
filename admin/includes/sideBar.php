@@ -23,8 +23,6 @@
                 </li>
             <?php endif; ?>
 
-
-
             <li class="dropdown">
                 <a href="javascript:void(0);" class="dropdown-toggle">
                     <i class="fas fa-user-friends"></i> Employees Profile<i class="fas fa-chevron-down toggle-icon"></i>

@@ -73,14 +73,17 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .bell-btn {
-            position: relative;
             cursor: pointer;
+        }
+
+        .notification_content {
+            position: relative;
         }
 
         .notification-count {
             position: absolute;
-            top: 30px;
-            right: 165px;
+            top: -10px;
+            right: -15px;
             background-color: red;
             color: white;
             font-size: 12px;
@@ -154,10 +157,6 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
             margin-left: auto;
             font-size: 12px;
             color: #888;
-        }
-
-        .header-right {
-            display: relative;
         }
 
         .logo i {
@@ -264,11 +263,13 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     </div>
     
     <div class="header-right">
-        <i class="fas fa-bell bell-btn"></i>
-        <!-- Notification count -->
-        <?php if (count($notifications) > 0): ?>
-            <div class="notification-count"><?php echo count($notifications); ?></div>
-        <?php endif; ?>
+        <div class="notification_content">
+            <i class="fas fa-bell bell-btn"></i>
+            <?php if (count($notifications) > 0): ?>
+                <div class="notification-count"><?php echo count($notifications); ?></div>
+            <?php endif; ?>
+        </div>
+
         <div class="profile">
             <strong>
             <?php echo isset($_SESSION['fullname']) ? htmlspecialchars($_SESSION['fullname']) : 'Guest'; ?>

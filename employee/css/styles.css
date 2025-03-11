@@ -299,6 +299,7 @@ background-color: #c82333;
     background-color: #812828;
     color: #fff;
     overflow-x: hidden;
+    transform: translateX(-250px);
     transition: transform 0.3s ease-in-out;
     z-index: 1000;
   }
