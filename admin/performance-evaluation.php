@@ -25,18 +25,18 @@
 
         // Fetch evaluation data
         $query = "SELECT 
-        performance_evaluations.evaluation_date, 
-        performance_evaluations.status, 
-        performance_evaluations.overall_score, 
-        performance_evaluations.comments, 
-        employees.employee_id, 
-        employees.first_name, 
-        employees.last_name, 
-        performance_evaluations.remarks,
-        (performance_evaluations.overall_score / 5) AS performance_score
-        FROM performance_evaluations 
-        JOIN employees ON performance_evaluations.employee_id = employees.employee_id 
-        ORDER BY performance_evaluations.evaluation_date DESC";
+            performance_evaluations.evaluation_date, 
+            performance_evaluations.status, 
+            performance_evaluations.overall_score, 
+            performance_evaluations.comments, 
+            employees.employee_id, 
+            employees.first_name, 
+            employees.last_name, 
+            performance_evaluations.remarks,
+            (performance_evaluations.overall_score / 5) AS performance_score
+            FROM performance_evaluations 
+            JOIN employees ON performance_evaluations.employee_id = employees.employee_id 
+            ORDER BY performance_evaluations.evaluation_date DESC";
 
         $result = mysqli_query($conn, $query); // Execute the query
 
@@ -285,7 +285,9 @@
 
 $(document).ready(function () {
     if ($('#myTable thead th').length === $('#myTable tbody tr:first-child td').length) {
-        $('#myTable').DataTable();
+        $('#myTable').DataTable({
+            "ordering": false 
+        });
     } else {
         console.error('Column count mismatch between <thead> and <tbody>');
     }
