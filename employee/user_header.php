@@ -70,6 +70,7 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="shortcut icon" type="x-icon" href="images/logo2.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .bell-btn {
             position: relative;
@@ -158,6 +159,100 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
         .header-right {
             display: relative;
         }
+
+        .logo i {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .logo i {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: .5rem;
+            }
+
+            .logo img {
+                width: 60px;
+            }
+
+            .header-right {
+                gap: .5rem;
+            }
+
+            .profile strong {
+                font-size: 12px;
+            }
+
+            .header-right i {
+                font-size: 1rem;
+            }
+
+            .notification-count {
+                top: 12px;
+                right: 115px;
+
+                font-size: 8px;
+                width: 15px;
+                height: 15px;
+            }
+
+            .notification {
+                top: 105px;
+                right: -15px !important;
+                
+                width: 200px;
+            }
+
+            .notification h3 {
+                font-size: 14px;
+            }
+
+            .notification-item p {
+                font-size: 10px;
+            }
+            .notification-item {
+                padding: 8px;
+                margin: 5px 0
+            }
+
+            .sidebar {
+                transform: translateX(-1050px) !important;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0) !important;
+                height: 100%;
+            }
+
+            .sidebar ul li {
+                margin-bottom: 5px;
+            }
+
+            .logo h1 {
+                display: none;
+            }
+
+            .main-content {
+          
+                padding: 15px
+            }
+
+            input[type="text"],
+            input[type="date"] {
+                width: 95%;
+            }
+
+            .hover-area {
+                display: none;
+            }
+
+            /* .evaluation-form input {
+                width: 95%;
+            } */
+        }
     </style>
 </head>
 <body>
@@ -165,6 +260,7 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     <div class="logo">
         <img src="images/logo1.png" alt="ESE-Tech Logo">
         <h1>ESE-Tech Industrial Solutions Corporation</h1>
+        <i id="barBtn" class="fa-solid fa-bars"></i>
     </div>
     
     <div class="header-right">
@@ -211,6 +307,7 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
     $(".bell-btn").click(function() {
         $(".notification").toggle();
     });
+
 </script>
 
 </body>

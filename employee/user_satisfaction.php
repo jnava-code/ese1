@@ -31,6 +31,18 @@
     tr:nth-child(even) {
         background-color: #f9f9f9;
     }
+
+    @media (max-width: 768px) {
+        .rating span {
+            font-size: 24px;
+        }
+
+        h2 {
+            font-size: 1rem;
+        }
+
+    }
+
 </style>
 <?php
 include('user_header.php');
@@ -169,7 +181,7 @@ include('includes/sideBar.php');
 
                     .survey-form {
                         max-width: 800px;
-                        margin: 50px auto;
+                        margin: 15px auto;
                         padding: 20px;
                         background-color: #fff;
                         border-radius: 10px;

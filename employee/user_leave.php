@@ -1,4 +1,5 @@
 <?php 
+ob_start();
 include('user_header.php'); 
 
 $conn = mysqli_connect('localhost', 'root', '', 'esetech'); 
@@ -62,8 +63,6 @@ if (isset($_SESSION['success_message'])) {
 }
 
 ?>
-
-<?php include('includes/sideBar.php'); ?>
     
 <style>
     body {
@@ -74,7 +73,7 @@ if (isset($_SESSION['success_message'])) {
     .main-content {
         padding: 30px;
         max-width: 800px;
-        margin: auto;
+        margin: 25px auto;
         background-color: #fff;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
@@ -138,8 +137,10 @@ if (isset($_SESSION['success_message'])) {
         color: #721c24;
         border: 1px solid #f5c6cb;
     }
+
 </style>
 
+<?php include('includes/sideBar.php'); ?>
 <main class="main-content">
     <section id="dashboard">
         <h2>Leave Application</h2>
@@ -304,4 +305,5 @@ if (isset($_SESSION['success_message'])) {
     validateEndDate();
 </script>
 
+<?php ob_end_flush();?>
 <?php include('user_footer.php'); ?>

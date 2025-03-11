@@ -6,6 +6,7 @@
         <!-- Logo Section -->
         <div class="logo">
             <img src="images/logo1.png" alt="ESE-Tech Logo">
+            <i id="closeSideBar" class="fa-solid fa-xmark"></i>
         </div>
         <!-- Navigation Links -->
         <ul>
@@ -16,5 +17,19 @@
         </ul>
     </div>
 </nav>
+
+<script>
+    
+    const barBtn = document.getElementById('barBtn');
+    const closeSideBar = document.getElementById('closeSideBar');
+    
+    barBtn.onclick = function() {
+        document.querySelector('.sidebar').classList.add('show');
+    }
+
+    closeSideBar.onclick = function() {
+        document.querySelector('.sidebar').classList.remove('show');
+    }
+</script>
 <?php
 ?>

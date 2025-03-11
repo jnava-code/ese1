@@ -53,6 +53,13 @@ $result = $stmt->get_result();
             tr:nth-child(even) {
                 background-color: #f9f9f9;
             }
+
+            @media (max-width: 768px) {
+                table thead,
+                table tbody {
+                    font-size: 8px;
+                }
+            }
         </style>
 
         <?php if ($result->num_rows > 0): ?>

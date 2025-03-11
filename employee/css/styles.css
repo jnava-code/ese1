@@ -277,11 +277,12 @@ background-color: #c82333;
 .logo {
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .logo img {
     width: 80px;
-    margin-right: 1rem;
+    /* margin-right: 1rem; */
 }
 
 .container {
@@ -298,7 +299,6 @@ background-color: #c82333;
     background-color: #812828;
     color: #fff;
     overflow-x: hidden;
-    transform: translateX(-250px);
     transition: transform 0.3s ease-in-out;
     z-index: 1000;
   }
@@ -372,3 +372,4 @@ background-color: #c82333;
         margin-bottom: 5px;
     }
 }
+
