@@ -234,13 +234,13 @@ employeeId.addEventListener("keydown", function(e) {
                 employeeId.value = '';
                 setTimeout(() => {
                     message.innerHTML = '';
-                }, 1000);
+                }, 2000);
             } else if (data.error) {
                 message.innerHTML = data.error;
                 employeeId.value = '';
                 setTimeout(() => {
                     message.innerHTML = '';
-                }, 1000);
+                }, 2000);
             }
         })
         .catch(error => {
