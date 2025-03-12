@@ -3,7 +3,7 @@
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
-
+    include('header.php');
     if (!isset($_SESSION['superadmin'])) {
         // Redirect to the dashboard if the user is not a superadmin
         header("Location: ./dashboard");
@@ -29,8 +29,6 @@
 
     $sql_archived = "SELECT * FROM admin WHERE is_archived = 1  ORDER BY id ASC";
     $result_archived = mysqli_query($conn, $sql_archived);
-
-    include('header.php');
 ?>
 
 <?php include('includes/sideBar.php'); ?>
