@@ -199,7 +199,7 @@ button[type="button"]:hover {
 }
 
 .styled-table {
-    width: 100%;
+    /* width: 100%; */
     border-collapse: collapse;
 }
 
@@ -208,6 +208,7 @@ button[type="button"]:hover {
     border: 1px solid black; /* Adds border */
     padding: 8px;
     text-align: center;
+    font-size: 12px;
 }
 
 .styled-table th {

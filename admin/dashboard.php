@@ -71,16 +71,18 @@ while ($row = $attritionResult->fetch_assoc()) {
     body, html {
         margin: 0;
         padding: 0;
-        height: 100%;
-        overflow: hidden; /* Prevent scrolling */
+        /* height: 100%; */
+        /* overflow: hidden;  */
         font-family: Arial, sans-serif;
         background-color: #f0f0f0;
     }
     .main-content {
         display: flex;
         flex-direction: column;
-        /* height: 100%; */
+        padding: 2rem;
+        /* height: 100vh !important; */
     }
+
     /* #dashboard {
         flex: 1;
         width: 100%; 

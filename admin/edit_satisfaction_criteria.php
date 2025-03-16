@@ -159,7 +159,7 @@ if (isset($_POST['update_criteria'])) {
                     ?>
                         <tr>
                             <td><?php echo $row['title']; ?>:</td>
-                            <td><?php echo $row['description']; ?>:</td>
+                            <td style="max-width: 300px;"><?php echo $row['description']; ?>:</td>
                             <td class="action-buttons">                               
                                 <!-- Edit Button -->
                                 <form method="POST" style="display:inline;">
