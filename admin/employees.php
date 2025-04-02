@@ -450,6 +450,41 @@ function generatePasswordFromBday($date_of_birth) {
         border-color: #f5c6cb;
         color: #721c24;
     }
+    .status-regular {
+    background-color:rgb(204, 255, 219); /* Light blue background */
+    color:rgb(38, 133, 0); /* Dark blue text */
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+    .status-probationary {
+        background-color:rgb(240, 226, 183); /* Light yellow background */
+        color: #856404; /* Dark yellow text */
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-terminated {
+        background-color: #f8d7da; /* Light red background */
+        color: #721c24; /* Dark red text */
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-resigned {
+        background-color: #e2e3e5; /* Light gray background */
+        color: #383d41; /* Dark gray text */
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+}
 </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
@@ -790,7 +825,6 @@ function generatePasswordFromBday($date_of_birth) {
                     <th>Full Name</th>
                     <th>Position</th>
                     <th>Department</th>
-                    <th>Email</th>
                     <th>Status</th>
                     <th class="actions">Actions</th>
                 </tr>
@@ -821,9 +855,26 @@ function generatePasswordFromBday($date_of_birth) {
 
                         <td><?php echo htmlspecialchars($employee['position']); ?></td>                     
                         <td><?php echo htmlspecialchars($employee['department']); ?></td>
-                        <td><?php echo htmlspecialchars($employee['email']); ?></td>
                         <td>
-                            <span class="<?php echo $employee['employment_status'] === 'Active' ? 'status-active' : 'status-inactive'; ?>">
+                            <span class="<?php 
+                                switch ($employee['employment_status']) {
+                                    case 'Regular':
+                                        echo 'status-regular';
+                                        break;
+                                    case 'Probationary':
+                                        echo 'status-probationary';
+                                        break;
+                                    case 'Terminated':
+                                        echo 'status-terminated';
+                                        break;
+                                    case 'Resigned':
+                                        echo 'status-resigned';
+                                        break;
+                                    default:
+                                        echo 'status-inactive';
+                                        break;
+                                }
+                            ?>">
                                 <?php echo htmlspecialchars($employee['employment_status']); ?>
                             </span>
                         </td>
@@ -1197,4 +1248,3 @@ setTimeout(() => {
 </script>
 
 <?php include('footer.php'); ?>
-    

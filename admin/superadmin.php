@@ -232,18 +232,25 @@ if (!empty($searchQuery)) {
 if (isset($_GET['archive_id'])) {
     $id = $_GET['archive_id'];
     
-    // Ensure the ID exists
-    $checkQuery = "SELECT id FROM admin WHERE id = ?";
+    // Ensure the ID exists and check if the user is superadmin
+    $checkQuery = "SELECT id, username FROM admin WHERE id = ?";
     $stmtCheck = mysqli_prepare($conn, $checkQuery);
     mysqli_stmt_bind_param($stmtCheck, 'i', $id);
     mysqli_stmt_execute($stmtCheck);
-    mysqli_stmt_store_result($stmtCheck);
+    mysqli_stmt_bind_result($stmtCheck, $userId, $username);
+    mysqli_stmt_fetch($stmtCheck);
+    mysqli_stmt_close($stmtCheck);
     
-    if (mysqli_stmt_num_rows($stmtCheck) > 0) {
-        $sql = "UPDATE admin SET is_archived = 1 WHERE id=?";
-        executeQuery($conn, $sql, 'i', [$id]);
-        header("Location: superadmin"); // Redirect properly
-        exit();
+    if ($userId) {
+        if ($username === 'superadmin') {
+            echo "<script>alert('You cannot archive the superadmin!'); window.history.back();</script>";
+            exit();
+        } else {
+            $sql = "UPDATE admin SET is_archived = 1 WHERE id=?";
+            executeQuery($conn, $sql, 'i', [$id]);
+            header("Location: superadmin"); // Redirect properly
+            exit();
+        }
     } else {
         echo "<script>alert('Admin not found!'); window.history.back();</script>";
         exit();
@@ -389,41 +396,44 @@ ob_end_flush();
         <div class="card">
     <div class="card-header">
         <h3>Admin List</h3>
-        <div class="card-body">
+    </div>
+    <div class="card-body">
         <table id="myTable" class="employee-table">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Username</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
-                        <th>Contact Number</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php 
-                    $counter = 1; // Initialize the counter
-                    while ($employee = mysqli_fetch_assoc($result)): 
-                ?>
-                    <tr>
-                        <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
-                            <td><?php echo htmlspecialchars($employee['username']);?></td>
-                            <td><?php echo htmlspecialchars($employee['first_name']); ?></td>
-                            <td><?php echo htmlspecialchars($employee['last_name']); ?></td>
-                            <td><?php echo htmlspecialchars($employee['email']); ?></td>
-                            <td><?php echo htmlspecialchars($employee['contact_number']); ?></td>
-
-                            <td class="actions action-buttons">
-                            <a href="./edit_admin?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
-                            <a href="?archive_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
-                        </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Position</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php 
+                $counter = 1; // Initialize the counter
+                while ($employee = mysqli_fetch_assoc($result)): 
+                    $fullName = htmlspecialchars($employee['first_name']) . ' ' . 
+                                (!empty($employee['middle_name']) ? htmlspecialchars($employee['middle_name']) . ' ' : '') . 
+                                htmlspecialchars($employee['last_name']) . 
+                                (!empty($employee['suffix']) ? ', ' . htmlspecialchars($employee['suffix']) : '');
+            ?>
+                <tr>
+                    <td><?php echo $counter++; ?></td> <!-- Display the counter and increment it -->
+                    <td><?php echo htmlspecialchars($employee['username']); ?></td>
+                    <td><?php echo $fullName; ?></td>
+                    <td><?php echo htmlspecialchars($employee['email']); ?></td>
+                    <td><?php echo htmlspecialchars($employee['position']); ?></td>
+                    <td class="actions action-buttons">
+                        <a href="./edit_admin?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
+                        <a href="?archive_id=<?php echo $employee['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
     </section>
 </main>
 

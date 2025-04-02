@@ -351,7 +351,16 @@ background-color: #c82333;
   .sidebar ul li i {
     margin-right: 5px;
   }
+  .dropdown-menu {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
+.dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+}
 /* Chevron icon rotation for dropdown toggle */
 .toggle-icon {
     margin-left: auto;

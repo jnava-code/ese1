@@ -8,8 +8,6 @@
     $dept_sql = "SELECT DISTINCT department FROM (
         SELECT department FROM employees WHERE is_archived = 0
         UNION
-        SELECT 'Admin' as department
-        UNION
         SELECT 'Chemical' as department
         UNION
         SELECT 'Procurement' as department
@@ -258,7 +256,6 @@ if (isset($_POST['update_dept'])) {
                             <th>Full Name</th>
                             <th>Position</th>
                             <th>Department</th>
-                            <th>Email</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -282,7 +279,6 @@ if (isset($_POST['update_dept'])) {
                                 </td>
                                 <td><?php echo $employee['position']; ?></td>
                                 <td><?php echo $employee['department']; ?></td>
-                                <td><?php echo $employee['email']; ?></td>
                                 <td><?php echo $employee['employment_status']; ?></td>
                                 <td class="action-buttons">
                                     <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>

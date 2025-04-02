@@ -29,6 +29,8 @@
 
     $sql_archived = "SELECT * FROM admin WHERE is_archived = 1  ORDER BY id ASC";
     $result_archived = mysqli_query($conn, $sql_archived);
+
+
 ?>
 
 <?php include('includes/sideBar.php'); ?>
@@ -46,8 +48,8 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Username</th>
                             <th>Full Name</th>
+                            <th>Username</th>
                             <th>Email</th>
                             <th>Contact Number</th>
                             <th>Actions</th>

@@ -71,70 +71,122 @@ while ($row = $attritionResult->fetch_assoc()) {
     body, html {
         margin: 0;
         padding: 0;
-        /* height: 100%; */
-        /* overflow: hidden;  */
+        height: 100%;
+        overflow: hidden; /* Prevent scrolling */
         font-family: Arial, sans-serif;
         background-color: #f0f0f0;
     }
     .main-content {
         display: flex;
         flex-direction: column;
+        height: 100%;
+        padding: 10px;
+        flex-grow: 1;
         padding: 2rem;
-        /* height: 100vh !important; */
+    }
+    /* General styles for cards */
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    /* #dashboard {
-        flex: 1;
-        width: 100%; 
-        overflow: hidden; 
-        padding: 5px; 
-        box-sizing: border-box;
+    /* Dashboard cards */
+    .dashboard-cards {
         display: grid;
-        grid-template-rows: auto 1fr;
-        gap: 5px; 
-    } */
-    .dashboard-card .icon {
-        font-size: 18px; /* Adjusted icon size */
-        margin-bottom: 5px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
     }
+
+    .dashboard-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-card .icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+        color: #9c1111;
+    }
+
     .dashboard-card .title {
-        font-size: 12px; /* Custom font size for title */
+        font-size: 12px;
         font-weight: bold;
         margin: 5px 0;
     }
+
     .dashboard-card .value {
-        font-size: 14px; /* Custom font size for value */
+        font-size: 14px;
+        color: #666;
     }
+
+    /* Chart container */
     .chart-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 5px; /* Reduced gap */
-        height: calc(100% - 150px); /* Adjust height to fit within the page */
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
     }
+
     .chart {
         background: #fff;
-        padding: 10px; /* Reduced padding */
+        padding: 10px;
         border-radius: 8px;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
         align-items: center;
-        font-size: 10px; /* Smaller font size */
+        font-size: 10px;
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 5px; /* Reduced margin */
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .dashboard-card .icon {
+            font-size: 18px;
+        }
+
+        .dashboard-card .title {
+            font-size: 10px;
+        }
+
+        .dashboard-card .value {
+            font-size: 12px;
+        }
+
+        .chart {
+            font-size: 8px;
+        }
     }
-    table, th, td {
-        border: 1px solid #ddd;
-    }
-    th, td {
-        padding: 5px;
-        text-align: left;
-    }
-    th {
-        background-color: #f4f4f4;
+
+    @media (max-width: 480px) {
+        .dashboard-card .icon {
+            font-size: 14px;
+        }
+
+        .dashboard-card .title {
+            font-size: 8px;
+        }
+
+        .dashboard-card .value {
+            font-size: 10px;
+        }
+
+        .chart {
+            font-size: 6px;
+        }
     }
 </style>
 

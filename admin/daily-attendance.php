@@ -5,13 +5,9 @@
 
 
 <?php
-// Database connection
-$servername = "localhost";  
-$username = "root";         
-$password = "";             
-$dbname = "esetech";  
 
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+$conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());

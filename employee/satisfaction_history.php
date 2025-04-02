@@ -2,7 +2,7 @@
 include('user_header.php'); 
 
 // Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'esetech'); 
+$conn = mysqli_connect('localhost', 'root', '', 'esetech');
 
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
@@ -16,10 +16,11 @@ if (!isset($_SESSION['employee_id'])) {
 
 $employee_id = $_SESSION['employee_id']; // Replace with the logged-in employee's ID
 
-// Fetch leave applications for the employee
-$sql = "SELECT leave_type, start_date, end_date, reason, status, file_date
-        FROM leave_applications 
-        WHERE employee_id = ?";
+// Fetch satisfaction surveys for the employee
+$sql = "SELECT survey_date, overall_rating, rating_description
+        FROM job_satisfaction_surveys 
+        WHERE employee_id = ?
+        ORDER BY survey_date DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $employee_id); // Bind the employee ID to the query
 $stmt->execute();
@@ -33,7 +34,7 @@ $result = $stmt->get_result();
 <!-- Main Content Area -->
 <main class="main-content">
     <section id="dashboard">
-        <h2>HISTORY LOGS</h2>
+        <h2>Satisfaction Survey History</h2>
 
         <style>
             table {
@@ -67,32 +68,26 @@ $result = $stmt->get_result();
         </style>
 
         <?php if ($result->num_rows > 0): ?>
-            <table id="myTable">
+            <table id="satisfactionTable">
                 <thead>
                     <tr>
-                        <th>Leave Type</th>
-                        <th>Date of File</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Reason</th>
-                        <th>Status</th>
+                        <th>Survey Date</th>
+                        <th>Overall Rating</th>
+                        <th>Rating Description</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
-                            <td><?php echo htmlspecialchars($row['file_date']); ?></td>
-                            <td><?php echo htmlspecialchars($row['start_date']); ?></td>
-                            <td><?php echo htmlspecialchars($row['end_date']); ?></td>
-                            <td><?php echo htmlspecialchars($row['reason']); ?></td>
-                            <td><?php echo htmlspecialchars($row['status']); ?></td>
+                            <td><?php echo htmlspecialchars($row['survey_date']); ?></td>
+                            <td><?php echo htmlspecialchars($row['overall_rating']); ?></td>
+                            <td><?php echo htmlspecialchars($row['rating_description']); ?></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
         <?php else: ?>
-            <p>No leave requests found.</p>
+            <p>No satisfaction surveys found.</p>
         <?php endif; ?>
 
     </section>
@@ -100,7 +95,7 @@ $result = $stmt->get_result();
 
 <script>
   $(document).ready( function () {
-    $('#myTable').DataTable();
+    $('#satisfactionTable').DataTable();
   });
 </script>
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>

@@ -102,16 +102,17 @@
                         FROM (
                             SELECT CURDATE() - INTERVAL n DAY AS date
                             FROM (
-                                SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL 
-                                SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL 
-                                SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL 
-                                SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL 
-                                SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL 
-                                SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL 
-                                SELECT 19 UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL 
-                                SELECT 22 UNION ALL SELECT 23 UNION ALL SELECT 24 UNION ALL 
-                                SELECT 25 UNION ALL SELECT 26 UNION ALL SELECT 27 UNION ALL 
-                                SELECT 28 UNION ALL SELECT 29 UNION ALL SELECT 30
+                                SELECT 0 n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL 
+                                SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL 
+                                SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL 
+                                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL 
+                                SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL 
+                                SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL 
+                                SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL 
+                                SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL 
+                                SELECT 24 UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL 
+                                SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 UNION ALL 
+                                SELECT 30
                             ) AS numbers
                         ) AS d
                         JOIN employees e ON d.date >= e.hire_date AND d.date <= CURDATE()
@@ -204,6 +205,7 @@
                 $riskData[] = round($risk_score * 100, 1);
                 $attendanceData[] = round($attendance_score * 100, 1);
                 $satisfactionData[] = round($satisfaction_score * 100, 1);
+                
                 
                 // Set color based on risk level
                 if ($risk_score <= 0.3) {
@@ -491,20 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-.action-buttons {
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
-}
-
-.attrition-table-container {
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 20px 0;
-}
-
+/* Style for Table */
 #attritionTable {
     width: 100%;
     border-collapse: collapse;
@@ -519,8 +508,17 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 #attritionTable th {
-    background-color: #f5f5f5;
+    background-color:rgb(148, 38, 38);
+    color: white;
     font-weight: bold;
+}
+
+#attritionTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#attritionTable tr:hover {
+    background-color: #ddd;
 }
 
 .low-risk {
@@ -563,6 +561,33 @@ document.addEventListener('DOMContentLoaded', function() {
 .full-width {
     flex: 0 0 100% !important;
     height: 500px !important;
+}
+
+.attrition-table-container {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 20px 0;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 20px;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
 }
 </style>
 

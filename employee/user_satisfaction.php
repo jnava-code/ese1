@@ -45,6 +45,7 @@
 
 </style>
 <?php
+ob_start();
 include('user_header.php');
 include('includes/sideBar.php');
 ?>
@@ -252,4 +253,5 @@ include('includes/sideBar.php');
         ?>
     </section>
 </main>
+<?php ob_end_flush();?>
 <?php include('user_footer.php'); ?>

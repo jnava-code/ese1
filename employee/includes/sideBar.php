@@ -13,7 +13,16 @@
             <li><a href="./user_leave"><i class="fas fa-paper-plane"></i> Leave Application</a></li>
             <li><a href="./user_satisfaction"><i class="fas fa-smile"></i> Satisfaction</a></li>
             <li><a href="./user_profile"><i class="fas fa-user"></i> Manage Profile</a></li>
-            <li><a href="./user_history"><i class="fas fa-clock"></i> Leave History</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle">
+                        <i class="fas fa-clock"></i> History<i class="fas fa-chevron-down toggle-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="./user_history">Leave</a></li>
+                    <li><a href="./performance_history">Performance</a></li>
+                     <li><a href="./satisfaction_history">Satisfaction</a></li>
+                </ul>
+            </li>
         </ul>
     </div>
 </nav>

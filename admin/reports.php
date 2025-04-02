@@ -171,8 +171,8 @@
             WHEN a.status = 'Late' THEN 0.5
             ELSE 0 
         END), 0) as attendance_score,
-        COALESCE(AVG(js.overall_rating) / 5, 0.5) as satisfaction_score,
-        COALESCE(AVG(pe.overall_score) / 100, 0) as performance_score,
+        COALESCE(AVG(js.overall_rating) / 5, 0) as satisfaction_score,
+        COALESCE(AVG(pe.overall_score) / 5, 0) as performance_score,
         DATEDIFF(CURRENT_DATE, e.hire_date) / 365 as years_of_service
     FROM employees e
     LEFT JOIN attendance a ON e.employee_id = a.employee_id
@@ -215,9 +215,9 @@
             $risk_score = max(0, min(1, $risk_score));
 
             // Categorize risk
-            if ($risk_score <= 0.3) {
+            if ($risk_score <= 0.6) {
                 $low_risk++;
-            } elseif ($risk_score <= 0.6) {
+            } elseif ($risk_score <= 0.7) {
                 $medium_risk++;
             } else {
                 $high_risk++;
@@ -360,11 +360,6 @@
         width: fit-content;
     }
 
-    h1 {
-        text-align: center;
-        margin-bottom: 15px;
-        font-size: 18px;
-    }
 
     .form-select, .form-control {
         padding: 8px 12px;
@@ -565,7 +560,7 @@
                 </div>
 
                 <div class="print_educational">
-                    <h1>Employees by Age and Gender Report</h1>
+                    <h1>Employees by Educational Employment</h1>
                     <canvas id="educationalChart" width="600" height="400"></canvas>
                 </div>
             </div>

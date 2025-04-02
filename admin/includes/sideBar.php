@@ -67,7 +67,9 @@
                     <li><a href="./satisfaction">Satisfaction Monitoring</a></li>
                     <li><a href="./edit_satisfaction_criteria">Edit Satisfaction Criteria</a></li>
                 </ul>
+                <li><a href="./user_profile"><i class="fas fa-history"></i> User Profile</a></li>
             </li>            
+            
 
         </ul>
     </div>

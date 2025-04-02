@@ -4,6 +4,7 @@
 ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <main class="main-content">
     <section id="dashboard">
         <div class="performance-and-button">
@@ -137,7 +138,7 @@
         <form method="POST" class="evaluation-form">
             <div class="form-group">
                 <label for="employee_id">Employee:</label>
-                <select name="employee_id" required class="form-control">
+                <select name="employee_id" required class="form-control select2">
                     <?php 
                     while ($row = mysqli_fetch_assoc($eligible_employees_result)) { 
                     ?>
@@ -148,14 +149,12 @@
                     } 
                     ?>
                 </select>
-
             </div>
 
             <div class="form-group">
                 <label for="evaluation_date">Evaluation Date:</label>
                 <input type="date" name="evaluation_date" required class="form-control" value="<?php echo date('Y-m-d'); ?>">
             </div>
-
 
             <h3>Performance Criteria</h3>
 
@@ -280,6 +279,7 @@
 
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
 
@@ -291,7 +291,24 @@ $(document).ready(function () {
     } else {
         console.error('Column count mismatch between <thead> and <tbody>');
     }
+
+    // Initialize Select2 on the employee dropdown
+    $('.select2').select2({
+        placeholder: 'Select an employee',
+        allowClear: true
+    });
 });
+
+
+    $(document).ready(function () {
+        // Initialize Select2 on the employee dropdown
+        $('.select2').select2({
+            placeholder: 'Select an employee',
+            allowClear: true,
+            width: '100%' // Ensure the dropdown is responsive
+        });
+    });
+
     // SELECT THE CLASS NAME
     const employeeDisplay = document.querySelectorAll(".employee_display");
 
@@ -324,6 +341,24 @@ $(document).ready(function () {
     });
 </script>
 <style>
+    .evaluation-form {
+        max-width: 100%; /* Ensure the form does not exceed the container width */
+        overflow: hidden; /* Prevent overflow */
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-control {
+        width: 100%; /* Make the form control elements adjustable */
+    }
+    .radio-choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .radio-choice {
+        flex: 1 1 100px; /* Adjust the width of each radio choice */
+    }
     .evaluation-form .radio-content {
         margin-top: 25px;
     }
@@ -335,5 +370,41 @@ $(document).ready(function () {
         background-color: #f8f9fa;
         border-radius: 4px;
         display: inline-block;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        font-size: 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .select2-container .select2-selection--single {
+        height: 35px; /* Match the height of the input field */
+        padding: 5px 10px;
+        font-size: 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px; /* Center the text vertically */
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px; /* Match the height of the input field */
     }
 </style>
