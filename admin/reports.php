@@ -758,7 +758,8 @@
                 data.overtime || 0,
                 data.leave || 0
             ];
-
+            console.log(data);
+            
             // Filter out items with zero values
             const filteredData = labels.map((label, i) => ({
                 label,

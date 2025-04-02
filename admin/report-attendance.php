@@ -414,12 +414,12 @@ if (!empty($month) && !empty($year)) {
     for ($day = 1; $day <= $days_in_month; $day++) {
         // Generate the correct date for the current month and year
         $date_string = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
-        $current_date = new DateTime($date_string); // Fixed: Using DateTime for accurate comparison
-        $today_date = new DateTime('today'); // Fixed: Ensures we compare only the date
+        $current_date = new DateTime($date_string);
+        $today_date = new DateTime('today'); // Compare only date
 
         // Get the day name
         $day_name = $current_date->format('l');
-        $is_future_date = $current_date > $today_date; // Fixed: Now future dates will be true
+        $is_future_date = $current_date > $today_date;
         $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
 
         echo "<tr><td>$day</td>"; // Display the day
@@ -440,20 +440,35 @@ if (!empty($month) && !empty($year)) {
                     // Display attendance
                     $clock_in_time = $attendance_for_day['clock_in_time'];
                     $clock_out_time = $attendance_for_day['clock_out_time'];
-                    $total_hours = round($attendance_for_day['total_hours']);
+                    $total_hours = floatval($attendance_for_day['total_hours']); // Convert to float
                     $regular_hours = 8;
-                    $overtime_hours = max(0, $total_hours - $regular_hours);
+
+                    // Convert total hours into hours and minutes
+                    $total_minutes = round($total_hours * 60); // Convert to minutes
+                    $total_worked_hours = intdiv($total_minutes, 60);
+                    $total_worked_minutes = $total_minutes % 60;
+
+                    // Calculate overtime
+                    $overtime_minutes = max(0, $total_minutes - ($regular_hours * 60));
+                    $overtime_hours = intdiv($overtime_minutes, 60);
+                    $overtime_remaining_minutes = $overtime_minutes % 60;
+                    
+                    // Format overtime hours as "H:MM"
+                    $formatted_overtime = $overtime_hours . ":" . str_pad($overtime_remaining_minutes, 2, "0", STR_PAD_LEFT);
+
                     $status = $attendance_for_day['status'];
 
-                    // Convert times to 12-hour format
-                    $clock_in_time_12hr =$clock_in_time;
-                    $clock_out_time_12hr = $clock_out_time;
-
-                    echo "<td>$clock_in_time_12hr</td>";
-                    echo "<td>$clock_out_time_12hr</td>";
-                    echo "<td>$total_hours</td>";
+                    echo "<td>$clock_in_time</td>";
+                    echo "<td>$clock_out_time</td>";
+                    echo "<td>$total_worked_hours:$total_worked_minutes</td>"; // Show Hours:Minutes
                     echo "<td>$regular_hours</td>";
-                    echo "<td>$overtime_hours</td>"; 
+                    
+                    if ($overtime_minutes > 0) {
+                        echo "<td>$formatted_overtime</td>"; // Show overtime in H:MM format
+                    } else {
+                        echo "<td>0:00</td>"; // No overtime
+                    }
+
                     echo "<td>$status</td>";
                 } else {
                     // Check for approved leave
@@ -485,8 +500,6 @@ if (!empty($month) && !empty($year)) {
 ?>
 </tbody>
 
-
-
 </table>
 
 <?php
@@ -498,80 +511,82 @@ if (!empty($month) && !empty($year)) {
     $days_present = 0;
     $days_absent = 0;
     $days_late = 0;
-    $days_on_leave = 0;  // Add this counter
+    $days_on_leave = 0;
+    $working_days = 0; // Count of weekdays (excluding weekends & future dates)
 
-    // Calculate totals
+    // Start outputting table rows
     for ($day = 1; $day <= $days_in_month; $day++) {
-        $current_date = date_create(sprintf("%04d-%02d-%02d", intval($year), intval($month), $day));
-        $day_name = date_format($current_date, 'l');
+        // Build date objects
+        $date_string = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
+        $current_date = new DateTime($date_string);
+        $today_date = new DateTime('today');
+        $day_name = $current_date->format('l');
+        $is_future_date = $current_date > $today_date;
         $is_weekend = ($day_name === 'Saturday' || $day_name === 'Sunday');
-        $is_future_date = $current_date > date_create('today');
 
-        if (!$is_weekend) {
-            $attendance_for_day = isset($attendance_data[$day]) ? $attendance_data[$day] : null;
-            
-            // First check for approved leaves
-            $current_date_str = sprintf("%04d-%02d-%02d", intval($year), intval($month), $day);
-            $leave_sql = "SELECT 1 FROM leave_applications 
-                         WHERE employee_id = ? 
-                         AND ? BETWEEN start_date AND end_date 
-                         AND status = 'Approved'
-                         LIMIT 1";
-            
-            $is_on_leave = false;
-            if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
-                mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $current_date_str);
-                mysqli_stmt_execute($stmt_leave);
-                $result_leave = mysqli_stmt_get_result($stmt_leave);
-                if (mysqli_fetch_row($result_leave)) {
-                    $days_on_leave++;
-                    $is_on_leave = true;
-                }
-                mysqli_stmt_close($stmt_leave);
-            }
 
-            if ($attendance_for_day && !$is_future_date) {
-                $days_present++;
-                $total_overall_hours += round($attendance_for_day['total_hours']);
+        // If the day is in the future, output empty cells
+        if(!$is_weekend && !$is_future_date) {
+            // This is a working day: increase working day count
+            $working_days++;
+            // Try to retrieve attendance data using a day key (zero-padded if necessary)
+            $day_key = sprintf("%02d", $day);
+            $attendance_for_day = $attendance_data[$day_key] ?? null;
+
+            if ($attendance_for_day) {
+                // There is attendance – output details and count as present
+                $clock_in_time = $attendance_for_day['clock_in_time'];
+                $clock_out_time = $attendance_for_day['clock_out_time'];
+                $total_hours = round($attendance_for_day['total_hours']);
                 $regular_hours = 8;
-                $total_regular_hours += $regular_hours;
-                $total_overtime_hours += max(0, round($attendance_for_day['total_hours']) - $regular_hours);
-                
-                if ($attendance_for_day['status'] === 'Late') {
+                $overtime_hours = max(0, $total_hours - $regular_hours);
+                $status = $attendance_for_day['status'];
+
+                // Count as present if status is either "Present", "Overtime", or "Late"
+                if (in_array($status, ["Present", "Overtime", "Late"])) {
+                    $days_present++;
+                }
+                if ($status === "Late") {
                     $days_late++;
                 }
-            } elseif (!$is_on_leave && !$is_future_date) {
-                // Only count as absent if not on leave and not a future date
-                $days_absent++;
+                $total_overall_hours += $total_hours;
+                $total_regular_hours += $regular_hours;
+                $total_overtime_hours += $overtime_hours;
+            } else {
+                // No attendance record found; check if the employee was on approved leave
+                $leave_sql = "SELECT leave_type FROM leave_applications 
+                              WHERE employee_id = ? 
+                              AND ? BETWEEN start_date AND end_date 
+                              AND status = 'Approved'
+                              LIMIT 1";
+                if ($stmt_leave = mysqli_prepare($conn, $leave_sql)) {
+                    mysqli_stmt_bind_param($stmt_leave, "is", $official_employee_id, $date_string);
+                    mysqli_stmt_execute($stmt_leave);
+                    $result_leave = mysqli_stmt_get_result($stmt_leave);
+                    if ($leave_row = mysqli_fetch_assoc($result_leave)) {
+                        $days_on_leave++;
+                    } else {
+                        $days_absent++;
+                    }
+                    mysqli_stmt_close($stmt_leave);
+                }
             }
-        } else {
-            
         }
     }
-?>
+    ?>
+    </tbody>
+    </table>
 
     <table style="width: 50%; border-collapse: collapse; float: left;">
         <tr>
-            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
-                Total of Overall Hours
-            </td>
-            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
-                Regular Hours 
-            </td>
-            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">
-                Total Hours of Over Time
-            </td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">Total of Overall Hours</td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">Regular Hours</td>
+            <td style="width: 33%; text-align: center; padding: 5px; font-size: 11px;">Total Hours of Over Time</td>
         </tr>
         <tr>
-            <td style="border: 1px solid black; text-align: center; padding: 5px;">
-                <?php echo $total_overall_hours; ?>
-            </td>
-            <td style="border: 1px solid black; text-align: center; padding: 5px;">
-                <?php echo $total_regular_hours; ?>
-            </td>
-            <td style="border: 1px solid black; text-align: center; padding: 5px;">
-                <?php echo $total_overtime_hours; ?>
-            </td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;"><?php echo $total_overall_hours; ?></td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;"><?php echo $total_regular_hours; ?></td>
+            <td style="border: 1px solid black; text-align: center; padding: 5px;"><?php echo $total_overtime_hours; ?></td>
         </tr>
     </table>
 
@@ -579,33 +594,25 @@ if (!empty($month) && !empty($year)) {
         <table style="border-collapse: collapse;">
             <tr>
                 <td style="padding: 5px; text-align: right;">Number of Days Present:</td>
-                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
-                    <?php echo $days_present; ?>
-                </td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;"><?php echo $days_present; ?></td>
             </tr>
             <tr>
                 <td style="padding: 5px; text-align: right;">Number of Days Absent:</td>
-                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
-                    <?php echo $days_absent; ?>
-                </td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;"><?php echo $days_absent; ?></td>
             </tr>
             <tr>
                 <td style="padding: 5px; text-align: right;">Number of Days on Leave:</td>
-                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
-                    <?php echo $days_on_leave; ?>
-                </td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;"><?php echo $days_on_leave; ?></td>
             </tr>
             <tr>
                 <td style="padding: 5px; text-align: right;">Number of Late:</td>
-                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;">
-                    <?php echo $days_late; ?>
-                </td>
+                <td style="border: 1px solid black; width: 40px; text-align: center; padding: 5px;"><?php echo $days_late; ?></td>
             </tr>
         </table>
     </div>
-
-<?php } ?>
-
+<?php
+}
+?>
     </div>
 
     <?php include('footer.php'); ?>

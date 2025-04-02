@@ -1,4 +1,4 @@
-<?php
+    <?php
 // Connect to the database
 include('header.php');
 include('includes/sideBar.php');
