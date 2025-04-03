@@ -280,6 +280,14 @@ if (isset($_POST['search_week'])) {
                 // Loop through the days of the week (Sunday to Saturday)
                 for ($day = 0; $day < 7; $day++) {
                     $currentDate = date('Y-m-d', strtotime($startDate . ' + ' . $day . ' days'));
+                    $currentMonth = date('m', strtotime($currentDate));
+                    
+                    // If the date is not in the selected month, show empty cell
+                    if ($currentMonth != $selectedMonth) {
+                        echo "<td></td>";
+                        continue;
+                    }
+
                     $today = date('Y-m-d'); // Get today's date
                 
                     // If the date is in the future, leave the cell empty
@@ -314,9 +322,9 @@ if (isset($_POST['search_week'])) {
                             $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
                             $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
                             $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
-                            $daily_hours = $record['total_hours'] ? floatval($record['total_hours']) : 0; // Accumulate daily hours
+                            $daily_hours = $record['total_hours'] ? floatval($record['total_hours']) : 0;
                             $rstatus = htmlspecialchars($record['status']);
-                            break; // Exit the inner loop once the record is found
+                            break;
                         }
                     }
                 
@@ -342,6 +350,7 @@ if (isset($_POST['search_week'])) {
                 
                     // Output the table cell for the current day with color-coded status
                     echo "<td style='padding: 5px;'>";
+                    echo "<strong style='color: $status_color'>" . date('j', strtotime($currentDate)) . "</strong><br>";
                     echo $status_display == "" ? "" : "<strong>Status:</strong> $status_display <br>";
                     if ($clock_in_time != '-') {
                         echo "<strong>In:</strong> $clock_in_time<br>";
@@ -380,20 +389,20 @@ function updateWeeks() {
     weekSelect.innerHTML = '';
 
     // Add week options dynamically
-    for (var i = 1; i <= weeksInMonth; i++) {
+    for (var i = 0; i <= weeksInMonth - 1; i++) {
         var option = document.createElement('option');
         option.value = i;
-        option.textContent = 'Week ' + i;
+        option.textContent = 'Week ' + (i + 1);
         weekSelect.appendChild(option);
     }
 
     // Set the default week to Week 1
-    weekSelect.value = 1;
+    weekSelect.value = 0;
 }
 
 // Function to calculate the number of weeks in a given month
 function getWeeksInMonth(month, year) {
-    var date = new Date(year, month - 1, 1); // Month is 0-indexed in JavaScript
+    var date = new Date(year, month - 1); // Month is 0-indexed in JavaScript
     var lastDate = new Date(year, month, 0); // Last day of the month
     var totalDays = lastDate.getDate(); // Total days in the month
     return Math.ceil(totalDays / 7); // Calculate number of weeks
