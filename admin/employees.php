@@ -33,7 +33,7 @@
         $suffix = $_POST['suffix'] ?? '';
         $gender = $_POST['gender'] ?? '';
         $email = $_POST['email'] ?? '';
-        $position = $_POST['position'] ?? '';
+        $position = $_POST['position'] == 'Other' ? $_POST['custom-position'] : $_POST['position'];
         $hire_date = $_POST['hire_date'] ?? '';
         $department = $_POST['department'] ?? '';
         $employment_status = $_POST['employment_status'] ?? '';
@@ -50,6 +50,7 @@
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $contact_number = $_POST['contact_number'] ?? '';
         $perma_address = $_POST['perma_address'] ?? '';
+        $present_address = $_POST['present_address'] ?? '';
         $civil_status = $_POST['civil_status'] ?? '';
         $sss_number = $_POST['sss_number'] ?? '';
         $philhealth_number = $_POST['philhealth_number'] ?? '';
@@ -57,6 +58,7 @@
         $tin_number = $_POST['tin_number'] ?? '';
         $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
         $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
+        $relationship_emergency = $_POST['relationship_emergency'] ?? '';
         $educational_background = $_POST['educational_background'] ?? '';
         $skills = $_POST['skills'] ?? '';
         $username = $_POST['username'] ?? '';
@@ -74,9 +76,15 @@
         
         function uploadFile($fieldName, $first_name, $last_name) {
             $file_path = '../files/';
+            $max_file_size = 25 * 1024 * 1024;
         
             if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
                 return null;
+            }
+        
+            if ($_FILES[$fieldName]['size'] > $max_file_size) {
+                $errmsg = "File size exceeds the maximum limit of 25MB.";
+                return $errmsg;
             }
         
             $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
@@ -87,7 +95,7 @@
             } else {
                 die("File upload failed for $fieldName.");
             }
-        }
+        }        
 
         // Upload files
         $file_medical = uploadFile('file_medical', $first_name, $last_name);
@@ -141,26 +149,22 @@
             // Insert into database
             $sql = "INSERT INTO employees (
                 last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
-                employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address,
+                employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address, present_address,
                 civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
-                emergency_contact_number, educational_background, skills, username, sick_leave, vacation_leave,
+                emergency_contact_number, relationship_emergency, educational_background, skills, username, sick_leave, vacation_leave,
                 maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others,
                 medical_type, tor_type, police_type, resume_type, prc_type, others_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ) VALUES (
+                '$last_name', '$first_name', '$middle_name', '$suffix', '$gender', '$email', '$position', '$hire_date', '$department',
+                '$employment_status', '$employee_id', '$hashedPassword', '$date_of_birth', '$age', '$contact_number', '$perma_address', '$present_address',
+                '$civil_status', '$sss_number', '$philhealth_number', '$pagibig_number', '$tin_number', '$emergency_contact_name',
+                '$emergency_contact_number', '$relationship_emergency', '$educational_background', '$skills', '$username',
+                '$sick_leave', '$vacation_leave', '$maternity_leave', '$paternity_leave', '$file_medical', '$file_tor',
+                '$file_police', '$file_resume', '$file_prc', '$file_201', '$medical_type', '$tor_type', '$police_type',
+                '$resume_type', '$prc_type', '$others_type'
+            )";
 
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param(
-                "ssssssssssssssssssssssssssssssssssssssssss",
-                $last_name, $first_name, $middle_name, $suffix, $gender, $email, $position, $hire_date,
-                $department, $employment_status, $employee_id, $hashedPassword, $date_of_birth, $age, $contact_number,
-                $perma_address, $civil_status, $sss_number, $philhealth_number, $pagibig_number, $tin_number,
-                $emergency_contact_name, $emergency_contact_number, $educational_background, $skills, $username,
-                $sick_leave, $vacation_leave, $maternity_leave, $paternity_leave, $file_medical, $file_tor,
-                $file_police, $file_resume, $file_prc, $file_201, $medical_type, $tor_type, $police_type,
-                $resume_type, $prc_type, $others_type
-            );
-
-            if ($stmt->execute()) {
+            if ($conn->query($sql) === TRUE) {
                 // Send email using PHPMailer
                 $mail = new PHPMailer(true);
 
@@ -188,32 +192,17 @@
 
                     // Send the email
                     if ($mail->send()) {
-                    $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
-                    // Redirect to prevent form resubmission
-                    header("Location: " . preg_replace('/\.php$/', '', $_SERVER['REQUEST_URI']));
-                    exit();
+                        $success = "The employee, $first_name $last_name, has been successfully added.";                    
                     } else {
-                    $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
+                        $errmsg = "An error occurred: " . $stmt->error;
                     }
                 } catch (Exception $e) {
-                    $_SESSION['error_message'] = "Mailer Error: " . $mail->ErrorInfo;
+                    $errmsg = "Mailer Error: " . $mail->ErrorInfo;
                 }
             } else {
-                $_SESSION['error_message'] = "An error occurred: " . $stmt->error;
+                $errmsg = "An error occurred: " . $stmt->error;
             }
         }
-    }
-
-    
-    // Display messages if they exist (add this after the POST handling)
-    if (isset($_SESSION['success_message'])) {
-        $successmsg = $_SESSION['success_message'];
-        unset($_SESSION['success_message']);
-    } elseif (isset($_SESSION['error_message'])) {
-        echo "<div class='alert alert-danger' role='alert'>";
-        echo $_SESSION['error_message'];
-        echo "</div>";
-        unset($_SESSION['error_message']);
     }
 
     // Archive Employee (instead of delete)
@@ -485,6 +474,10 @@ function generatePasswordFromBday($date_of_birth) {
         font-size: 0.75rem;
         font-weight: 500;
 }
+
+    #other-position-container {
+        margin-top: 5px;
+    }
 </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
@@ -500,7 +493,7 @@ function generatePasswordFromBday($date_of_birth) {
     <div class="card-body">
         <form method="POST" enctype="multipart/form-data">
         <?php if (!empty($errmsg)) echo "<p style='color: red;'>$errmsg</p>"; ?>
-        <?php if (!empty($successmsg)) echo "<p style='color: green;'>$successmsg</p>"; ?>
+        <?php if (!empty($success)) echo "<p style='color: green;'>$success</p>"; ?>
 
       
             <div class="form-row">
@@ -511,8 +504,8 @@ function generatePasswordFromBday($date_of_birth) {
                         title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
                 </div>
                 <div class="col-md-4">
-                    <label for="middle_name">Middle Name</label>
-                    <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name" value="<?php echo !empty($errmsg) ? htmlspecialchars($middle_name) : ''; ?>"required
+                    <label for="middle_name">Middle Name (Optional)</label>
+                    <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name" value="<?php echo !empty($errmsg) ? htmlspecialchars($middle_name) : ''; ?>"
                         pattern="^[A-Za-z\s-]+$" 
                         title="Only letters, spaces, and hyphens are allowed. Numbers are not allowed.">
                     </div>
@@ -563,7 +556,6 @@ function generatePasswordFromBday($date_of_birth) {
                         <option value="Domestic Partnership" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Domestic Partnership") ? 'selected' : ''; ?>>Domestic Partnership</option>
                         <option value="Legally Separated" <?php echo (!empty($errmsg) && htmlspecialchars($civil_status) == "Legally Separated") ? 'selected' : ''; ?>>Legally Separated</option>
                     </select>
-
                 </div>
             </div>
 
@@ -602,8 +594,22 @@ function generatePasswordFromBday($date_of_birth) {
 
             <div class="form-row">
                 <div class="col-md-6">
-                    <label for="position">Position</label>
-                    <input type="text" class="form-control" name="position" placeholder="Position" value="<?php echo !empty($errmsg) ? htmlspecialchars($position) : ''; ?>" required>
+                    <label for="position">Position</label>        
+                    <select id="position-dropdown" name="position" class="form-control" onchange="toggleCustomPosition()">
+                    <option value="">Select Position</option>
+                    <option value="Accounting Assistant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Accounting Assistant") ? 'selected' : ''; ?>>Accounting Assistant</option>
+                    <option value="Junior Accountant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Junior Accountant") ? 'selected' : ''; ?>>Junior Accountant</option>
+                    <option value="Technical" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Technical") ? 'selected' : ''; ?>>Technical</option>
+                    <option value="Electrical Tech" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Electrical Tech") ? 'selected' : ''; ?>>Electrical Tech</option>
+                    <option value="Project Engineer" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Project Engineer") ? 'selected' : ''; ?>>Project Engineer</option>
+                    <option value="ISC" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "ISC") ? 'selected' : ''; ?>>ISC</option>
+                    <option value="Other" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Other") ? 'selected' : ''; ?>>Other (Please type)</option>
+                </select>
+
+                <div id="other-position-container" style="display: none;">
+                    <input type="text" id="custom-position" class="form-control" name="custom-position" placeholder="Type Position" value="<?php echo !empty($errmsg) ? htmlspecialchars($position) : ''; ?>">
+                </div>
+
                 </div>
                 <div class="col-md-6">
                     <label for="skills">Skills</label>
@@ -615,9 +621,13 @@ function generatePasswordFromBday($date_of_birth) {
                 <div class="col-md-6">
                     <label for="perma_address">Permanent Address</label>
                     <input type="text" class="form-control" name="perma_address" placeholder="Permanent Address" value="<?php echo !empty($errmsg) ? htmlspecialchars($perma_address) : ''; ?>" required>
-                </div>              
+                </div>        
+                <div class="col-md-6">
+                    <label for="present_address">Present Address</label>
+                    <input type="text" class="form-control" name="present_address" placeholder="Present Address" value="<?php echo !empty($errmsg) ? htmlspecialchars($present_address) : ''; ?>" required>
+                </div>        
             </div>
-
+            
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="date_of_birth">Email Address</label>
@@ -668,6 +678,24 @@ function generatePasswordFromBday($date_of_birth) {
                 <div class="col-md-6">
                     <label for="emergency_contact_number">Emergency Contact Number</label>
                     <input type="text" class="form-control" name="emergency_contact_number" placeholder="e.g., 09123456789" value="<?php echo !empty($errmsg) ? htmlspecialchars($emergency_contact_number) : ''; ?>" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="emergency_contact_number">Relationship to the Emergency Contact Person</label>
+                    <select name="relationship_emergency" class="form-control" required>
+                        <option value="">Select Relationship</option>
+                        <option value="Mother" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Mother") ? 'selected' : ''; ?>>Mother</option>
+                        <option value="Father" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Father") ? 'selected' : ''; ?>>Father</option>
+                        <option value="Brother" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Brother") ? 'selected' : ''; ?>>Brother</option>
+                        <option value="Sister" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Sister") ? 'selected' : ''; ?>>Sister</option>
+                        <option value="Husband" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Husband") ? 'selected' : ''; ?>>Father</option>
+                        <option value="Wife" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Wife") ? 'selected' : ''; ?>>Wife</option>
+                        <option value="Son" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Son") ? 'selected' : ''; ?>>Son</option>
+                        <option value="Daughter" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Daughter") ? 'selected' : ''; ?>>Daughter</option>
+                        <option value="Grandmother" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Grandmother") ? 'selected' : ''; ?>>Grandmother</option>
+                        <option value="Grandfather" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Grandfather") ? 'selected' : ''; ?>>Grandfather</option>
+                        <option value="Aunt" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Aunt") ? 'selected' : ''; ?>>Aunt</option>
+                        <option value="Cousin" <?php echo (!empty($errmsg) && htmlspecialchars($relationship_emergency) == "Cousin") ? 'selected' : ''; ?>>Cousin</option>
+                    </select>
                 </div>
             </div>
 
@@ -749,6 +777,7 @@ function generatePasswordFromBday($date_of_birth) {
                     </div>
                 </div>
 
+                <h3>Choose a file (PNG, JPG, PDF) with a maximum size of 25MB.</h3>
                 <div class="form-row">
                     <div class="col-md-6">
                         <label for="medical">Medical</label>
@@ -908,6 +937,17 @@ function generatePasswordFromBday($date_of_birth) {
         const genderInput = document.getElementById("gender");
         const hireDate = document.getElementById("hire_date");
 
+        function toggleCustomPosition() {
+            const positionSelect = document.getElementById("position-dropdown");
+            const otherPositionContainer = document.getElementById("other-position-container");
+
+            if (positionSelect.value === "Other") {
+                otherPositionContainer.style.display = "block"; // Show input field
+            } else {
+                otherPositionContainer.style.display = "none"; // Hide input field
+            }
+        }
+
         function leaveContainers(sickDisplay, vacationDisplay, maternityDisplay, paternityDisplay) {
             sickContainer.style.display = sickDisplay;
             vacationContainer.style.display = vacationDisplay;
@@ -949,14 +989,10 @@ function generatePasswordFromBday($date_of_birth) {
                     employmentStatus.insertAdjacentHTML('beforeend', `
                         <option value="Regular">Regular</option>
                         <option value="Probationary">Probationary</option>
-                        <option value="Resigned">Resigned</option>
-                        <option value="Terminated">Terminated</option>
                     `);
                 } else {
                     employmentStatus.insertAdjacentHTML('beforeend', `
                         <option value="Probationary">Probationary</option>
-                        <option value="Resigned">Resigned</option>
-                        <option value="Terminated">Terminated</option>
                     `);
                 }
 
@@ -1245,6 +1281,8 @@ setTimeout(() => {
         setTimeout(() => errorMsg.style.display = 'none', 1000);
     }
 }, 5000);
+
+toggleCustomPosition();
 </script>
 
 <?php include('footer.php'); ?>

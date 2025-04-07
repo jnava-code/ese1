@@ -25,7 +25,7 @@
             color: white;
             text-align: center;
             padding: 10px;
-            font-size: 25px;
+            font-size: 42px;
             position: relative;
             font-weight: bold;
         }
@@ -36,14 +36,29 @@
             font-size: 16px;
             color: white;
         }
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
+
+        .instruction-and-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .instruction {
+            width: 40%;
             padding: 20px;
             background: #fff;
-            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+
+        .container {
+            width: 40%;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
         .container h1 {
             text-align: center;
             margin-bottom: 20px;
@@ -55,12 +70,13 @@
         }
 
         .form-group input {
-            width: calc(100% - 20px); /* Ensures input doesn't overflow */
+            width: 100%; /* Ensures input doesn't overflow */
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
-            box-sizing: border-box; /* Ensures padding is included in width */
+            box-sizing: border-box; 
+            margin-top: 25px;
         }
         .form-group-buttons {
             display: flex;
@@ -71,11 +87,16 @@
             flex: 1;
             padding: 10px;
             border: none;
-            background-color: #d61e1e;
+            background-color: #ced4da;
             color: white;
             border-radius: 4px;
             cursor: pointer;
         }
+
+        .time-active {
+            background-color: #d61e1e !important;
+        }
+
         .form-group-buttons button:hover {
             background-color: #c73a3a;
         }
@@ -147,12 +168,12 @@
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     const amPm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12; // Convert to 12-hour format
+    hours = hours % 12 || 12;
     const timeString = `${hours}:${minutes}:${seconds} ${amPm}`;
     document.getElementById('clock').innerText = timeString;
 }
-setInterval(updateClock, 1000); // Update clock every second
-window.onload = updateClock; // Initialize clock on page load
+setInterval(updateClock, 1000);
+window.onload = updateClock; 
     </script>
 </head>
 <body>
@@ -168,83 +189,119 @@ window.onload = updateClock; // Initialize clock on page load
     </div>
 </div>
 
-
-<div class="container">
-    <h1>Employee Time Tracker</h1>
-    <form method="POST">
-        <input id="in-or-out" name="in-or-out" value="IN" readonly>
-        <div class="form-group input-and-msg">
-            <!-- <label for="employee_id">Employee ID</label> -->
-            <input type="text" id="employee_id" name="employee_id" placeholder="Enter your Employee ID" autofocus>
-            <span id="message"></span>
+<div class="instruction-and-container">
+    <div class="instruction">
+        <h2>Instructions:</h2>
+        <div class="step-one">
+            <h3>Select Your Attendance Action:</h3>
+            <ul>
+                <li>Click "TIME IN" if you are starting your morning shift (8:00 AM to 12:00 PM)</li>
+                <li>Click "TIME OUT" if you are ending your afternoon shift (1:00 PM to 5:00 PM)</li>
+            </ul>
         </div>
-  
-        <?php if (!empty($error)) echo "<div class='error'>$error</div>"; ?>
-        <?php if (!empty($success)) echo "<div class='message'>$success</div>"; ?>
-    </form>
+
+        <div class="step-two">
+            <h3>Enter Your Employee ID:</h3>
+            <ul>
+                <li>Locate the text box below the buttons</li>
+                <li>Type in your employee ID</li>
+            </ul>
+        </div>
+
+        <div class="step-three">
+            <h3>Submit your Attendance:</h3>
+            <ul>
+                <li>After entering your employee ID, press the "Enter" key on your keyboard</li>
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Employee Time Tracker</h1>
+        <form method="POST" class="time-form">
+                <div class="time-buttons">
+                    <div class="form-group-buttons">
+                        <button type="button" id="in-button" class="time-button time-active" value="IN">TIME IN</button>
+                        <button type="button" id="out-button" class="time-button" value="OUT">TIME OUT</button>
+                    </div>
+                </div>
+                <!-- <input id="in-or-out" name="in-or-out" value="IN" readonly> -->
+                <div class="form-group input-and-msg">
+                    <!-- <label for="employee_id">Employee ID</label> -->
+                    <input type="text" id="employee_id" name="employee_id" placeholder="Enter your Employee ID" autofocus>
+                    <span id="message"></span>
+                </div>
+      
+            <?php if (!empty($error)) echo "<div class='error'>$error</div>"; ?>
+            <?php if (!empty($success)) echo "<div class='message'>$success</div>"; ?>
+        </form>
+    </div>
 </div>
 
 <script>
-    const inOrOut = document.getElementById("in-or-out");
     const employeeId = document.getElementById("employee_id");
     const message = document.getElementById("message");
+    const formGroupButtons = document.querySelector(".form-group-buttons");
+    const timeButtons = document.querySelectorAll(".time-button");
+    console.log(message);
     
-    employeeId.addEventListener("input", e => {
-    const id = e.target.value;
-    if (id === "+") {
-        // Toggle between IN and OUT
-        inOrOut.value = inOrOut.value === "IN" ? "OUT" : "IN";
-        
-        // Clear the employee ID input
-        employeeId.value = "";
-    }
-});
+    formGroupButtons.addEventListener("click", e => {
+        const clicked = e.target.closest("button");
+        if(!clicked) return;
 
-employeeId.addEventListener("input", e => {
-    const id = e.target.value;
-    if (id === "+") {
-        // Toggle between IN and OUT
-        inOrOut.value = inOrOut.value === "IN" ? "OUT" : "IN";
-        
-        // Clear the employee ID input
-        employeeId.value = "";
-    }
-});
+        timeButtons.forEach(button => {
+            button.classList.remove("time-active");
+        });
+        clicked.classList.add("time-active");
+    })
+
+    employeeId.addEventListener("input", e => {
+        const value = e.target.value;
+        if (value === "+") {
+            timeButtons.forEach(button => {
+                button.classList.contains("time-active") 
+                ? button.classList.remove("time-active") 
+                : button.classList.add("time-active");
+            
+                employeeId.value = "";
+            });
+        }
+    });
 
 employeeId.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        // Get the current action (IN or OUT)
-        const currentAction = inOrOut.value;
-
-        // Get the form element
-        const form = employeeId.closest("form");
+    if (e.key === "Enter") { 
+        e.preventDefault();
         
-        // Create a FormData object from the form
-        const formData = new FormData(form);
+        timeButtons.forEach(button => {
+            const inOrOut = button.classList.contains("time-active") && button.value;
+            const employeeIdValue = employeeId.value;
 
-        // Send the form data using fetch
-        fetch('employee_time', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                message.innerHTML = data.success;
-                employeeId.value = '';
-                setTimeout(() => {
-                    message.innerHTML = '';
-                }, 2000);
-            } else if (data.error) {
-                message.innerHTML = data.error;
-                employeeId.value = '';
-                setTimeout(() => {
-                    message.innerHTML = '';
-                }, 2000);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            const formData = new FormData();
+            formData.append("employee_id", employeeIdValue);
+            formData.append("in-or-out", inOrOut);
+
+            fetch('employee_time', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    message.innerHTML = data.success;
+                    employeeId.value = '';
+                    setTimeout(() => {
+                        message.innerHTML = '';
+                    }, 2000);
+                } else if (data.error) {
+                    message.innerHTML = data.error;
+                    employeeId.value = '';
+                    setTimeout(() => {
+                        message.innerHTML = '';
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     }
 });
