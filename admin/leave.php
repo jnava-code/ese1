@@ -15,7 +15,10 @@ $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $sql = "
     SELECT 
         leave_applications.*, 
-        CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name,
+        employees.department,
+        employees.position,
+        employees.employment_status,
+        CONCAT(employees.first_name, ' ', employees.middle_name, ' ', employees.last_name)  AS employee_name,
         employees.employee_id
     FROM leave_applications 
     LEFT JOIN employees 
@@ -106,6 +109,17 @@ $query_string = $_SERVER['QUERY_STRING'];
 
 #attendance-table tr:hover {
     background-color: #ddd;
+}
+
+.filter-search {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+#myTable_filter {
+    display: none;
 }
 
 /* Buttons inside the table */
@@ -200,10 +214,77 @@ button:disabled {
             <a href="?status=Rejected" class="<?php echo $status_filter == 'Rejected' ? 'active' : ''; ?>">Rejected</a>
         </div>
 
+        <div class="filter-search">
+            <select id="employee" name="employee" class="form-control">
+                <option value="">Select Employee</option>
+                <?php 
+                    $empSelect = "SELECT first_name, middle_name, last_name FROM employees WHERE is_archived = 0 ORDER BY first_name ASC";
+                    $empResult = mysqli_query($conn, $empSelect);
+
+                    if ($empResult) {
+                        $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                        while ($row = mysqli_fetch_assoc($empResult)) {
+                            $withMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']);
+                            $noMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['last_name']);
+                            $fullName = $row['middle_name'] !== '' ? $withMiddleName : $noMiddleName;
+                            ?>
+                            <option value="<?php echo htmlspecialchars($fullName); ?>">
+                                <?php echo htmlspecialchars($fullName); ?>
+                            </option>
+                            <?php
+                        }
+                    } 
+                ?>
+            </select>
+
+            <select id="department" name="department" class="form-control">
+                <option value="">Select Department</option>
+                <?php 
+                    $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+                    $deptResult = mysqli_query($conn, $deptSelect);
+
+                    if ($deptResult) {
+                        $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                        while ($row = mysqli_fetch_assoc($deptResult)) {
+                            if ($row['dept_name'] != "Admin") {
+                                ?>
+                                <option value="<?php echo htmlspecialchars($row['dept_name']); ?>">
+                                    <?php echo htmlspecialchars($row['dept_name']); ?>
+                                </option>
+                                <?php
+                            }
+                        }
+                    } 
+                ?>
+            </select>
+
+            <select id="position-dropdown" name="position" class="form-control">
+                <option value="">Select Position</option>
+                <option value="Accounting Assistant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Accounting Assistant") ? 'selected' : ''; ?>>Accounting Assistant</option>
+                <option value="Junior Accountant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Junior Accountant") ? 'selected' : ''; ?>>Junior Accountant</option>
+                <option value="Technical" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Technical") ? 'selected' : ''; ?>>Technical</option>
+                <option value="Electrical Tech" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Electrical Tech") ? 'selected' : ''; ?>>Electrical Tech</option>
+                <option value="Project Engineer" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Project Engineer") ? 'selected' : ''; ?>>Project Engineer</option>
+                <option value="ISC" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "ISC") ? 'selected' : ''; ?>>ISC</option>
+                <option value="Other" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Other") ? 'selected' : ''; ?>>Other</option>
+            </select>
+
+            <select id="employment_status" name="employment_status" class="form-control">
+                <option value="">Select Employment Status</option>
+                <option value="Regular">Regular</option>
+                <option value="Probationary">Probationary</option>
+            </select>
+        </div>
+
         <!-- Styled Leave Requests Table -->
         <table id="myTable" class="styled-table">
     <thead>
         <tr>
+            <th style="display: none"></th>
+            <th style="display: none"></th>
+            <th style="display: none"></th>
             <th>Employee Name</th>
             <th>Date of File</th>
             <th>Start Date</th>
@@ -237,14 +318,25 @@ button:disabled {
     <tbody>
         <?php while ($row = mysqli_fetch_assoc($result)) { ?>
             <tr>
-                
+                <td style="display: none"><?php echo htmlspecialchars($row['department']); ?></td>
+                <td style="display: none"><?php echo htmlspecialchars($row['position']); ?></td>
+                <td style="display: none"><?php echo htmlspecialchars($row['employment_status']); ?></td>
                 <td><?php echo htmlspecialchars($row['employee_name']); ?></td>
                 <td><?php echo htmlspecialchars($row['file_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['start_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['end_date']); ?></td>
                 <td><?php echo htmlspecialchars($row['leave_type']); ?></td>
                 <td><?php echo htmlspecialchars($row['number_of_days']); ?></td>
-                <td><?php echo htmlspecialchars($row['reason']); ?></td>
+                <td>
+                    <?php 
+                        if (htmlspecialchars($row['status']) === 'Approved') {
+                            echo htmlspecialchars($row['reason']);
+                        } else {
+                            echo htmlspecialchars($row['reason_of_rejection']);
+                        }
+                    ?>
+                </td>
+
                 <td><?php echo htmlspecialchars($row['status']); ?></td>
                 <td class="actions">
                     <?php
@@ -258,7 +350,7 @@ button:disabled {
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>
-                                    <button type="submit" name="action" value="reject">
+                                    <button id="reject_btn" type="button" value="reject">
                                         Reject
                                     </button>
                                 </form>';
@@ -285,11 +377,9 @@ include('footer.php'); // Admin footer file
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
 <script>
-  $(document).ready( function () {
-    $('#myTable').DataTable({
+    var table = $('#myTable').DataTable({
         "order": [[1, "desc"]] // Order by the second column (Date of File) in descending order
     });
-  });
 
   const reportBtn = document.querySelector(".report_btn");
 
@@ -422,4 +512,39 @@ if (reportBtn) {
         parent.classList.toggle('active');
     });
 });
+
+var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'), $('#employee')];
+
+    var filterValues = {
+        department: '',
+        position: '',
+        employment_status: '',
+        employee: ''
+    };
+
+    $.each(filters, function(index, filter) {
+        filter.on('change', function() {
+            if (filter.is('#department')) {
+                filterValues.department = $(this).val();
+            } else if (filter.is('#position-dropdown')) {
+                filterValues.position = $(this).val();
+            } else if (filter.is('#employment_status')) {
+                filterValues.employment_status = $(this).val();
+            } else if (filter.is('#employee')) {
+                filterValues.employee = $(this).val();
+            }
+            table
+                .column(0).search(filterValues.department || '').draw()
+                .column(1).search(filterValues.position || '').draw()   
+                .column(2).search(filterValues.employment_status || '').draw()
+                .column(3).search(filterValues.employee || '').draw();
+        });
+    });
+
+    const rejectBtn = document.getElementById("reject_btn");
+    if(rejectBtn) {
+        rejectBtn.addEventListener("click", e => {
+            
+        })
+    }
 </script>

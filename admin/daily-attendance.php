@@ -37,6 +37,9 @@ $today = date("Y-m-d");
 $sql = "
     SELECT     
         e.employee_id,
+        e.department,
+        e.position,
+        e.employment_status,
         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS full_name,
         a.date, 
         a.clock_in_time, 
@@ -181,6 +184,15 @@ $totalPages = ceil($totalRows / $limit);
     background-color: #ddd;
 }
 
+.filter-search {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+#myTable_filter {
+    display: none;
+}
 @media print {
         header,
         .main-content h2,
@@ -244,11 +256,78 @@ $totalPages = ceil($totalRows / $limit);
         <button class="btn print_btn">Print</button>
     </div>
         
+    <div class="filter-search">
+        <select id="employee" name="employee" class="form-control">
+            <option value="">Select Employee</option>
+            <?php 
+                $empSelect = "SELECT first_name, middle_name, last_name FROM employees WHERE is_archived = 0 ORDER BY first_name ASC";
+                $empResult = mysqli_query($conn, $empSelect);
+
+                if ($empResult) {
+                    $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                    while ($row = mysqli_fetch_assoc($empResult)) {
+                        $withMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']);
+                        $noMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['last_name']);
+                        $fullName = $row['middle_name'] !== '' ? $withMiddleName : $noMiddleName;
+                        ?>
+                        <option value="<?php echo htmlspecialchars($fullName); ?>">
+                            <?php echo htmlspecialchars($fullName); ?>
+                        </option>
+                        <?php
+                    }
+                } 
+            ?>
+        </select>
+
+        <select id="department" name="department" class="form-control">
+                <option value="">Select Department</option>
+                <?php 
+                    $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+                    $deptResult = mysqli_query($conn, $deptSelect);
+
+                    if ($deptResult) {
+                        $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                        while ($row = mysqli_fetch_assoc($deptResult)) {
+                            if ($row['dept_name'] != "Admin") {
+                                ?>
+                                <option value="<?php echo htmlspecialchars($row['dept_name']); ?>">
+                                    <?php echo htmlspecialchars($row['dept_name']); ?>
+                                </option>
+                                <?php
+                            }
+                        }
+                    } 
+                ?>
+            </select>
+
+            <select id="position-dropdown" name="position" class="form-control">
+                <option value="">Select Position</option>
+                <option value="Accounting Assistant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Accounting Assistant") ? 'selected' : ''; ?>>Accounting Assistant</option>
+                <option value="Junior Accountant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Junior Accountant") ? 'selected' : ''; ?>>Junior Accountant</option>
+                <option value="Technical" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Technical") ? 'selected' : ''; ?>>Technical</option>
+                <option value="Electrical Tech" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Electrical Tech") ? 'selected' : ''; ?>>Electrical Tech</option>
+                <option value="Project Engineer" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Project Engineer") ? 'selected' : ''; ?>>Project Engineer</option>
+                <option value="ISC" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "ISC") ? 'selected' : ''; ?>>ISC</option>
+                <option value="Other" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Other") ? 'selected' : ''; ?>>Other</option>
+            </select>
+
+            <select id="employment_status" name="employment_status" class="form-control">
+                <option value="">Select Employment Status</option>
+                <option value="Regular">Regular</option>
+                <option value="Probationary">Probationary</option>
+            </select>
+        </div>
+
         <form method="POST" class="evaluation-form">
             <div class="form-group">
                 <table id="myTable" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th style="display: none"></th>
+                            <th style="display: none"></th>
+                            <th style="display: none"></th>
                             <th></th>
                             <th>Employee ID</th> 
                             <th>Employee Name</th>
@@ -263,6 +342,9 @@ $totalPages = ceil($totalRows / $limit);
                         <?php $count = 1; ?>
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>                   
                             <tr>
+                                <td style="display: none"><?php echo htmlspecialchars($row['department']); ?></td>
+                                <td style="display: none"><?php echo htmlspecialchars($row['position']); ?></td>
+                                <td style="display: none"><?php echo htmlspecialchars($row['employment_status']); ?></td>
                                 <td><?php echo $count++; ?></td>
                                 <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
                                 <td><?php echo htmlspecialchars($row['full_name']); ?></td>
@@ -325,7 +407,6 @@ mysqli_close($conn);
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Event listener for the dropdown export buttons
     document.querySelector(".dropdown-content").addEventListener("click", (e) => {
         const clicked = e.target.closest("a"); 
         if (!clicked) return;
@@ -410,12 +491,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Separate event listener for the Print button
     document.querySelector(".print_btn").addEventListener("click", () => {
         window.print();
     });
 
-    // Initialize DataTable
-    $("#myTable").DataTable();
+    var table = $("#myTable").DataTable();
+
+    var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'), $('#employee')];
+
+    var filterValues = {
+        department: '',
+        position: '',
+        employment_status: '',
+        employee: ''
+    };
+
+    $.each(filters, function(index, filter) {
+        filter.on('change', function() {
+            if (filter.is('#department')) {
+                filterValues.department = $(this).val();
+            } else if (filter.is('#position-dropdown')) {
+                filterValues.position = $(this).val();
+            } else if (filter.is('#employment_status')) {
+                filterValues.employment_status = $(this).val();
+            } else if (filter.is('#employee')) {
+                filterValues.employee = $(this).val();
+            }
+            table
+                .column(0).search(filterValues.department || '').draw()
+                .column(1).search(filterValues.position || '').draw()   
+                .column(2).search(filterValues.employment_status || '').draw()
+                .column(5).search(filterValues.employee || '').draw();
+        });
+    });
+
 });
 </script>

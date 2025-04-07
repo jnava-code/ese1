@@ -48,6 +48,9 @@ if (isset($_POST['search_week'])) {
     SELECT 
         CONCAT(first_name, ' ', middle_name, ' ', last_name) AS full_name,
         e.employee_id,
+        e.department,
+        e.position,
+        e.employment_status,
         e.hire_date,
         a.date,
         a.clock_in_time,
@@ -72,6 +75,15 @@ if (isset($_POST['search_week'])) {
     }
 }
 ?>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables CSS (optional but recommended for styling) -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+<!-- DataTables JavaScript -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
 <style>
     /* Dropdown styling */
@@ -147,6 +159,17 @@ if (isset($_POST['search_week'])) {
 
     table tr:hover {
         background-color: #f1f1f1;
+    }
+
+    .filter-search {
+        display: flex;
+        gap: 5px;
+        margin-top: 10px;
+        margin-bottom: 5px;
+    }
+
+    #myTable_filter {
+        display: none;
     }
 
     @media (max-width: 768px) {
@@ -238,11 +261,78 @@ if (isset($_POST['search_week'])) {
             <input type="submit" name="search_week" value="Search" class="btn btn-primary">
         </form>
 
+        <div class="filter-search">
+            <select id="employee" name="employee" class="form-control">
+                <option value="">Select Employee</option>
+                <?php 
+                    $empSelect = "SELECT first_name, middle_name, last_name FROM employees WHERE is_archived = 0 ORDER BY first_name ASC";
+                    $empResult = mysqli_query($conn, $empSelect);
+
+                    if ($empResult) {
+                        $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                        while ($row = mysqli_fetch_assoc($empResult)) {
+                            $withMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']);
+                            $noMiddleName = htmlspecialchars($row['first_name'] . ' ' . $row['last_name']);
+                            $fullName = $row['middle_name'] !== '' ? $withMiddleName : $noMiddleName;
+                            ?>
+                            <option value="<?php echo htmlspecialchars($fullName); ?>">
+                                <?php echo htmlspecialchars($fullName); ?>
+                            </option>
+                            <?php
+                        }
+                    } 
+                ?>
+            </select>
+
+            <select id="department" name="department" class="form-control">
+                <option value="">Select Department</option>
+                <?php 
+                    $deptSelect = "SELECT * FROM departments WHERE is_archived = 0 ORDER BY dept_name ASC";
+                    $deptResult = mysqli_query($conn, $deptSelect);
+
+                    if ($deptResult) {
+                        $department = isset($department) ? htmlspecialchars($department) : ''; 
+
+                        while ($row = mysqli_fetch_assoc($deptResult)) {
+                            if ($row['dept_name'] != "Admin") {
+                                ?>
+                                <option value="<?php echo htmlspecialchars($row['dept_name']); ?>">
+                                    <?php echo htmlspecialchars($row['dept_name']); ?>
+                                </option>
+                                <?php
+                            }
+                        }
+                    } 
+                ?>
+            </select>
+
+            <select id="position-dropdown" name="position" class="form-control">
+                <option value="">Select Position</option>
+                <option value="Accounting Assistant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Accounting Assistant") ? 'selected' : ''; ?>>Accounting Assistant</option>
+                <option value="Junior Accountant" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Junior Accountant") ? 'selected' : ''; ?>>Junior Accountant</option>
+                <option value="Technical" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Technical") ? 'selected' : ''; ?>>Technical</option>
+                <option value="Electrical Tech" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Electrical Tech") ? 'selected' : ''; ?>>Electrical Tech</option>
+                <option value="Project Engineer" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Project Engineer") ? 'selected' : ''; ?>>Project Engineer</option>
+                <option value="ISC" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "ISC") ? 'selected' : ''; ?>>ISC</option>
+                <option value="Other" <?php echo (!empty($errmsg) && htmlspecialchars($position) == "Other") ? 'selected' : ''; ?>>Other</option>
+            </select>
+
+            <select id="employment_status" name="employment_status" class="form-control">
+                <option value="">Select Employment Status</option>
+                <option value="Regular">Regular</option>
+                <option value="Probationary">Probationary</option>
+            </select>
+        </div>
+
         <div class="attendance-table">
             <table id="attendance-table" class="table table-striped">
                 <thead>
                     <tr>    
                         <th></th>
+                        <th style="display: none"></th>
+                        <th style="display: none"></th>
+                        <th style="display: none"></th>
                         <th>Employee</th>
                         <th>Sunday</th>
                         <th>Monday</th>
@@ -251,7 +341,7 @@ if (isset($_POST['search_week'])) {
                         <th>Thursday</th>
                         <th>Friday</th>
                         <th>Saturday</th>
-                        <th>Total Hours</th> <!-- Added Total Hours column -->
+                        <th>Total Hours</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -272,6 +362,9 @@ if (isset($_POST['search_week'])) {
                 // Convert hire_date to a comparable format
                 $hire_date = date('Y-m-d', strtotime($hire_date));
                 ?>
+                <td style="display: none"><?php echo $attendance[0]['department']; ?></td>
+                <td style="display: none"><?php echo $attendance[0]['position']; ?></td>
+                <td style="display: none"><?php echo $attendance[0]['employment_status']; ?></td>
                 <td><?php echo $full_name; ?></td>
 
                 <?php 
@@ -379,6 +472,7 @@ if (isset($_POST['search_week'])) {
 </main>
 
 <script>
+    
 // Function to update the week dropdown dynamically based on the selected month and year
 function updateWeeks() {
     var month = document.getElementById('month').value;
@@ -409,6 +503,36 @@ function getWeeksInMonth(month, year) {
 }
 
 updateWeeks(); // Update weeks when page loads
+
+var table = $('#attendance-table').DataTable();
+
+var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'), $('#employee')];
+
+    var filterValues = {
+        department: '',
+        position: '',
+        employment_status: '',
+        employee: ''
+    };
+
+    $.each(filters, function(index, filter) {
+        filter.on('change', function() {
+            if (filter.is('#department')) {
+                filterValues.department = $(this).val();
+            } else if (filter.is('#position-dropdown')) {
+                filterValues.position = $(this).val();
+            } else if (filter.is('#employment_status')) {
+                filterValues.employment_status = $(this).val();
+            } else if (filter.is('#employee')) {
+                filterValues.employee = $(this).val();
+            }
+            table
+                .column(1).search(filterValues.department || '').draw()
+                .column(2).search(filterValues.position || '').draw()   
+                .column(3).search(filterValues.employment_status || '').draw()
+                .column(4).search(filterValues.employee || '').draw();
+        });
+    });
 </script>
 
 
