@@ -243,6 +243,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
 
+        .forgot-password {
+            text-align: right;
+        }
         @media only screen and (max-width: 700px) {
             .header {
                 font-size: 10px;
@@ -316,6 +319,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
                         <i id="eye-icon" class="fas fa-eye" onclick="togglePassword()"></i>
                     </div>
+                </div>
+                <div class="form-group forgot-password">
+                    <a href="forgot-password">Forgot Password</a>
                 </div>
                 <button type="submit" class="sign-in-btn">Log In</button>
                 <?php if (!empty($error)): ?>
