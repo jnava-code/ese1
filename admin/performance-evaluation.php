@@ -1,25 +1,13 @@
 <?php
-    include('header.php');
-    include('includes/sideBar.php');
-?>
+    ob_start();
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<main class="main-content">
-    <section id="dashboard">
-        <div class="performance-and-button">
-            <h2>PERFORMANCE EVALUATION</h2>
-            <a href="edit_performance_criteria" class="btn btn-danger">Edit Performance Criteria</a>
-        </div>      
-        
-        <?php
         // Database connection
         $conn = mysqli_connect('localhost', 'root', '', 'esetech'); // Update with actual credentials
 
         if (!$conn) {
             die("Connection failed: " . mysqli_connect_error());
         }
-
+        include('header.php');
         // Fetch employees for the evaluation form
         $sql = "SELECT * FROM employees";
         $employees_result = mysqli_query($conn, $sql);
@@ -75,17 +63,19 @@
             $overall_score = array_sum($criteria) / count($criteria);
 
             // Determine remarks based on decimal overall score
-            if ($overall_score <= 1.5) {
-                $remarks = "Need Guidance";
-            } elseif ($overall_score > 1.5 && $overall_score <= 2.5) {
-                $remarks = "Low";
-            } elseif ($overall_score > 2.5 && $overall_score < 4.5) {
-                $remarks = "Effective";
-            } elseif ($overall_score >= 4.5) {
+            if ($overall_score >= 4.51 && $overall_score <= 5) {
                 $remarks = "Very Effective";
+            } elseif ($overall_score >= 3.51 && $overall_score <= 4.50) {
+                $remarks = "Effective";
+            } elseif ($overall_score >= 2.51 && $overall_score <= 3.50) {
+                $remarks = "Satisfactory";
+            } elseif ($overall_score >= 1.51 && $overall_score <= 2.50) {
+                $remarks = "Low";
+            } elseif ($overall_score >= 1.00 && $overall_score <= 1.50) {
+                $remarks = "Need Guidance";
             } else {
-                $remarks = "Unspecified";
-            }    
+                $remarks = "Unspecified"; // In case of an unexpected score
+            }              
 
             // Insert evaluation data into the database
             $insert_sql = "INSERT INTO performance_evaluations (
@@ -109,10 +99,11 @@
             )";
 
             if (mysqli_query($conn, $insert_sql)) {
-                echo "<script>window.location.href = 'performance-evaluation';</script>";
+                $_SESSION['evaluation_message'] = "<p style='color:green;'>Evaluation submitted successfully!</p>";
+                header("Location: performance-evaluation");
                 exit;
             } else {
-                echo "<p>Error: " . mysqli_error($conn) . "</p>";
+                echo "<p style='color:red;'>Error: " . mysqli_error($conn) . "</p>";
             }
         }
         
@@ -134,6 +125,24 @@
         $eligible_employees_result = mysqli_query($conn, $eligible_employees_sql);
 
         ?>
+<?php
+
+    include('includes/sideBar.php');
+?>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<main class="main-content">
+    <section id="dashboard">
+        <div class="performance-and-button">
+            <h2>PERFORMANCE EVALUATION</h2>
+            <a href="edit_performance_criteria" class="btn btn-danger">Edit Performance Criteria</a>
+        </div>      
+        <?php if (isset($_SESSION['evaluation_message'])): ?>
+
+        <?php echo $_SESSION['evaluation_message']; ?>
+            <?php unset($_SESSION['evaluation_message']); ?>
+        <?php endif; ?>
 
         <form method="POST" class="evaluation-form">
             <div class="form-group">
@@ -175,12 +184,11 @@
                 ?>
                     <!-- Display the label with the counter (e.g., "1. Job Knowledge (1-5)") -->
                     <label for="<?php echo $name_attribute; ?>">
-                        <?php echo $counter . '. ' . $row['description']; ?> (1-5):
+                        <?php echo $counter . '. ' . $row['title']; ?> (1-5): <br>
                     </label>
-
+                    <span class="evaluation_description">- <?php echo $row['description']; ?></span>
                     <div class="radio-choices">
                         <div class="radio-choice">
-                            
                             <label class="radio-label">
                                 <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
                                 1. Need Guidance
@@ -232,7 +240,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary">Submit Evaluation</button>
-        </form>
+        </form> 
         <br>
         <table id="myTable" class="evaluation-table">
             <thead>

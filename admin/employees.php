@@ -1,226 +1,224 @@
-<?php
-
-// Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'esetech');
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-include('header.php'); 
-require '../vendor/autoload.php';
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/Exception.php';
-require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/PHPMailer.php';
-require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/SMTP.php';
-
-// Function to execute queries with error handling
-function executeQuery($conn, $sql, $types = null, $params = []) {
-    $stmt = mysqli_prepare($conn, $sql);
-    if ($types && $params) {
-        mysqli_stmt_bind_param($stmt, $types, ...$params);
+<?php // Database connection
+    $conn = mysqli_connect('localhost', 'root', '', 'esetech');
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
     }
-    if (!mysqli_stmt_execute($stmt)) {
-        echo "Error: " . mysqli_stmt_error($stmt);
-    }
-    mysqli_stmt_close($stmt);
-}
+    include('header.php'); 
+    require '../vendor/autoload.php';
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
 
-// Add Employee
-if (isset($_POST['add_employee'])) {
-    // Retrieve POST values
-    $last_name = $_POST['last_name'] ?? '';
-    $first_name = $_POST['first_name'] ?? '';
-    $middle_name = $_POST['middle_name'] ?? '';
-    $suffix = $_POST['suffix'] ?? '';
-    $gender = $_POST['gender'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $position = $_POST['position'] == 'Other' ? $_POST['custom-position'] : $_POST['position'];
-    $hire_date = $_POST['hire_date'] ?? '';
-    $department = $_POST['department'] ?? '';
-    $employment_status = $_POST['employment_status'] ?? '';
-    $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
-    $date_of_birth = $_POST['date_of_birth'] ?? '';
-    
-    // Create DateTime objects
-    $dob = new DateTime($date_of_birth);
-    $today = new DateTime('today');
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/Exception.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/PHPMailer.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/SMTP.php';
 
-    // Calculate the age
-    $age = $dob->diff($today)->y;
-    $password = generatePasswordFromBday($date_of_birth);
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $contact_number = $_POST['contact_number'] ?? '';
-    $perma_address = $_POST['perma_address'] ?? '';
-    $present_address = $_POST['present_address'] ?? '';
-    $civil_status = $_POST['civil_status'] ?? '';
-    $sss_number = $_POST['sss_number'] ?? '';
-    $philhealth_number = $_POST['philhealth_number'] ?? '';
-    $pagibig_number = $_POST['pagibig_number'] ?? '';
-    $tin_number = $_POST['tin_number'] ?? '';
-    $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
-    $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
-    $relationship_emergency = $_POST['relationship_emergency'] ?? '';
-    $educational_background = $_POST['educational_background'] ?? '';
-    $skills = $_POST['skills'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $sick_leave = 12 ?? 0;
-    $vacation_leave = 12 ?? 0;
-    $maternity_leave = $gender == 'Female' ? 105 : 0;
-    $paternity_leave = $gender == 'Male' ? 7 : 0;
-
-    // File uploads
-    function getFileContent($fieldName) {
-        return isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK
-            ? file_get_contents($_FILES[$fieldName]['tmp_name'])
-            : null;
-    }
-    
-    function uploadFile($fieldName, $first_name, $last_name) {
-        $file_path = '../files/';
-        $max_file_size = 25 * 1024 * 1024;
-    
-        if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
-            return null;
+    // Function to execute queries with error handling
+    function executeQuery($conn, $sql, $types = null, $params = []) {
+        $stmt = mysqli_prepare($conn, $sql);
+        if ($types && $params) {
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
         }
-    
-        if ($_FILES[$fieldName]['size'] > $max_file_size) {
-            $errmsg = "File size exceeds the maximum limit of 25MB.";
-            return $errmsg;
+        if (!mysqli_stmt_execute($stmt)) {
+            echo "Error: " . mysqli_stmt_error($stmt);
         }
-    
-        $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
-        $unique_filename = $first_name . '_' . $last_name . '_' . uniqid() . '.' . $ext;
-    
-        if (move_uploaded_file($_FILES[$fieldName]['tmp_name'], $file_path . $unique_filename)) {
-            return $unique_filename;
-        } else {
-            die("File upload failed for $fieldName.");
-        }
-    }        
-
-    // Upload files
-    $file_medical = uploadFile('file_medical', $first_name, $last_name);
-    $file_tor = uploadFile('file_tor', $first_name, $last_name);
-    $file_police = uploadFile('file_police', $first_name, $last_name);
-    $file_resume = uploadFile('file_resume', $first_name, $last_name);
-    $file_prc = uploadFile('file_prc', $first_name, $last_name);
-    $file_201 = uploadFile('file_201', $first_name, $last_name);
-
-    // Get file types
-    $medical_type = $_FILES['file_medical']['type'] ?? null;
-    $tor_type = $_FILES['file_tor']['type'] ?? null;
-    $police_type = $_FILES['file_police']['type'] ?? null;
-    $resume_type = $_FILES['file_resume']['type'] ?? null;
-    $prc_type = $_FILES['file_prc']['type'] ?? null;
-    $others_type = $_FILES['file_201']['type'] ?? null;
-    
-    // Check if any file upload failed
-    foreach ($_FILES as $key => $file) {
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            die("File upload error in $key: " . $file['error']);
-        }
+        mysqli_stmt_close($stmt);
     }
 
-    // Initialize error message
-    $errmsg = '';
+    // Add Employee
+    if (isset($_POST['add_employee'])) {
+        // Retrieve POST values
+        $last_name = $_POST['last_name'] ?? '';
+        $first_name = $_POST['first_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $suffix = $_POST['suffix'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $position = $_POST['position'] == 'Other' ? $_POST['custom-position'] : $_POST['position'];
+        $hire_date = $_POST['hire_date'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $employment_status = $_POST['employment_status'] ?? '';
+        $employee_id = str_replace('-', '', $_POST['employee_id'] ?? '');
+        $date_of_birth = $_POST['date_of_birth'] ?? '';
+        
+        // Create DateTime objects
+        $dob = new DateTime($date_of_birth);
+        $today = new DateTime('today');
 
-    // Check for uniqueness
-    function isFieldUnique($conn, $field, $value, $fieldName) {
-        $sql = "SELECT $field FROM employees WHERE $field = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('s', $value);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result && $result->num_rows > 0) {
-            return "$fieldName - '$value' is already in use.<br>";
+        // Calculate the age
+        $age = $dob->diff($today)->y;
+        $password = generatePasswordFromBday($date_of_birth);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $contact_number = $_POST['contact_number'] ?? '';
+        $perma_address = $_POST['perma_address'] ?? '';
+        $present_address = $_POST['present_address'] ?? '';
+        $civil_status = $_POST['civil_status'] ?? '';
+        $sss_number = $_POST['sss_number'] ?? '';
+        $philhealth_number = $_POST['philhealth_number'] ?? '';
+        $pagibig_number = $_POST['pagibig_number'] ?? '';
+        $tin_number = $_POST['tin_number'] ?? '';
+        $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
+        $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
+        $relationship_emergency = $_POST['relationship_emergency'] ?? '';
+        $educational_background = $_POST['educational_background'] ?? '';
+        $skills = $_POST['skills'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $sick_leave = 12 ?? 0;
+        $vacation_leave = 12 ?? 0;
+        $maternity_leave = $gender == 'Female' ? 105 : 0;
+        $paternity_leave = $gender == 'Male' ? 7 : 0;
+
+        // File uploads
+        function getFileContent($fieldName) {
+            return isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK
+                ? file_get_contents($_FILES[$fieldName]['tmp_name'])
+                : null;
         }
-        return '';
-    }
-
-    $errmsg .= isFieldUnique($conn, 'employee_id', $employee_id, 'Employee ID');
-    $errmsg .= isFieldUnique($conn, 'sss_number', $sss_number, 'SSS Number');
-    $errmsg .= isFieldUnique($conn, 'philhealth_number', $philhealth_number, 'PhilHealth Number');
-    $errmsg .= isFieldUnique($conn, 'pagibig_number', $pagibig_number, 'Pag-IBIG Number');
-    $errmsg .= isFieldUnique($conn, 'tin_number', $tin_number, 'TIN Number');
-    $errmsg .= isFieldUnique($conn, 'username', $username, 'Username');
-    $errmsg .= isFieldUnique($conn, 'email', $email, 'Email');
-
-    // Proceed if no errors
-    if (empty($errmsg)) {
-        // Insert into database
-        $sql = "INSERT INTO employees (
-            last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
-            employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address, present_address,
-            civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
-            emergency_contact_number, relationship_emergency, educational_background, skills, username, sick_leave, vacation_leave,
-            maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others,
-            medical_type, tor_type, police_type, resume_type, prc_type, others_type
-        ) VALUES (
-            '$last_name', '$first_name', '$middle_name', '$suffix', '$gender', '$email', '$position', '$hire_date', '$department',
-            '$employment_status', '$employee_id', '$hashedPassword', '$date_of_birth', '$age', '$contact_number', '$perma_address', '$present_address',
-            '$civil_status', '$sss_number', '$philhealth_number', '$pagibig_number', '$tin_number', '$emergency_contact_name',
-            '$emergency_contact_number', '$relationship_emergency', '$educational_background', '$skills', '$username',
-            '$sick_leave', '$vacation_leave', '$maternity_leave', '$paternity_leave', '$file_medical', '$file_tor',
-            '$file_police', '$file_resume', '$file_prc', '$file_201', '$medical_type', '$tor_type', '$police_type',
-            '$resume_type', '$prc_type', '$others_type'
-        )";
-
-        if ($conn->query($sql) === TRUE) {
-            // Send email using PHPMailer
-            $mail = new PHPMailer(true);
-
-            try {
-                // SMTP Settings
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'rroquero26@gmail.com';
-                $mail->Password = 'plxj aziw yqbo wkbs';
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587;
-                            
-                // Email Headers
-                $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System');
-                $mail->addAddress($email);
-                $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
-
-                // Prepare the email message
-                $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
-
-                // Set email format to plain text
-                $mail->isHTML(true);
-                $mail->Body = $message;
-
-                // Send the email
-                if ($mail->send()) {               
-                    $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
-                    header("Location: employees");
-                    exit();
-                } else {
-                    $_SESSION['error_message'] = "An error occurred while sending email: " . $mail->ErrorInfo;
-                }
-            } catch (Exception $e) {
-                $_SESSION['error_message'] = "Mailer Error: " . $mail->ErrorInfo;
+        
+        function uploadFile($fieldName, $first_name, $last_name) {
+            $file_path = '../files/';
+            $max_file_size = 25 * 1024 * 1024;
+        
+            if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
+                return null;
             }
-        } else {
-            $_SESSION['error_message'] = "An error occurred: " . $conn->error;
+        
+            if ($_FILES[$fieldName]['size'] > $max_file_size) {
+                $errmsg = "File size exceeds the maximum limit of 25MB.";
+                return $errmsg;
+            }
+        
+            $ext = pathinfo($_FILES[$fieldName]['name'], PATHINFO_EXTENSION);
+            $unique_filename = $first_name . '_' . $last_name . '_' . uniqid() . '.' . $ext;
+        
+            if (move_uploaded_file($_FILES[$fieldName]['tmp_name'], $file_path . $unique_filename)) {
+                return $unique_filename;
+            } else {
+                die("File upload failed for $fieldName.");
+            }
+        }        
+
+        // Upload files
+        $file_medical = uploadFile('file_medical', $first_name, $last_name);
+        $file_tor = uploadFile('file_tor', $first_name, $last_name);
+        $file_police = uploadFile('file_police', $first_name, $last_name);
+        $file_resume = uploadFile('file_resume', $first_name, $last_name);
+        $file_prc = uploadFile('file_prc', $first_name, $last_name);
+        $file_201 = uploadFile('file_201', $first_name, $last_name);
+
+        // Get file types
+        $medical_type = $_FILES['file_medical']['type'] ?? null;
+        $tor_type = $_FILES['file_tor']['type'] ?? null;
+        $police_type = $_FILES['file_police']['type'] ?? null;
+        $resume_type = $_FILES['file_resume']['type'] ?? null;
+        $prc_type = $_FILES['file_prc']['type'] ?? null;
+        $others_type = $_FILES['file_201']['type'] ?? null;
+        
+        // Check if any file upload failed
+        foreach ($_FILES as $key => $file) {
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                die("File upload error in $key: " . $file['error']);
+            }
+        }
+
+        // Initialize error message
+        $errmsg = '';
+
+        // Check for uniqueness
+        function isFieldUnique($conn, $field, $value, $fieldName) {
+            $sql = "SELECT $field FROM employees WHERE $field = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('s', $value);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                return "$fieldName - '$value' is already in use.<br>";
+            }
+            return '';
+        }
+
+        $errmsg .= isFieldUnique($conn, 'employee_id', $employee_id, 'Employee ID');
+        $errmsg .= isFieldUnique($conn, 'sss_number', $sss_number, 'SSS Number');
+        $errmsg .= isFieldUnique($conn, 'philhealth_number', $philhealth_number, 'PhilHealth Number');
+        $errmsg .= isFieldUnique($conn, 'pagibig_number', $pagibig_number, 'Pag-IBIG Number');
+        $errmsg .= isFieldUnique($conn, 'tin_number', $tin_number, 'TIN Number');
+        $errmsg .= isFieldUnique($conn, 'username', $username, 'Username');
+        $errmsg .= isFieldUnique($conn, 'email', $email, 'Email');
+
+        // Proceed if no errors
+        if (empty($errmsg)) {
+            // Insert into database
+            $sql = "INSERT INTO employees (
+                last_name, first_name, middle_name, suffix, gender, email, position, hire_date, department,
+                employment_status, employee_id, password, date_of_birth, age, contact_number, perma_address, present_address,
+                civil_status, sss_number, philhealth_number, pagibig_number, tin_number, emergency_contact_name,
+                emergency_contact_number, relationship_emergency, educational_background, skills, username, sick_leave, vacation_leave,
+                maternity_leave, paternity_leave, medical, tor, nbi_clearance, resume, prc, others,
+                medical_type, tor_type, police_type, resume_type, prc_type, others_type
+            ) VALUES (
+                '$last_name', '$first_name', '$middle_name', '$suffix', '$gender', '$email', '$position', '$hire_date', '$department',
+                '$employment_status', '$employee_id', '$hashedPassword', '$date_of_birth', '$age', '$contact_number', '$perma_address', '$present_address',
+                '$civil_status', '$sss_number', '$philhealth_number', '$pagibig_number', '$tin_number', '$emergency_contact_name',
+                '$emergency_contact_number', '$relationship_emergency', '$educational_background', '$skills', '$username',
+                '$sick_leave', '$vacation_leave', '$maternity_leave', '$paternity_leave', '$file_medical', '$file_tor',
+                '$file_police', '$file_resume', '$file_prc', '$file_201', '$medical_type', '$tor_type', '$police_type',
+                '$resume_type', '$prc_type', '$others_type'
+            )";
+
+            if ($conn->query($sql) === TRUE) {
+                // Send email using PHPMailer
+                $mail = new PHPMailer(true);
+
+                try {
+                    // SMTP Settings
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'rroquero26@gmail.com';
+                    $mail->Password = 'plxj aziw yqbo wkbs';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+                                
+                    // Email Headers
+                    $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System');
+                    $mail->addAddress($email);
+                    $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+
+                    // Prepare the email message
+                    $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
+
+                    // Set email format to plain text
+                    $mail->isHTML(true);
+                    $mail->Body = $message;
+
+                    // Send the email
+                    if ($mail->send()) {               
+                        $_SESSION['success_message'] = "The employee, $first_name $last_name, has been successfully added.";
+                        header("Location: employees");
+                        exit();
+                    } else {
+                        $errmsg = "An error occurred: " . $stmt->error;
+                    }
+                } catch (Exception $e) {
+                    $errmsg = "Mailer Error: " . $mail->ErrorInfo;
+                }
+            } else {
+                $errmsg = "An error occurred: " . $stmt->error;
+            }
         }
     }
-}
 
-// Archive Employee (instead of delete)
-if (isset($_GET['delete_id'])) {
-    $id = $_GET['delete_id'];
-    $sql = "UPDATE employees SET is_archived = 1 WHERE id=?";
-    executeQuery($conn, $sql, 'i', [$id]);
-}
+    // Archive Employee (instead of delete)
+    if (isset($_GET['delete_id'])) {
+        $id = $_GET['delete_id'];
+        $sql = "UPDATE employees SET is_archived = 1 WHERE id=?";
+        executeQuery($conn, $sql, 'i', [$id]);
+    }
 
-// Fetch Employees
-$sql = "SELECT * FROM employees WHERE is_archived = 0";
-$resultEmployees = mysqli_query($conn, $sql);
+    // Fetch Employees
+    $sql = "SELECT * FROM employees WHERE is_archived = 0";
+    $resultEmployees = mysqli_query($conn, $sql);
 
-// Capture search input if available
+    // Capture search input if available
 $searchQuery = '';
 if (isset($_GET['search'])) {
     $searchQuery = $_GET['search'];
@@ -307,6 +305,7 @@ function validateEmployeeData($data) {
     return $errors;
 }
 
+include('header.php'); 
 
 function generatePasswordFromBday($date_of_birth) {
     // Extract month, day, and year from the date
@@ -485,35 +484,20 @@ function generatePasswordFromBday($date_of_birth) {
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 <main class="main-content">
-    <?php if (isset($_SESSION['success_message'])): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin: 20px;">
-            <?php 
-                echo $_SESSION['success_message'];
+        <section id="dashboard">
+            <h2 class="text-2xl font-bold mb-6">EMPLOYEE MANAGEMENT</h2>
+            
+            <!-- Add Employee Form -->
+            <div class="card form-content">
+        <?php
+            if (isset($_SESSION['success_message'])) {
+                echo '<div class="alert alert-success" role="alert">' . $_SESSION['success_message'] . '</div>';
                 unset($_SESSION['success_message']);
-            ?>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 20px;">
-            <?php 
-                echo $_SESSION['error_message'];
-                unset($_SESSION['error_message']);
-            ?>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    <?php endif; ?>
-
-    <section id="dashboard">
-        <h2 class="text-2xl font-bold mb-6">EMPLOYEE MANAGEMENT</h2>
-        
-        <!-- Add Employee Form -->
-        <div class="card form-content">
+            }
+            if (!empty($errmsg)) {
+                echo '<div class="alert alert-danger" role="alert">' . $errmsg . '</div>';
+            }
+        ?>
     <div class="card-header">
         <h3>Add New Employee</h3>
     </div>

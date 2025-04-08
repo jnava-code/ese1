@@ -207,7 +207,13 @@ textarea.form-control {
   gap: 1rem;
   align-items: center;
   margin-top: 10px;
+  margin-bottom: 10px;
   margin-left: 25px;
+}
+
+.form-group .evaluation_description {
+  margin-left: 25px;
+  color: #666;
 }
 
 .radio-choice {

@@ -13,10 +13,10 @@
     
         if ($stmt->execute()) {
             // If deletion is successful, show a success message
-            $message = '<p style="color: green;">Performance Criteria successfully deleted.</p>';
+            $success_message = '<p style="color: green;">Performance Criteria successfully deleted.</p>';
         } else {
             // If there's an error in deletion, show an error message
-            $message = '<p style="color: red;">Error deleting performance criteria.</p>';
+            $success_message = '<p style="color: red;">Error deleting performance criteria.</p>';
         }
     }
 
@@ -31,10 +31,10 @@
 
         if ($stmt->execute()) {
             // If archiving is successful, show a success message
-            $message = '<p style="color: green;">Performance Criteria has been archived successfully.</p>';
+            $success_message = '<p style="color: green;">Performance Criteria has been archived successfully.</p>';
         } else {
             // If there's an error in archiving, show an error message
-            $message = '<p style="color: red;">Error archiving performance criteria.</p>';
+            $success_message = '<p style="color: red;">Error archiving performance criteria.</p>';
         }
     }
 
@@ -51,10 +51,10 @@ if (isset($_POST['restore_performance'])) {
     // Execute the query
     if ($stmt->execute()) {
         // If restoring is successful, show a success message
-        $message = '<p style="color: green;">Performance criterion has been restored successfully.</p>';
+        $success_message = '<p style="color: green;">Performance criterion has been restored successfully.</p>';
     } else {
         // If there's an error in restoring, show an error message
-        $message = '<p style="color: red;">Error restoring performance criterion.</p>';
+        $success_message = '<p style="color: red;">Error restoring performance criterion.</p>';
     }
 }
 
@@ -71,7 +71,7 @@ if (isset($_POST['add_criteria'])) {
 
     if ($criteriaSelectResult->num_rows > 0) {
         // Department already exists
-        $message = '<p style="color: red;">The performance criteria already exists.</p>';
+        $success_message = '<p style="color: red;">The performance criteria already exists.</p>';
     } else {
         // Insert new department
         $sql = "INSERT INTO performance_criteria (description, is_archived) VALUES (?, ?)";
@@ -81,10 +81,10 @@ if (isset($_POST['add_criteria'])) {
 
         if ($criteriaSelectResult) {
             // Department successfully added
-            $message = '<p style="color: green;">The performance criteria has been successfully added.</p>';
+            $success_message = '<p style="color: green;">The performance criteria has been successfully added.</p>';
         } else {
             // Error in insertion
-            $message = '<p style="color: red;">Error adding performance criteria.</p>';
+            $success_message = '<p style="color: red;">Error adding performance criteria.</p>';
         }
     }
 }
@@ -92,14 +92,15 @@ if (isset($_POST['add_criteria'])) {
 if (isset($_POST['update_criteria'])) {
     $criteria_id = $_POST['criteria_id'];
     $criteria_name = $_POST['criteria_name'];
+    $criteria_description = $_POST['criteria_description'];   
 
-    $updateSql = "UPDATE performance_criteria SET description = ? WHERE id = ?";
+    $updateSql = "UPDATE performance_criteria SET title = ?, description = ? WHERE id = ?";
     $stmt = $conn->prepare($updateSql);
-    $stmt->bind_param('si', $criteria_name, $criteria_id);
+    $stmt->bind_param('ssi', $criteria_name, $criteria_description, $criteria_id);
     if ($stmt->execute()) {
-        $message = '<p style="color: green;">Performance Criteria successfully updated.</p>';
+        $success_message = '<p style="color: green;">Performance Criteria successfully updated.</p>';
     } else {
-        $message = '<p style="color: red;">Error updating performance criteria.</p>';
+        $success_message = '<p style="color: red;">Error updating performance criteria.</p>';
     }
 }
 ?>
@@ -127,12 +128,14 @@ if (isset($_POST['update_criteria'])) {
         <div class="add-criteria-background"></div>
 
         <div class="card">
-            <h3>Performance Criteria</h3>
+            <?php if(!empty($success_message)) echo $success_message; ?>
+            <h3>Performance Criteria</h3>   
             
             <!-- Performance Criteria Table -->
             <table>
                 <thead>
                     <tr>
+                        <th>Title</th>
                         <th>Description</th>
                         <th>Action</th>
                     </tr>
@@ -147,6 +150,7 @@ if (isset($_POST['update_criteria'])) {
                             while ($row = mysqli_fetch_assoc($performance_result)) {
                     ?>
                         <tr>
+                            <td><?php echo $row['title']; ?>:</td>
                             <td><?php echo $row['description']; ?>:</td>
                             <td class="action-buttons">                               
                                 <!-- Edit Button -->
@@ -159,7 +163,8 @@ if (isset($_POST['update_criteria'])) {
                                     <form method="POST" class="label-and-input" id="edit-criteria-form">
                                         <label for="criteria_name">Performance Criteria: </label>
                                         <input type="hidden" name="criteria_id" value="<?php echo $row['id']; ?>" />
-                                        <input type="text" id="criteria_name" name="criteria_name" value="<?php echo $row['description'] ?>" required>
+                                        <input type="text" id="criteria_name" name="criteria_name" placeholder="Title" value="<?php echo $row['title'] ?>" required>
+                                        <input type="text" id="criteria_description" name="criteria_description" placeholder="Description" value="<?php echo $row['description'] ?>" required>
 
                                         <div class="action-buttons">
                                             <input class="btn" type="submit" name="update_criteria" value="Update">
