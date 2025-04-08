@@ -215,12 +215,12 @@ if (isset($_SESSION['success_message'])) {
                 </div>
 
                 <div>
-                    <label for="start_date">Start Date:</label>
+                    <label for="start_date">Date of Start Leave:</label>
                     <input type="date" id="start_date" name="start_date" required min="<?= date('Y-m-d'); ?>">
                 </div>
 
                 <div>
-                    <label for="end_date">End Date:</label>
+                    <label for="end_date">Date of End  Leave:</label>
                     <input type="date" id="end_date" name="end_date" required min="<?= date('Y-m-d'); ?>" onchange="validateEndDate()">
                 </div>
 

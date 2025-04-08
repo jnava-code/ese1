@@ -192,7 +192,7 @@ $result = mysqli_query($conn, $sql);
                             $action_date = isset($row['action_date']) ? htmlspecialchars($row['action_date']) : null;
                             $survey_date = isset($row['survey_date']) ? htmlspecialchars($row['survey_date']) : null;
 
-                            $message = ($type == 'Leave Request') 
+                            $notif_message = ($type == 'Leave Request') 
                                 ? "$fullname filed a leave request" 
                                 : "$fullname submitted a job satisfaction survey";
 
@@ -203,7 +203,7 @@ $result = mysqli_query($conn, $sql);
                             <div class="notification-item <?php echo $class; ?>">
                                 <i class="icon <?php echo $icon; ?>"></i>
                                 <div class="content">
-                                    <div class="title"><?php echo $message; ?></div>
+                                    <div class="title"><?php echo $notif_message; ?></div>
                                     <div class="timestamp"><?php echo $timestamp; ?></div>
                                 </div>
                             </div>

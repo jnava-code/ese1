@@ -186,6 +186,15 @@ button[id="submit-reason"],
 button[id="reject_btn"] {
     background-color: #e74c3c;
 }
+
+.filter-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.filter-buttons a {
+    width: 100%;
+}
 @media print {
         header,
         .main-content h2,
@@ -219,6 +228,16 @@ button[id="reject_btn"] {
         }
     }
 
+    .title-and-xbtn {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title-and-xbtn span {
+        font-size:24px;
+        cursor: pointer;
+    }
 </style>
 
 <!-- Main Content Area -->
@@ -360,7 +379,7 @@ button[id="reject_btn"] {
                 <td class="actions">
                     <?php
                         if ($row['status'] == 'Pending') {
-                            echo '<form action="./process_leave" method="POST">                           
+                            echo '<form action="./process_leave" method="POST">
                                     <input type="hidden" id="employee_id" name="employee_id" value="' . $row['employee_id'] . '">
                                     <input type="hidden" id="leave_id" name="leave_id" value="' . $row['leave_id'] . '">
                                     <input type="hidden" id="leave_type" name="leave_type" value="' . $row['leave_type'] . '">
@@ -368,7 +387,7 @@ button[id="reject_btn"] {
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>
-                                    <button id="reject_btn" type="button" value="reject">
+                                    <button id="reject_btn_' . $row['leave_id'] . ' " type="submit" value="reject">
                                         Reject
                                     </button>
                                 </form>';
@@ -559,42 +578,45 @@ var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'
         });
     });
 
-    const rejectBtn = document.getElementById("reject_btn");
-    const employeeId = document.querySelectorAll("#employee_id");
-const leaveId = document.querySelectorAll("#leave_id");
-const leaveType = document.querySelectorAll("#leave_type");
-const numberOfDays = document.querySelectorAll("#number_of_days");
+    const leaveId = document.querySelectorAll('#leave_id');
 
-console.log(employeeId);
-console.log(leaveId);
-console.log(leaveType);
-console.log(numberOfDays);
-
-if (employeeId.length > 0 && leaveId.length > 0 && leaveType.length > 0 && numberOfDays.length > 0) {
-    const arrays = [employeeId, leaveId, leaveType, numberOfDays];
-    
-    arrays.forEach(array => {
-        array.forEach(element => {
-            console.log(element.value);
-        });
-    });
-}
-
-    if(rejectBtn) {
-        rejectBtn.addEventListener("click", e => {
-
+    if(leaveId) {
+        leaveId.forEach(id => {
+            const rejectButton = document.getElementById('reject_btn_' + id.value);
+            if (rejectButton) {
+                rejectButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    reasonOfRejection(id.value)
+                });
+            }
         })
     }
 
-    function reasonOfRejection() {
-        const rejectionModal = `<div class="rejection-modal">
-                <h2>Reason for Rejection</h2>
-                <textarea id="reason" rows="6" cols="50"></textarea>
-                <button id="submit-reason">Submit</button>
+    function reasonOfRejection(leave_id) {
+        const rejectionModal = `<div id="rejection-modal_${leave_id}" class="rejection-modal">
+                <div class="title-and-xbtn">
+                    <h2>Reason for Rejection</h2>
+                    <span id="xBtn_${leave_id}">&#215</span>
+                </div>
+                <form action="./process_leave" method="POST">
+                    <input type="hidden" id="leave_id" name="leave_id" value="${leave_id}">
+                    <textarea id="reason" rows="6" cols="50" name="reason_of_rejection" required></textarea>
+                    <button type="submit" name="action" value="reject">Submit</button>
+                </form>
             </div>`;
 
         document.body.insertAdjacentHTML('beforeend', rejectionModal);
+
+        const xBtn = document.getElementById('xBtn_' + leave_id);
+
+        if(xBtn) {
+            xBtn.addEventListener('click', function() {
+                const modal = document.getElementById('rejection-modal_' + leave_id);
+                if (modal) {
+                    modal.remove();
+                }
+            });
+        }
     }
 
-    reasonOfRejection();
 </script>

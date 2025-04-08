@@ -27,14 +27,6 @@
 
     // Get employees with optional department filter
     $selected_dept = isset($_GET['department']) ? $_GET['department'] : '';
-    
-    $sql_employees = "SELECT * FROM employees WHERE is_archived = 0";
-    if (!empty($selected_dept)) {
-        $sql_employees .= " AND department = '$selected_dept'";
-    }
-    $sql_employees .= " ORDER BY last_name ASC";
-    
-    $result_employees = mysqli_query($conn, $sql_employees);
 
     include('header.php');
 ?>
@@ -185,7 +177,10 @@ if (isset($_POST['update_dept'])) {
         <div class="dept-background"></div>
         <div class="card">
 
-        <?php echo !empty($message) ? $message : ''; ?>
+        <?php
+            $message = isset($message) ? $message : ''; // Ensure $message is defined
+            if (!empty($message)) echo $message;
+        ?>
 
         <table>
             <thead>
@@ -224,73 +219,6 @@ if (isset($_POST['update_dept'])) {
             </tbody>
         </table>
     </div>
-    
-        <h2 class="text-2xl font-bold mb-6">EMPLOYEES PER DEPARTMENT</h2> 
-        <!-- Employee List -->
-        <div class="card">
-            <div class="card-header">
-                <h3><?php echo empty($selected_dept) ? 'All Employees' : $selected_dept . ' Department Employees'; ?></h3>
-
-                <form method="GET" class="form-inline justify-content-between align-items-center">
-                    <!-- <div class="form-group" style="display: flex; gap: 10px;"> -->
-                        <label for="department">Filter by Department:</label>
-                        <select name="department" class="form-control" onchange="this.form.submit()">
-                            <option value="">All Departments</option>
-                            <?php while ($dept = mysqli_fetch_assoc($dept_result)): ?>
-                                <option value="<?php echo $dept['department']; ?>" 
-                                    <?php echo ($selected_dept == $dept['department']) ? 'selected' : ''; ?>>
-                                    <?php echo $dept['department']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    <!-- </div> -->
-                </form>
-            </div>
-
-            <div class="card-body">
-                <table id="myTable" class="employee-table">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Employee ID</th>
-                            <th>Full Name</th>
-                            <th>Position</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                            $counter = 1;
-                            while ($employee = mysqli_fetch_assoc($result_employees)): 
-                        ?>
-                            <tr>
-                                <td><?php echo $counter++; ?></td>
-                                <td class="employee_id_display"><?php echo $employee['employee_id']; ?></td>
-                                <td>
-                                    <?php
-                                        $full_name = trim($employee['first_name'] . ' ' . $employee['middle_name'] . ' ' . $employee['last_name']);
-                                        if (!empty($employee['suffix'])) {
-                                            $full_name .= ', ' . $employee['suffix'];
-                                        }
-                                        echo $full_name;
-                                    ?>
-                                </td>
-                                <td><?php echo $employee['position']; ?></td>
-                                <td><?php echo $employee['department']; ?></td>
-                                <td><?php echo $employee['employment_status']; ?></td>
-                                <td class="action-buttons">
-                                    <a href="./edit_employee?id=<?php echo $employee['id']; ?>" class="btn btn-warning">Edit</a>
-                                    <a href="?delete_id=<?php echo $employee['id']; ?>" class="btn btn-danger" 
-                                       onclick="return confirm('Are you sure you want to Archive this employee?');">Archive</a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </section>
 </main>
 

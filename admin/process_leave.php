@@ -7,9 +7,10 @@ if (!$conn) {
 }
 
 // Check if the form was submitted
-if (isset($_POST['action'], $_POST['leave_id'], $_POST['leave_type'], $_POST['number_of_days'])) {
+if (isset($_POST['action'], $_POST['leave_id'])) {
     $employee_id = $_POST['employee_id'];
     $leave_id = $_POST['leave_id'];
+    $reason_of_rejection = $_POST['reason_of_rejection'];
     $leave_type = strtolower(trim($_POST['leave_type']));
     $number_of_days = (int) $_POST['number_of_days'];
    
@@ -59,8 +60,8 @@ if (isset($_POST['action'], $_POST['leave_id'], $_POST['leave_type'], $_POST['nu
         $status = 'Rejected';
 
         // Update the leave request status
-        $stmt = mysqli_prepare($conn, "UPDATE leave_applications SET status = ? WHERE leave_id = ?");
-        mysqli_stmt_bind_param($stmt, "si", $status, $leave_id);
+        $stmt = mysqli_prepare($conn, "UPDATE leave_applications SET status = ?, reason_of_rejection = ? WHERE leave_id = ?");
+        mysqli_stmt_bind_param($stmt, "ssi", $status, $reason_of_rejection, $leave_id);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
 
