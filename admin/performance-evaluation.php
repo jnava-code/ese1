@@ -190,20 +190,8 @@
                     <div class="radio-choices">
                         <div class="radio-choice">
                             <label class="radio-label">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
-                                1. Need Guidance
-                            </label>
-                        </div>
-                        <div class="radio-choice">
-                            <label class="radio-label">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
-                                2. Low
-                            </label>
-                        </div>
-                        <div class="radio-choice">
-                            <label class="radio-label">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
-                                3. Satisfactory
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
+                                5. Very Effective
                             </label>
                         </div>
                         <div class="radio-choice">
@@ -214,8 +202,20 @@
                         </div>
                         <div class="radio-choice">
                             <label class="radio-label">
-                                <input type="radio" name="<?php echo $name_attribute; ?>" value="5">
-                                5. Very Effective
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="3">
+                                3. Satisfactory
+                            </label>
+                        </div>
+                        <div class="radio-choice">
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="2">
+                                2. Low
+                            </label>
+                        </div>
+                        <div class="radio-choice">
+                            <label class="radio-label">
+                                <input type="radio" name="<?php echo $name_attribute; ?>" value="1">
+                                1. Need Guidance
                             </label>
                         </div>
                     </div>
