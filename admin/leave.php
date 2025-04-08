@@ -167,6 +167,25 @@ button:disabled {
     background-color: #de0d0d;
 }
 
+.rejection-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+textarea {
+    resize: none;
+}
+
+button[id="submit-reason"],
+button[id="reject_btn"] {
+    background-color: #e74c3c;
+}
 @media print {
         header,
         .main-content h2,
@@ -342,11 +361,10 @@ button:disabled {
                     <?php
                         if ($row['status'] == 'Pending') {
                             echo '<form action="./process_leave" method="POST">                           
-                                    <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
-                                    <input type="hidden" name="leave_id" value="' . $row['leave_id'] . '">
-                                    <input type="hidden" name="employee_id" value="' . $row['employee_id'] . '">
-                                    <input type="hidden" name="leave_type" value="' . $row['leave_type'] . '">
-                                    <input type="hidden" name="number_of_days" value="' . $row['number_of_days'] . '">
+                                    <input type="hidden" id="employee_id" name="employee_id" value="' . $row['employee_id'] . '">
+                                    <input type="hidden" id="leave_id" name="leave_id" value="' . $row['leave_id'] . '">
+                                    <input type="hidden" id="leave_type" name="leave_type" value="' . $row['leave_type'] . '">
+                                    <input type="hidden" id="number_of_days" name="number_of_days" value="' . $row['number_of_days'] . '">
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>
@@ -542,9 +560,41 @@ var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'
     });
 
     const rejectBtn = document.getElementById("reject_btn");
+    const employeeId = document.querySelectorAll("#employee_id");
+const leaveId = document.querySelectorAll("#leave_id");
+const leaveType = document.querySelectorAll("#leave_type");
+const numberOfDays = document.querySelectorAll("#number_of_days");
+
+console.log(employeeId);
+console.log(leaveId);
+console.log(leaveType);
+console.log(numberOfDays);
+
+if (employeeId.length > 0 && leaveId.length > 0 && leaveType.length > 0 && numberOfDays.length > 0) {
+    const arrays = [employeeId, leaveId, leaveType, numberOfDays];
+    
+    arrays.forEach(array => {
+        array.forEach(element => {
+            console.log(element.value);
+        });
+    });
+}
+
     if(rejectBtn) {
         rejectBtn.addEventListener("click", e => {
-            
+
         })
     }
+
+    function reasonOfRejection() {
+        const rejectionModal = `<div class="rejection-modal">
+                <h2>Reason for Rejection</h2>
+                <textarea id="reason" rows="6" cols="50"></textarea>
+                <button id="submit-reason">Submit</button>
+            </div>`;
+
+        document.body.insertAdjacentHTML('beforeend', rejectionModal);
+    }
+
+    reasonOfRejection();
 </script>
