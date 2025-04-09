@@ -209,6 +209,11 @@ if ($result_hired_date) {
             display: block;
         }
 
+        button[type="submit"] {
+            padding: 12px 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
         @media print {
             body * {
                 font-size: 8px;
