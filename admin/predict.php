@@ -52,7 +52,7 @@
                     // Email Headers
                     $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System');
                     $mail->addAddress($email);
-                    $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+                    $mail->Subject = 'ESE-Tech Industrial Solutions Corporation System';
 
                     // Prepare the email message
                     $situation = $reason == 'Approved' ? 'You will remain in your current position.' : '';
