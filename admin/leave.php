@@ -387,7 +387,7 @@ button[id="reject_btn"] {
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>
-                                    <button id="reject_btn_' . $row['leave_id'] . ' " type="submit" value="reject">
+                                    <button style="background-color: red" id="reject_btn_' . $row['leave_id'] . ' " type="submit" value="reject">
                                         Reject
                                     </button>
                                 </form>';

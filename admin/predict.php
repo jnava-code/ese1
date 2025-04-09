@@ -354,7 +354,7 @@
                     $action = "<form class='action-buttons' method='POST'>
                                 <input type='hidden' name='employee_id' value='{$row['employee_id']}'/>
                                 <input type='hidden' name='recommendation' value='{$recommendation}'/>
-                                <input class='btn btn-warning' type='submit' name='approve' value='Approve'/>
+                                <input style='background-color: green !important' class='btn btn-warning' type='submit' name='approve' value='Approve'/>
                                 <input class='btn btn-danger' type='submit' name='reject' value='Reject'/>
                             </form>";
                 }
