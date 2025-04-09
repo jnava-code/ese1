@@ -33,7 +33,7 @@ $result = $stmt->get_result();
 <!-- Main Content Area -->
 <main class="main-content">
     <section id="dashboard">
-        <h2>HISTORY LOGS</h2>
+        <h2>LEAVE HISTORY</h2>
 
         <style>
             table {
