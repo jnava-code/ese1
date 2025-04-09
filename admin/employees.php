@@ -165,11 +165,9 @@
             )";
 
             if ($conn->query($sql) === TRUE) {
-                // Send email using PHPMailer
                 $mail = new PHPMailer(true);
 
                 try {
-                    // SMTP Settings
                     $mail->isSMTP();
                     $mail->Host = 'smtp.gmail.com';
                     $mail->SMTPAuth = true;
@@ -178,15 +176,12 @@
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 587;
                                 
-                    // Email Headers
                     $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System');
                     $mail->addAddress($email);
                     $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
 
-                    // Prepare the email message
                     $message = "Good day! <br><br> Welcome to ESE-Tech Industrial Solutions Corporation System! Below are your login credentials for the ESE-Tech Human Resource System: <br><br>Your Username is: $username <br>Your Password is: $password <br><br> You may log in using the link below: <br>ESE-Tech-HR-System-Login.com <br><br>If you encounter any issues while logging in, please email us at hrsupport@ese-tech.com. <br><br>Thank you! <br>Best regards, <br>ESE-Tech HR Team <br>hrsupport@ese-tech.com";
 
-                    // Set email format to plain text
                     $mail->isHTML(true);
                     $mail->Body = $message;
 

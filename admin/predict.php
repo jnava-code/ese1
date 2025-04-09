@@ -9,13 +9,26 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
+    require '../vendor/autoload.php';
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
+
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/Exception.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/PHPMailer.php';
+    require '../vendor/PHPMailer-6.9.3/PHPMailer-6.9.3/src/SMTP.php';
+
     $succMsg = '';
     $errMsg = '';
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (isset($_POST['approve']) || isset($_POST['reject'])) {
             $employee_id = mysqli_real_escape_string($conn, $_POST['employee_id']);
+            $email = mysqli_real_escape_string($conn, $_POST['email']);
+            $firstname = mysqli_real_escape_string($conn, $_POST['firstname']);
+            $lastname = mysqli_real_escape_string($conn, $_POST['lastname']);
             $recommendation = mysqli_real_escape_string($conn, $_POST['recommendation']);
+            $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+            $maritalStatus = mysqli_real_escape_string($conn, $_POST['civil_status']);
             $reason = isset($_POST['approve']) ? 'Approved' : 'Rejected';
 
             $sql = "INSERT INTO `e_recommendations` (`employee_id`, `recommendation_type`, `reason`, `effective_date`) 
@@ -24,7 +37,88 @@
             $result = mysqli_query($conn, $sql);
 
             if ($result) {
-                $succMsg = $recommendation . ' has been ' . $reason;
+                $mail = new PHPMailer(true);
+
+                try {
+                    // SMTP Settings
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'rroquero26@gmail.com';
+                    $mail->Password = 'plxj aziw yqbo wkbs';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+                                
+                    // Email Headers
+                    $mail->setFrom('no-reply@yourwebsite.com', 'ESE-Tech Industrial Solutions Corporation System');
+                    $mail->addAddress($email);
+                    $mail->Subject = 'Your Account from ESE-Tech Industrial Solutions Corporation System';
+
+                    // Prepare the email message
+                    $situation = $reason == 'Approved' ? 'You will remain in your current position.' : '';
+                    $honorifics = ($gender == 'Male') ? 'Mr.' : ($maritalStatus == 'Married' ? 'Mrs.' : 'Ms.');
+                    $messageContent = '';
+
+                    if($recommendation == 'Promotion') {
+                        if($reason == 'Approved') {
+                            $messageContent = 'We are pleased to inform you that your recommendation for promotion has been reviewed and approved by the management.
+                            <br><br>We commend your performance and dedication, and we look forward to your continued contributions in your new role. Further details regarding the transition and next steps will be communicated to you shortly.
+                            <br><br>Congratulations on this well-deserved recognition.';
+                        } else {
+                            $messageContent = 'We would like to inform you that your recommendation for promotion has been reviewed by the management and, after careful consideration, has not been approved at this time.
+                            <br><br>We encourage you to continue demonstrating your skills and commitment, and we remain confident in your potential for future growth within the company.
+                            <br><br>Thank you for your continued dedication.';
+                        }
+                    } elseif ($recommendation == 'Demotion') {
+                        if($reason == 'Approved') {
+                            $messageContent = 'We would like to inform you that your recommendation for demotion has been reviewed and approved by the management.
+                            <br><br>Please be assured that this decision was made after thorough evaluation and consideration. Further details regarding the transition to your new role, including responsibilities and effective date, will be communicated to you shortly.
+                            <br><br>Should you have any concerns or require further clarification, you are welcome to reach out.';
+                        } else {
+                            $messageContent = 'We would like to inform you that your recommendation for demotion has been reviewed and was not approved by the management.
+                            <br><br>As such, you will remain in your current position. We appreciate your continued commitment and encourage you to maintain a high standard of performance.
+                            <br><br>Should you have any questions or need further clarification, please feel free to contact us.';
+                        }
+                    } elseif ($recommendation == 'Retrenchment') {
+                        if($reason == 'Approved') {
+                            $messageContent = 'We would like to inform you that your recommendation for retrenchment has been reviewed and approved by the management.
+                            <br><br>Please be assured that all necessary procedures will be handled with due diligence and professionalism. Should you have any questions or require further clarification, feel free to reach out.
+                            <br><br>Thank you for your understanding and continued support.';
+                        } else {
+                            $messageContent = 'We would like to inform you that your recommendation for retrenchment has been carefully reviewed and has not been approved.
+                            <br><br>As a result, you will continue to serve in your current position.
+                            <br><br>Thank you for your continued dedication and service to the company.';
+                        }
+                    } else {
+                        if($reason == 'Approved') {
+                            $messageContent = "We would like to inform you that your recommendation to remain in your current position has been reviewed and approved by the management.
+                            <br><br>This decision reflects the company's confidence in your performance and the value you continue to bring to your role. We look forward to your continued contributions and dedication.
+                            <br><br>Should you have any questions or need further information, please feel free to reach out.";
+                        } else {
+                            $messageContent = 'We would like to inform you that your recommendation to remain in your current position has been reviewed by the management but was not approved.
+                            <br><br>A change in your current employment status has been decided upon. Further details regarding this change and the next steps will be communicated to you directly.
+                            <br><br>Should you have any concerns or require clarification, please don’t hesitate to contact us.';
+                        }
+                    }
+
+                    $message = "Dear $honorifics $firstname $lastname,
+                        <br><br>$messageContent
+                        <br><br>Best regards,
+                        <br>ESE-Tech HR Team";
+
+                    // Set email format to plain text
+                    $mail->isHTML(true);
+                    $mail->Body = $message;
+
+                    // Send the email
+                    if ($mail->send()) {               
+                        $succMsg = $firstname . ' ' . $lastname . ':' . ' ' . $recommendation . ' has been ' . $reason;
+                    } else {
+                        $errmsg = "An error occurred: " . $stmt->error;
+                    }
+                } catch (Exception $e) {
+                    $errmsg = "Mailer Error: " . $mail->ErrorInfo;
+                }
             } else {
                 $errMsg = 'Error ' . ($reason == 'Approved' ? 'approving' : 'rejecting') . ' ' . $recommendation;
             }
@@ -33,16 +127,28 @@
 ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+
 <main class="main-content">
     <section id="dashboard">
         <h2>ATTRITION PREDICTION</h2>
-            <?php if ($succMsg): ?>
-                <div class="bg-green-500 text-white p-3 rounded mb-4"> <?php echo $succMsg; ?> </div>
+        <?php 
+            $color = (isset($reason) && $reason == 'Approved') ? '#51cf66' : '#ff6b6b'; 
+            $backgroundColor = (isset($reason) && $reason == 'Approved') ? '#ebfbee' : '#fff5f5';
+        ?>
+
+            <?php if (!empty($succMsg)): ?>
+                <div class="bg-green-500 text-white p-3 rounded mb-4">
+                    <!-- Corrected inline style for dynamic color -->
+                    <span style="color: <?php echo $color; ?>; background-color: <?php echo $backgroundColor; ?>; padding: 12px 24px; border: 1px solid <?php echo $color; ?>"><?php echo $succMsg; ?></span>
+                </div>
             <?php endif; ?>
-            
+
             <?php if ($errMsg): ?>
-                <div class="bg-red-500 text-white p-3 rounded mb-4"> <?php echo $errMsg; ?> </div>
+                <div class="bg-red-500 text-white p-3 rounded mb-4">
+                    <?php echo $errMsg; ?>
+                </div>
             <?php endif; ?>
+
         <?php
         // Function to calculate attrition risk score using linear regression
         function calculateAttritionRisk($attendance_score, $satisfaction_score, $performance_score, $years_of_service) {
@@ -158,6 +264,9 @@
                     e.first_name,
                     e.last_name,
                     e.hire_date,
+                    e.gender,
+                    e.civil_status,
+                    e.email,
                     er.recommendation_id,
                     er.recommendation_type,
                     er.reason,
@@ -354,8 +463,8 @@
                     $action = "<form class='action-buttons' method='POST'>
                                 <input type='hidden' name='employee_id' value='{$row['employee_id']}'/>
                                 <input type='hidden' name='recommendation' value='{$recommendation}'/>
-                                <input style='background-color: green !important' class='btn btn-warning' type='submit' name='approve' value='Approve'/>
-                                <input class='btn btn-danger' type='submit' name='reject' value='Reject'/>
+                                <input id='approved' data-email='{$row['email']}' data-civil_status='{$row['civil_status']}'data-gender='{$row['gender']}' data-firstname='{$row['first_name']}' data-lastname='{$row['last_name']}' data-employee_id='{$row['employee_id']}' data-recommendation='{$recommendation}' style='background-color: green !important' class='btn btn-warning' type='button' value='Approve'/>
+                                <input id='rejected' data-email='{$row['email']}' data-civil_status='{$row['civil_status']}'data-gender='{$row['gender']}' data-firstname='{$row['first_name']}' data-lastname='{$row['last_name']}' data-employee_id='{$row['employee_id']}' data-recommendation='{$recommendation}' class='btn btn-danger' type='button' value='Reject'/>
                             </form>";
                 }
                 echo "<tr>
@@ -385,7 +494,57 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-// Linear Regression calculation functions
+    const approved = document.querySelectorAll('#approved');
+    const rejected = document.querySelectorAll('#rejected');
+    
+    [...approved, ...rejected].forEach((button) => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();            
+            const firstname = this.getAttribute('data-firstname');
+            const lastname = this.getAttribute('data-lastname'); 
+            const employeeId = this.getAttribute('data-employee_id');
+            const recommendation = this.getAttribute('data-recommendation');
+            const gender = this.getAttribute('data-gender');
+            const civil_status = this.getAttribute('data-civil_status');
+            const email = this.getAttribute('data-email');
+            approvedOrRejectedModal(firstname, lastname, gender, civil_status, email, button.value, employeeId, recommendation);        
+        });
+    });
+
+    function approvedOrRejectedModal(firstname, lastname, gender, civil_status, email, buttonValue, employeeId, recommendation) {
+        const modal = `<div class="approved-or-rejected-modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Name: ${firstname} ${lastname}</h3>
+                <p>Recommendation: ${recommendation}</p>
+                <p>Are you sure you want to ${buttonValue == 'Approve' ? 'APPROVE' : 'REJECT'} this recommendation?</p>
+                <form method="POST">
+                    <input type="hidden" name="firstname" value="${firstname}"/>
+                    <input type="hidden" name="lastname" value="${lastname}"/>
+                    <input type="hidden" name="employee_id" value="${employeeId}"/>
+                    <input type="hidden" name="recommendation" value="${recommendation}"/>
+                    <input type="hidden" name="gender" value="${gender}" />
+                    <input type="hidden" name="civil_status" value="${civil_status}" />
+                    <input type="hidden" name="email" value="${email}" />
+                    <input type="submit" style="background-color: green" class="btn btn-success" name="${buttonValue == 'Approve' ? 'approve' : 'reject'}" value="${buttonValue}" />
+                    <input type="button" id="cancel-btn" class="btn btn-danger close-modal" value="Cancel" />
+                </form>
+            </div>     
+        </div>`;
+
+        document.body.insertAdjacentHTML('beforeend', modal);
+
+        const closeModal = document.querySelector('.close');
+        const cancelBtn = document.querySelector('#cancel-btn');
+
+        [closeModal, cancelBtn].forEach((btn) => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.approved-or-rejected-modal').remove();
+            });
+        });
+    }
+
 function linearRegression(x, y) {
     const n = x.length;
     let sum_x = 0;
@@ -588,6 +747,32 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     gap: 5px;
     flex-direction: column;
+}
+
+.approved-or-rejected-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+.approved-or-rejected-modal span {
+    display: flex;
+    justify-content: flex-end;
+
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.approved-or-rejected-modal form {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
 }
 </style>
 
