@@ -99,13 +99,12 @@ if ($result_leave_applications && mysqli_num_rows($result_leave_applications) > 
         .notification {
             display: none;
             position: absolute;
-            top: 180px;
-            right: -10px;
+            top: 240px;
+            right: 25px;
             transform: translate(-50%, -50%);
             background-color: #fff;
             width: 350px;
-            height: auto;
-            max-height: 300px;
+            height: 300px;
             padding: 15px;
             overflow-y: auto;
             box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
