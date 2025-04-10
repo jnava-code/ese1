@@ -387,13 +387,18 @@ button[id="reject_btn"] {
                                     <button type="submit" name="action" value="approve">
                                         Approve
                                     </button>
-                                    <button style="background-color: red" id="reject_btn_' . $row['leave_id'] . ' " type="submit" value="reject">
+                                    <button 
+                                        style="background-color: red;" 
+                                        id="reject_btn" 
+                                        data-leaveId="' . $row['leave_id'] . '" 
+                                        type="button" 
+                                        value="reject">
                                         Reject
                                     </button>
                                 </form>';
                         } else {
                             echo '-----';
-                        }
+                        }                        
                     ?>                 
                 </td>
             </tr>
@@ -578,15 +583,15 @@ var filters = [$('#department'), $('#position-dropdown'), $('#employment_status'
         });
     });
 
-    const leaveId = document.querySelectorAll('#leave_id');
+    const rejectButton = document.querySelectorAll(`#reject_btn`); 
 
-    if(leaveId) {
-        leaveId.forEach(id => {
-            const rejectButton = document.getElementById('reject_btn_' + id.value);
-            if (rejectButton) {
-                rejectButton.addEventListener('click', function(e) {
+    if(rejectButton && rejectButton.length > 0) {
+        rejectButton.forEach(button => {       
+            if (button) {
+                button.addEventListener('click', function(e) {             
                     e.preventDefault();
-                    reasonOfRejection(id.value)
+                    const leaveId = button.getAttribute('data-leaveId');
+                    reasonOfRejection(leaveId)
                 });
             }
         })
