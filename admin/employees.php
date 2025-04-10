@@ -300,8 +300,6 @@ function validateEmployeeData($data) {
     return $errors;
 }
 
-include('header.php'); 
-
 function generatePasswordFromBday($date_of_birth) {
     // Extract month, day, and year from the date
     $date = DateTime::createFromFormat('Y-m-d', $date_of_birth);
