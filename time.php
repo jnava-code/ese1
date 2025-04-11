@@ -285,6 +285,8 @@ employeeId.addEventListener("keydown", function(e) {
             })
             .then(response => response.json())
             .then(data => {
+            console.log(data);
+            
                 if (data.success) {
                     message.innerHTML = data.success;
                     employeeId.value = '';
