@@ -461,8 +461,8 @@ foreach ($attendanceData as $employee_id => $attendance):
             foreach ($attendance as $record) {
                 if ($record['date'] == $date) {
                     $status = htmlspecialchars(substr($record['attendance_status'], 0, 1), ENT_QUOTES, 'UTF-8');
-                    $clock_in_time = $record['clock_in_time'] ? htmlspecialchars($record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '-';
-                    $clock_out_time = $record['clock_out_time'] ? htmlspecialchars($record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '-';
+                    $clock_in_time = $record['clock_in_time'] ? date('h:i:s A', strtotime($record['clock_in_time'])) : '-';
+                    $clock_out_time = $record['clock_out_time'] ? date('h:i:s A', strtotime($record['clock_out_time'])) : '-';                    
                     $total_hours = $record['total_hours'] ? htmlspecialchars($record['total_hours'], ENT_QUOTES, 'UTF-8') : '-';
                     $rstatus = htmlspecialchars($record['status']);
                     break;

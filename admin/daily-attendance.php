@@ -46,14 +46,18 @@ $sql = "
         a.clock_out_time,
         a.total_hours,
         a.status,
-        IFNULL(la.status, 'Absent') AS leave_status
+        IFNULL(la.status, 'Absent') AS leave_status  -- Use MAX to ensure only one leave status
     FROM attendance a
     LEFT JOIN employees e ON a.employee_id = e.employee_id
-    LEFT JOIN leave_applications la ON a.employee_id = la.employee_id
+    LEFT JOIN leave_applications la ON a.employee_id = la.employee_id 
+        AND la.start_date <= '$today'  -- Ensure the leave is valid for today's date
+        AND la.end_date >= '$today'   -- Ensure the leave is valid for today's date
     WHERE a.date = '$today'
     $where 
+    GROUP BY e.employee_id, a.date  -- Group by employee and date to avoid duplication
     ORDER BY a.date DESC 
     LIMIT $limit OFFSET $offset";
+
 
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_execute($stmt);
@@ -349,8 +353,8 @@ $totalPages = ceil($totalRows / $limit);
                                 <td class="employee_display"><?php echo htmlspecialchars($row['employee_id']); ?></td> <!-- Display Employee ID -->
                                 <td><?php echo htmlspecialchars($row['full_name']); ?></td>
                                 <td><?php echo $row['date']; ?></td>
-                                <td><?php echo $row['clock_in_time'] ? $row['clock_in_time'] : '-'; ?></td>
-                                <td><?php echo $row['clock_out_time'] ? $row['clock_out_time'] : '-'; ?></td>
+                                <td><?php echo $row['clock_in_time'] ? date('h:i:s A', strtotime($row['clock_in_time'])) : '-'; ?></td>
+                                <td><?php echo $row['clock_out_time'] ? date('h:i:s A', strtotime($row['clock_out_time'])) : '-'; ?></td>
                                 <td><?php echo $row['total_hours'] ? $row['total_hours'] : '-'; ?></td>
                                 <td><?php echo $row['status']; ?></td> <!-- Use leave_status directly here -->
                             </tr>

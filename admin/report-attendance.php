@@ -443,8 +443,9 @@ if (!empty($month) && !empty($year)) {
 
                 if ($attendance_for_day) {
                     // Display attendance
-                    $clock_in_time = $attendance_for_day['clock_in_time'];
-                    $clock_out_time = $attendance_for_day['clock_out_time'];
+                    $clock_in_time = $attendance_for_day['clock_in_time'] ? date('h:i:s A', strtotime($attendance_for_day['clock_in_time'])) : '-';
+                    $clock_out_time = $attendance_for_day['clock_out_time'] ? date('h:i:s A', strtotime($attendance_for_day['clock_out_time'])) : '-';
+
                     $total_hours = floatval($attendance_for_day['total_hours']); // Convert to float
                     $regular_hours = 8;
 

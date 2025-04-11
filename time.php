@@ -267,46 +267,46 @@ window.onload = updateClock;
         }
     });
 
-employeeId.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") { 
+    employeeId.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
         e.preventDefault();
-        
-        timeButtons.forEach(button => {
-            const inOrOut = button.classList.contains("time-active") && button.value;
-            const employeeIdValue = employeeId.value;
 
-            const formData = new FormData();
-            formData.append("employee_id", employeeIdValue);
-            formData.append("in-or-out", inOrOut);
+        const activeButton = document.querySelector(".time-active");
+        if (!activeButton) return;
 
-            fetch('employee_time', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+        const inOrOut = activeButton.value;
+        const employeeIdValue = employeeId.value.trim();
+        if (!employeeIdValue) return;
+
+        const formData = new FormData();
+        formData.append("employee_id", employeeIdValue);
+        formData.append("in-or-out", inOrOut);
+
+        fetch('employee_time', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
             console.log(data);
-            
-                if (data.success) {
-                    message.innerHTML = data.success;
-                    employeeId.value = '';
-                    setTimeout(() => {
-                        message.innerHTML = '';
-                    }, 2000);
-                } else if (data.error) {
-                    message.innerHTML = data.error;
-                    employeeId.value = '';
-                    setTimeout(() => {
-                        message.innerHTML = '';
-                    }, 2000);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+
+            if (data.success) {
+                message.innerHTML = data.success;
+            } else if (data.error) {
+                message.innerHTML = data.error;
+            }
+
+            employeeId.value = '';
+            setTimeout(() => {
+                message.innerHTML = '';
+            }, 2000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
     }
 });
+
 
 document.body.addEventListener("click", function() {
             document.getElementById("employee_id").focus();
