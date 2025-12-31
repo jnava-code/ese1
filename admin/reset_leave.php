@@ -1,13 +1,5 @@
 <?php
-include('header.php');
-include('includes/sideBar.php');
-
-// Check if user is Super Admin
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'Super Admin') {
-    header("Location: dashboard.php");
-    exit();
-}
-
+$conn = mysqli_connect('localhost', 'root', '', 'esetech');
 // Function to check if reset has been done for current year
 function checkResetStatus($conn) {
     $currentYear = date('Y');
@@ -109,7 +101,11 @@ if (isset($_POST['reset_leaves'])) {
 $currentYear = date('Y');
 $isDecember31 = date('m-d') === '12-31';
 $hasBeenReset = checkResetStatus($conn);
+
+include('header.php');
+include('includes/sideBar.php');
 ?>
+
 
 <!DOCTYPE html>
 <html>
