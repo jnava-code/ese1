@@ -14,11 +14,12 @@
             <?php if (isset($_SESSION['superadmin'])): ?>
                 <li class="dropdown">
                     <a href="javascript:void(0);" class="dropdown-toggle">
-                        <i class="fas fa-user-cog"></i> Manage Admin <i class="fas fa-chevron-down toggle-icon"></i>
+                        <i class="fas fa-user-cog"></i> Manage <i class="fas fa-chevron-down toggle-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li><a href="./superadmin">Admins Profile</a></li>
                         <li><a href="./admin_archive">Archive</a></li>
+                        <li><a href="./reset_leave">Reset Leave</a></li>
                     </ul>
                 </li>
             <?php endif; ?>

@@ -1,5 +1,11 @@
 <?php
 $conn = mysqli_connect('localhost', 'root', '', 'esetech');
+
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
 // Function to check if reset has been done for current year
 function checkResetStatus($conn) {
     $currentYear = date('Y');
@@ -8,7 +14,12 @@ function checkResetStatus($conn) {
     mysqli_stmt_bind_param($stmt, "s", $currentYear);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
-    return mysqli_num_rows($result) > 0;
+
+    // Fetch the result
+    $row = mysqli_fetch_assoc($result); // Fetch the first row
+
+    // If a row exists, it means the reset has already been done for this year
+    return $row !== null;
 }
 
 // Function to reset leave credits
@@ -43,7 +54,7 @@ function resetLeaveCredits($conn) {
                     sick_availed = 0,
                     maternity_availed = 0,
                     paternity_availed = 0
-                WHERE employment_status = 'Regular'";
+                WHERE employment_status = 'Regular' AND is_archived = 0";
 
         if (mysqli_query($conn, $sql)) {
             $affected_rows = mysqli_affected_rows($conn);
@@ -93,6 +104,7 @@ if (!mysqli_query($conn, $sql)) {
 }
 
 // Handle form submission
+$result = null;
 if (isset($_POST['reset_leaves'])) {
     $result = resetLeaveCredits($conn);
 }
@@ -105,7 +117,6 @@ $hasBeenReset = checkResetStatus($conn);
 include('header.php');
 include('includes/sideBar.php');
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -169,11 +180,7 @@ include('includes/sideBar.php');
                 <div class="alert alert-danger"><?php echo $error; ?></div>
             <?php endif; ?>
 
-            <?php if (isset($result)): ?>
-                <div class="alert <?php echo $result['success'] ? 'alert-success' : 'alert-danger'; ?>">
-                    <?php echo $result['message']; ?>
-                </div>
-            <?php endif; ?>
+
 
             <div class="info-box">
                 <h3>Important Information</h3>
@@ -213,4 +220,4 @@ include('includes/sideBar.php');
         </div>
     </main>
 </body>
-</html> 
+</html>
